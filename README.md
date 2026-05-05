@@ -1,4 +1,4 @@
-# NBA Live Intelligence
+# BasketBall Hub
 
 NBA Live Intelligence is a full-stack basketball analytics dashboard built with React, Vite, Tailwind CSS, FastAPI, and `nba_api`.
 
