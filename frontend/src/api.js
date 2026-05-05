@@ -1,20 +1,26 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API = import.meta.env.VITE_API_BASE_URL;
 
-function getApiUrl(path) {
-  if (!API_BASE_URL) {
-    console.error('VITE_API_BASE_URL is not defined');
-    throw new Error('VITE_API_BASE_URL is not defined');
-  }
-
-  return `${API_BASE_URL.replace(/\/$/, '')}${path}`;
+if (!API) {
+  console.error('VITE_API_BASE_URL is not defined');
 }
 
 export async function getScoreboard() {
-  const response = await fetch(getApiUrl('/scoreboard'));
+  try {
+    if (!API) {
+      throw new Error('VITE_API_BASE_URL is not defined');
+    }
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch scoreboard: ${response.status} ${response.statusText}`);
+    const res = await fetch(`${API.replace(/\/$/, '')}/scoreboard`);
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch scoreboard: ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    console.log(data);
+    return data;
+  } catch (err) {
+    console.error('API Error:', err);
+    throw err;
   }
-
-  return response.json();
 }

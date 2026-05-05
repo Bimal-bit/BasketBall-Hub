@@ -11,7 +11,14 @@ async function fetchWithCache<T>(url: string, cacheTime = DEFAULT_CACHE_TIME): P
   }
 
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const preview = (await res.text()).slice(0, 80);
+    throw new Error(`Expected JSON from ${url}, but received ${contentType || 'unknown content type'}: ${preview}`);
+  }
+
   const data = await res.json();
   
   cache[url] = {
