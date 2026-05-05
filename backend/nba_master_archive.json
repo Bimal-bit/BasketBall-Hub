@@ -1,0 +1,64 @@
+{
+    "Boston Celtics": [
+        {
+            "jersey_name": "2024-2026 Association Jersey",
+            "year_range": "2024-26",
+            "base_year": 2024,
+            "image_link": "https://basketballjerseyarchive.com/image/2026/03/10/2YewbEcc5kbPC2j/boston-celtics-2024-2026-association-jersey.jpg"
+        },
+        {
+            "jersey_name": "2024-25 Icon Edition",
+            "year_range": "2024-25",
+            "base_year": 2024,
+            "image_link": "https://basketballjerseyarchive.com/image/boston-celtics-2024-25-icon-edition-jersey-1.jpg"
+        },
+        {
+            "jersey_name": "2024-25 Statement Edition",
+            "year_range": "2024-25",
+            "base_year": 2024,
+            "image_link": "https://basketballjerseyarchive.com/image/boston-celtics-2024-25-statement-edition-jersey-1.jpg"
+        },
+        {
+            "jersey_name": "2024-25 City Edition",
+            "year_range": "2024-25",
+            "base_year": 2024,
+            "image_link": "https://basketballjerseyarchive.com/image/boston-celtics-2024-25-city-edition-jersey-1.jpg"
+        }
+    ],
+    "San Antonio Spurs": [
+        {
+            "jersey_name": "2025-2026 Association Jersey",
+            "year_range": "2025-26",
+            "base_year": 2025,
+            "image_link": "https://basketballjerseyarchive.com/image/2026/03/03/H9tRlMC6DTeHKqe/san-antonio-spurs-2025-2026-association-jersey.jpg"
+        }
+    ],
+    "Los Angeles Lakers": [
+        {
+            "jersey_name": "2024-25 Association Edition",
+            "year_range": "2024-25",
+            "base_year": 2024,
+            "image_link": "https://basketballjerseyarchive.com/image/los-angeles-lakers-2024-25-association-edition-jersey-1.jpg"
+        },
+        {
+            "jersey_name": "2024-25 Icon Edition",
+            "year_range": "2024-25",
+            "base_year": 2024,
+            "image_link": "https://basketballjerseyarchive.com/image/los-angeles-lakers-2024-25-icon-edition-jersey-1.jpg"
+        }
+    ],
+    "Chicago Bulls": [
+        {
+            "jersey_name": "2024-25 Association Edition",
+            "year_range": "2024-25",
+            "base_year": 2024,
+            "image_link": "https://basketballjerseyarchive.com/image/chicago-bulls-2024-25-association-edition-jersey-1.jpg"
+        },
+        {
+            "jersey_name": "1995-96 Away Jersey",
+            "year_range": "1995-96",
+            "base_year": 1995,
+            "image_link": "https://basketballjerseyarchive.com/image/chicago-bulls-1985-2023-away-jersey-1.jpg"
+        }
+    ]
+}

@@ -1,0 +1,371 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #000000;
+    --bg-side: #050505;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-main: #232323;
+    --surface: rgba(12, 12, 12, 0.86);
+    --surface-strong: rgba(8, 8, 8, 0.96);
+    --surface-muted: rgba(255, 255, 255, 0.06);
+    --accent: #f97316;
+    --accent-strong: #fdba74;
+    --accent-soft: rgba(249, 115, 22, 0.16);
+    --shadow: 0 20px 70px rgba(0, 0, 0, 0.38);
+    color-scheme: dark;
+  }
+
+  [data-theme="light"] {
+    --bg-main: #ffffff;
+    --bg-side: #ffffff;
+    --text-main: #111827;
+    --text-muted: #64748b;
+    --border-main: #e5e7eb;
+    --surface: rgba(255, 255, 255, 0.94);
+    --surface-strong: rgba(255, 255, 255, 1);
+    --surface-muted: rgba(15, 23, 42, 0.05);
+    --accent: #ea580c;
+    --accent-strong: #c2410c;
+    --accent-soft: rgba(234, 88, 12, 0.1);
+    --shadow: 0 25px 80px rgba(15, 23, 42, 0.08);
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    background-image: none;
+    color: var(--text-main);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  [data-theme="light"] body {
+    background-image: none;
+  }
+
+  [class*="bg-gray-950"],
+  [class*="bg-gray-900"],
+  [class*="bg-slate-950"],
+  [class*="bg-slate-900"] {
+    background-color: rgba(7, 13, 29, 0.86);
+  }
+
+  [class*="bg-gray-900/"],
+  [class*="bg-gray-800/"],
+  [class*="bg-slate-950/"],
+  [class*="bg-slate-900/"] {
+    background-color: rgba(7, 13, 29, 0.72);
+  }
+
+  [class*="bg-gray-800"] {
+    background-color: rgba(15, 23, 42, 0.92);
+  }
+
+  [class*="border-gray-900"],
+  [class*="border-gray-800"],
+  [class*="border-slate-900"],
+  [class*="border-slate-800"],
+  [class*="border-white/10"] {
+    border-color: rgba(55, 65, 89, 0.72);
+  }
+
+  [class*="rounded-xl"],
+  [class*="rounded-2xl"],
+  [class*="rounded-3xl"] {
+    border-radius: 1.5rem;
+  }
+
+  .light [class*="bg-gray-950"],
+  .light [class*="bg-gray-900"],
+  .light [class*="bg-gray-800"],
+  .light [class*="bg-slate-950"],
+  .light [class*="bg-slate-900"],
+  .light [class*="bg-black"] {
+    background-color: #f8fafc !important;
+    background-image: none !important;
+  }
+
+  .light [class*="bg-gray-900/"],
+  .light [class*="bg-gray-800/"],
+  .light [class*="bg-slate-950/"],
+  .light [class*="bg-slate-900/"] {
+    background-color: rgba(241, 245, 249, 0.84) !important;
+    background-image: none !important;
+  }
+
+  .light [class*="border-gray-900"],
+  .light [class*="border-gray-800"],
+  .light [class*="border-slate-900"],
+  .light [class*="border-slate-800"] {
+    border-color: #e2e8f0 !important;
+  }
+
+  .light [class*="text-white"],
+  .light [class*="text-gray-100"],
+  .light [class*="text-gray-200"],
+  .light [class*="text-gray-300"] {
+    color: #0f172a !important;
+  }
+
+  .light [class*="text-gray-400"] {
+    color: #475569 !important;
+  }
+
+  .light [class*="shadow-black"],
+  .light [class*="shadow-slate-950"],
+  .light [class*="shadow-slate-900"] {
+    box-shadow: 0 18px 65px rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .light [class*="hover:bg-gray-900"],
+  .light [class*="hover:bg-gray-800"],
+  .light [class*="hover:bg-slate-950"],
+  .light [class*="hover:bg-slate-900"] {
+    background-color: #e2e8f0 !important;
+  }
+
+  .light [class*="hover:text-white"] {
+    color: #0f172a !important;
+  }
+
+  [data-theme="dark"] [class*="bg-gray-950"],
+  [data-theme="dark"] [class*="bg-gray-900"],
+  [data-theme="dark"] [class*="bg-gray-800"],
+  [data-theme="dark"] [class*="bg-slate-950"],
+  [data-theme="dark"] [class*="bg-slate-900"],
+  [data-theme="dark"] [class*="bg-black"] {
+    background-color: var(--surface) !important;
+    background-image: none !important;
+  }
+
+  [data-theme="dark"] [class*="border-white/5"],
+  [data-theme="dark"] [class*="border-white/10"],
+  [data-theme="dark"] [class*="border-gray-800"],
+  [data-theme="dark"] [class*="border-slate-800"] {
+    border-color: var(--border-main) !important;
+  }
+
+  [data-theme="light"] [class*="bg-gray-950"],
+  [data-theme="light"] [class*="bg-gray-900"],
+  [data-theme="light"] [class*="bg-gray-800"],
+  [data-theme="light"] [class*="bg-slate-950"],
+  [data-theme="light"] [class*="bg-slate-900"],
+  [data-theme="light"] [class*="bg-black"] {
+    background-color: #ffffff !important;
+    background-image: none !important;
+  }
+
+  [data-theme="light"] [class*="bg-gray-900/"],
+  [data-theme="light"] [class*="bg-gray-800/"],
+  [data-theme="light"] [class*="bg-slate-950/"],
+  [data-theme="light"] [class*="bg-slate-900/"],
+  [data-theme="light"] [class*="bg-black/"] {
+    background-color: #ffffff !important;
+    background-image: none !important;
+  }
+
+  [data-theme="light"] [class*="border-white/5"],
+  [data-theme="light"] [class*="border-white/10"],
+  [data-theme="light"] [class*="border-white/20"],
+  [data-theme="light"] [class*="border-gray-800"],
+  [data-theme="light"] [class*="border-slate-800"] {
+    border-color: #e5e7eb !important;
+  }
+
+  [data-theme="light"] [class*="text-white"],
+  [data-theme="light"] [class*="text-gray-100"],
+  [data-theme="light"] [class*="text-gray-200"],
+  [data-theme="light"] [class*="text-gray-300"] {
+    color: #111827 !important;
+  }
+
+  [data-theme="light"] [class*="text-gray-400"],
+  [data-theme="light"] [class*="text-gray-500"],
+  [data-theme="light"] [class*="text-gray-600"] {
+    color: #64748b !important;
+  }
+
+  [data-theme="light"] input,
+  [data-theme="light"] select,
+  [data-theme="light"] textarea {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+  }
+
+  [data-theme="dark"] input,
+  [data-theme="dark"] select,
+  [data-theme="dark"] textarea {
+    background-color: #050505 !important;
+    color: #f8fafc !important;
+    border-color: #232323 !important;
+  }
+
+  [class*="rounded-[3"],
+  [class*="rounded-[2"],
+  [class*="rounded-3xl"],
+  [class*="rounded-2xl"] {
+    border-radius: 1rem !important;
+  }
+
+  @media (max-width: 640px) {
+    h1,
+    .text-5xl,
+    .text-4xl {
+      font-size: clamp(1.75rem, 9vw, 2.5rem) !important;
+      line-height: 1.05 !important;
+    }
+
+    .p-10 {
+      padding: 1.25rem !important;
+    }
+
+    .gap-10 {
+      gap: 1.25rem !important;
+    }
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.12);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.32);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.45);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    transition: all 0.2s ease;
+  }
+
+  .surface-card {
+    background: var(--surface);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+    border-radius: 1.25rem;
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(18px);
+    border-radius: 1.5rem;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.55s ease-out both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out both;
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-in {
+    animation-duration: 500ms;
+    animation-fill-mode: both;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
+
+  .slide-in-from-right-8 {
+    animation-name: slideInRight;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+  }
+
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  ::selection {
+    background: rgba(249, 115, 22, 0.3);
+    color: inherit;
+  }
+
+  input[type='range'] {
+    height: 4px;
+    border-radius: 2px;
+    background: #374151;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  select option {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+}
