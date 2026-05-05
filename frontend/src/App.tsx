@@ -1,6 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import Layout from './components/Layout';
 import BasketballLoader from './components/BasketballLoader';
+import { getScoreboard } from './api';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const PlayerAnalyzer = lazy(() => import('./pages/PlayerAnalyzer'));
@@ -36,6 +37,8 @@ const pages: Record<string, React.ComponentType> = {
 
 export default function App() {
   const [activePage, setActivePage] = useState('dashboard');
+  const [scoreboardData, setScoreboardData] = useState<unknown>(null);
+  const [scoreboardError, setScoreboardError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleNavigate = (e: any) => {
@@ -44,6 +47,18 @@ export default function App() {
       }
     };
     window.addEventListener('navigate', handleNavigate);
+    
+    getScoreboard()
+      .then(data => {
+        console.log('API Response (Scoreboard):', data);
+        setScoreboardData(data);
+        setScoreboardError(null);
+      })
+      .catch(err => {
+        console.error('API Error:', err);
+        setScoreboardError(err instanceof Error ? err.message : 'Failed to fetch scoreboard');
+      });
+
     return () => window.removeEventListener('navigate', handleNavigate);
   }, []);
 
@@ -51,6 +66,24 @@ export default function App() {
 
   return (
     <Layout activePage={activePage} onNavigate={setActivePage}>
+      {(scoreboardData || scoreboardError) && (
+        <div className="m-4 p-4 bg-gray-900/80 border border-orange-500/30 rounded-xl overflow-hidden">
+          <h3 className="text-orange-500 font-bold mb-2">
+            API Connection Status: {scoreboardError ? 'Failed' : 'Connected'}
+          </h3>
+          {scoreboardError ? (
+            <p className="text-sm text-red-300">{scoreboardError}</p>
+          ) : (
+            <details className="text-xs text-gray-400 cursor-pointer">
+              <summary>View Scoreboard JSON Preview</summary>
+              <pre className="mt-2 p-2 bg-black rounded overflow-auto max-h-40">
+                {JSON.stringify(scoreboardData, null, 2)}
+              </pre>
+            </details>
+          )}
+        </div>
+      )}
+      
       <Suspense fallback={<div className="h-[80vh] flex items-center justify-center"><BasketballLoader /></div>}>
         <PageComponent />
       </Suspense>

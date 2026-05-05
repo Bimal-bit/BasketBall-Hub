@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: nba-live-api
+    name: basketball-hub-api
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     plan: free
-    healthCheckPath: /api/teams
+    healthCheckPath: /api/health

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Simple in-memory cache for API responses
 const cache: Record<string, { data: any; expiry: number }> = {};
@@ -20,6 +20,15 @@ async function fetchWithCache<T>(url: string, cacheTime = DEFAULT_CACHE_TIME): P
   };
   
   return data;
+}
+
+function getApiUrl(path: string) {
+  if (!API_BASE_URL) {
+    console.error('VITE_API_BASE_URL is not defined');
+    throw new Error('VITE_API_BASE_URL is not defined');
+  }
+
+  return `${API_BASE_URL.replace(/\/$/, '')}${path}`;
 }
 
 export interface GameLeader {
@@ -319,11 +328,11 @@ export interface PlayByPlay {
 export const nbaApi = {
   getScoreboard: (date?: string): Promise<Game[]> => {
     const query = date ? `?date=${encodeURIComponent(date)}` : '';
-    return fetchWithCache(`${API_BASE_URL}/scoreboard${query}`, 4000);
+    return fetchWithCache(getApiUrl(`/scoreboard${query}`), 4000);
   },
 
   getPlayByPlay: (gameId: string): Promise<PlayByPlay[]> => {
-    return fetchWithCache(`${API_BASE_URL}/game/${gameId}/playbyplay`, 4000);
+    return fetchWithCache(getApiUrl(`/game/${gameId}/playbyplay`), 4000);
   },
 
   getStandings: (season?: string, seasonType?: string): Promise<Standing[]> => {
@@ -331,58 +340,67 @@ export const nbaApi = {
     if (season) params.append('season', season);
     if (seasonType) params.append('season_type', seasonType);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchWithCache(`${API_BASE_URL}/standings${query}`, 300000); // 5 min for standings
+    return fetchWithCache(getApiUrl(`/standings${query}`), 300000); // 5 min for standings
   },
 
   getTopPlayers: (): Promise<Player[]> => {
-    return fetchWithCache(`${API_BASE_URL}/players/top`, 300000); // 5 min
+    return fetchWithCache(getApiUrl('/players/top'), 300000); // 5 min
+  },
+
+  searchPlayers: (query: string): Promise<Player[]> => {
+    const params = new URLSearchParams({ query });
+    return fetchWithCache(getApiUrl(`/players/search?${params.toString()}`), 300000);
   },
 
   getTeams: (): Promise<NbaTeam[]> => {
-    return fetchWithCache(`${API_BASE_URL}/teams`, 3600000); // 1 hour
+    return fetchWithCache(getApiUrl('/teams'), 3600000); // 1 hour
   },
 
   getBoxScore: (gameId: string): Promise<BoxScorePlayer[]> => {
-    return fetchWithCache(`${API_BASE_URL}/game/${gameId}/boxscore`, 4000);
+    return fetchWithCache(getApiUrl(`/game/${gameId}/boxscore`), 4000);
   },
 
   getGameTeamStats: (gameId: string): Promise<BoxScoreTeam[]> => {
-    return fetchWithCache(`${API_BASE_URL}/game/${gameId}/team-stats`, 4000);
+    return fetchWithCache(getApiUrl(`/game/${gameId}/team-stats`), 4000);
   },
 
   getPlayerShots: (playerId: number, gameId: string): Promise<PlayerShot[]> => {
-    return fetchWithCache(`${API_BASE_URL}/player/${playerId}/shots/${gameId}`);
+    return fetchWithCache(getApiUrl(`/player/${playerId}/shots/${gameId}`));
   },
 
   getTeamShots: (teamId: number, gameId: string): Promise<PlayerShot[]> => {
-    return fetchWithCache(`${API_BASE_URL}/team/${teamId}/shots/${gameId}`);
+    return fetchWithCache(getApiUrl(`/team/${teamId}/shots/${gameId}`));
   },
 
   getPlayerImpact: (gameId: string, playerId: number): Promise<PlayerImpact> => {
-    return fetchWithCache(`${API_BASE_URL}/game/${gameId}/player/${playerId}/impact`);
+    return fetchWithCache(getApiUrl(`/game/${gameId}/player/${playerId}/impact`));
   },
 
   getPlayerAverages: (playerId: number, season?: string): Promise<any> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return fetchWithCache(`${API_BASE_URL}/player/${playerId}/averages${query}`, 300000);
+    return fetchWithCache(getApiUrl(`/player/${playerId}/averages${query}`), 300000);
   },
 
   getAllPlayers: (): Promise<any[]> => {
-    return fetchWithCache(`${API_BASE_URL}/players`, 3600000);
+    return fetchWithCache(getApiUrl('/players'), 3600000);
+  },
+
+  getPlayerInfo: (playerId: number): Promise<any> => {
+    return fetchWithCache(getApiUrl(`/player/${playerId}`), 3600000);
   },
 
   getPlayerProfile: (playerId: number): Promise<any> => {
-    return fetchWithCache(`${API_BASE_URL}/player/${playerId}/profile`, 3600000);
+    return fetchWithCache(getApiUrl(`/player/${playerId}/profile`), 3600000);
   },
 
   getPlayerAwards: (playerId: number, season?: string): Promise<any[]> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return fetchWithCache(`${API_BASE_URL}/player/${playerId}/awards${query}`, 3600000);
+    return fetchWithCache(getApiUrl(`/player/${playerId}/awards${query}`), 3600000);
   },
 
   getPlayerDetailedStats: (playerId: number, season?: string): Promise<PlayerGameLog[]> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return fetchWithCache(`${API_BASE_URL}/player/${playerId}/stats${query}`, 300000);
+    return fetchWithCache(getApiUrl(`/player/${playerId}/stats${query}`), 300000);
   },
 
   getTeamGameLog: (teamId: number, season?: string, seasonType?: string): Promise<TeamGame[]> => {
@@ -390,7 +408,7 @@ export const nbaApi = {
     if (season) params.append('season', season);
     if (seasonType) params.append('season_type', seasonType);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchWithCache(`${API_BASE_URL}/team/${teamId}/gamelog${query}`, 300000);
+    return fetchWithCache(getApiUrl(`/team/${teamId}/gamelog${query}`), 300000);
   },
 
   getFatigueReport: (teamId?: number | 'all', season?: string): Promise<FatigueReport> => {
@@ -398,44 +416,44 @@ export const nbaApi = {
     if (teamId && teamId !== 'all') params.append('team_id', String(teamId));
     if (season) params.append('season', season);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchWithCache(`${API_BASE_URL}/fatigue${query}`, 900000);
+    return fetchWithCache(getApiUrl(`/fatigue${query}`), 900000);
   },
 
   getPlayoffs: (season?: string): Promise<any[]> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return fetchWithCache(`${API_BASE_URL}/playoffs${query}`, 3600000);
+    return fetchWithCache(getApiUrl(`/playoffs${query}`), 3600000);
   },
 
   getAwards: (): Promise<unknown[]> => {
-    return fetchWithCache(`${API_BASE_URL}/awards`, 3600000);
+    return fetchWithCache(getApiUrl('/awards'), 3600000);
   },
 
   getTeamRoster: (teamId: number | string): Promise<Player[]> => {
-    return fetchWithCache(`${API_BASE_URL}/team/${teamId}/roster`, 3600000);
+    return fetchWithCache(getApiUrl(`/team/${teamId}/roster`), 3600000);
   },
   getAllTeamRosters: (): Promise<Record<string, Player[]>> => {
-    return fetchWithCache(`${API_BASE_URL}/teams/rosters`, 3600000);
+    return fetchWithCache(getApiUrl('/teams/rosters'), 3600000);
   },
   getLeaders: (category: string, season?: string, perMode: string = "PerGame", seasonType: string = "Regular Season"): Promise<Player[]> => {
     const params = new URLSearchParams({ category, per_mode: perMode, season_type: seasonType });
     if (season) params.append('season', season);
-    return fetchWithCache(`${API_BASE_URL}/leaders?${params.toString()}`, 3600000);
+    return fetchWithCache(getApiUrl(`/leaders?${params.toString()}`), 3600000);
   },
   getTeamHistory: (teamId: number | string, season: string): Promise<any> => {
-    return fetchWithCache(`${API_BASE_URL}/vault/team-history?team_id=${teamId}&season=${season}`, 86400000);
+    return fetchWithCache(getApiUrl(`/vault/team-history?team_id=${teamId}&season=${season}`), 86400000);
   },
   getSeasonAwards: (season: string): Promise<any[]> => {
-    return fetchWithCache(`${API_BASE_URL}/vault/season-awards?season=${season}`, 86400000);
+    return fetchWithCache(getApiUrl(`/vault/season-awards?season=${season}`), 86400000);
   },
   getTeamJerseys: (teamName: string, season?: string): Promise<any[]> => {
     const query = season ? `&season=${season}` : '';
-    return fetchWithCache(`${API_BASE_URL}/vault/jerseys?team_name=${encodeURIComponent(teamName)}${query}`, 86400000);
+    return fetchWithCache(getApiUrl(`/vault/jerseys?team_name=${encodeURIComponent(teamName)}${query}`), 86400000);
   },
   getHistoricalGames: (season?: string, seasonType: string = "Regular Season", teamId?: number | string, limit: number = 1000): Promise<ArchiveGame[]> => {
     const params = new URLSearchParams({ season_type: seasonType, limit: String(limit) });
     if (season) params.append('season', season);
     if (teamId && teamId !== 'all') params.append('team_id', String(teamId));
-    return fetchWithCache(`${API_BASE_URL}/archive/games?${params.toString()}`, 3600000);
+    return fetchWithCache(getApiUrl(`/archive/games?${params.toString()}`), 3600000);
   }
 };
 

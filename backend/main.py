@@ -41,6 +41,10 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 CACHE_FILE = "api_cache.json"
 
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok"}
+
 def load_persistent_cache():
     if os.path.exists(CACHE_FILE):
         try:
@@ -985,29 +989,6 @@ NBA_AWARDS_DATA = [
 @cached(duration=86400) # Cache for 24 hours
 async def get_awards():
     return NBA_AWARDS_DATA
-
-@app.get("/api/scoreboard")
-async def get_scoreboard(date: str = None):
-    target_date = parse_scoreboard_date(date)
-
-    def fetch():
-        try:
-            stats_games = fetch_stats_scoreboard(target_date)
-            if stats_games:
-                return stats_games
-        except Exception as e:
-            print(f"Stats scoreboard fallback for {target_date}: {e}")
-
-        try:
-            live_games = fetch_live_scoreboard(target_date)
-            if live_games:
-                return live_games
-        except Exception as e:
-            print(f"Live scoreboard fallback for {target_date}: {e}")
-
-        return []
-
-    return get_cached_scoreboard(f"scoreboard:{target_date}", fetch)
 
 @app.get("/api/standings")
 @cached(duration=3600) # Cache for 1 hour
