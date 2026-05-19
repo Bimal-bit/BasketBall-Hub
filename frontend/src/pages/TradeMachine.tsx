@@ -92,10 +92,10 @@ export default function TradeMachine() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px_1fr] gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px_1fr] gap-4">
         <TeamTradePanel team={leftTeam} teams={teamOptions} selectedTeamId={leftTeamId} onTeamChange={setLeftTeamId} roster={filteredLeft} selected={leftSelected} onToggle={id => toggleSelected(id, leftSelected, setLeftSelected)} picks={draftPicks[leftTeamId] || []} selectedPicks={leftPicks} onTogglePick={id => toggleSelected(id, leftPicks, setLeftPicks)} />
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4 order-last xl:order-none">
           <div className="flex items-center justify-center">
             <div className="h-12 w-12 rounded-full bg-orange-500/15 text-orange-300 flex items-center justify-center border border-orange-500/30">
               <ArrowLeftRight size={22} />

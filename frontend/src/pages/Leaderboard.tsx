@@ -151,8 +151,29 @@ export default function Leaderboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Categories Sidebar */}
-        <div className="lg:col-span-1 space-y-2">
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 rounded-2xl p-4 shadow-2xl sticky top-24">
+        <div className="lg:col-span-1">
+          <details className="lg:hidden mb-4 bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 rounded-2xl overflow-hidden">
+            <summary className="p-4 text-sm font-black text-white uppercase tracking-widest cursor-pointer flex items-center justify-between">
+              <span>Metrics: {category}</span>
+              <ChevronDown size={16} className="text-orange-500" />
+            </summary>
+            <div className="p-3 space-y-1 max-h-64 overflow-y-auto custom-scrollbar border-t border-white/10">
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between group ${
+                    category === cat
+                    ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </details>
+          <div className="hidden lg:block bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 rounded-2xl p-4 shadow-2xl sticky top-24">
             <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 px-2">Metrics</h3>
             <div className="space-y-1 overflow-y-auto max-h-[70vh] custom-scrollbar">
               {CATEGORIES.map(cat => (
@@ -160,8 +181,8 @@ export default function Leaderboard() {
                   key={cat}
                   onClick={() => setCategory(cat)}
                   className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between group ${
-                    category === cat 
-                    ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' 
+                    category === cat
+                    ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
                     : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
                   }`}
                 >
@@ -257,24 +278,24 @@ export default function Leaderboard() {
                   <BasketballLoader />
                 </div>
               ) : filteredLeaders.length > 0 ? (
-                <table className="w-full text-left">
+                <table className="w-full text-left min-w-[480px]">
                   <thead>
                     <tr className="bg-white/[0.02] text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-white/10">
-                      <th className="py-5 px-8">Rank</th>
+                      <th className="py-5 px-4 sm:px-8">Rank</th>
                       <th className="py-5 px-4">Player</th>
-                      <th className="py-5 px-4">Team</th>
-                      <th className="py-5 px-4">Games</th>
+                      <th className="py-5 px-4 hidden sm:table-cell">Team</th>
+                      <th className="py-5 px-4 hidden sm:table-cell">Games</th>
                       <th className="py-5 px-4 text-right">Value</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {filteredLeaders.map((p, idx) => (
-                      <tr 
-                        key={p.PLAYER_ID} 
+                      <tr
+                        key={p.PLAYER_ID}
                         onClick={() => setSelectedPlayer(p)}
                         className="group hover:bg-white/5 transition-all duration-300 cursor-pointer"
                       >
-                        <td className="py-4 px-8">
+                        <td className="py-4 px-4 sm:px-8">
                           {idx < 3 ? (
                             <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black italic shadow-lg ${
                               idx === 0 ? 'bg-gradient-to-br from-yellow-300 to-yellow-600 text-black' :
@@ -291,21 +312,21 @@ export default function Leaderboard() {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="relative">
+                            <div className="relative shrink-0">
                               <div className="absolute inset-0 bg-white/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <img 
-                                src={getPlayerHeadshotUrl(p.PLAYER_ID!)} 
-                                className="w-10 h-10 rounded-full border border-white/10 bg-gray-800 relative z-10" 
+                              <img
+                                src={getPlayerHeadshotUrl(p.PLAYER_ID!)}
+                                className="w-10 h-10 rounded-full border border-white/10 bg-gray-800 relative z-10"
                                 onError={(e) => e.currentTarget.src = 'https://www.nba.com/assets/logos/teams/primary/web/NBA.svg'}
                               />
                             </div>
                             <div>
                                <p className="text-sm font-black text-white italic group-hover:text-orange-400 transition-colors">{p.PLAYER_NAME}</p>
-                               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{season === 'Lifetime' ? 'Career' : p.TEAM_ABBREVIATION}</p>
+                               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest sm:hidden">{season === 'Lifetime' ? 'Career' : p.TEAM_ABBREVIATION}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-4">
+                        <td className="py-4 px-4 hidden sm:table-cell">
                           {season !== 'Lifetime' && p.TEAM_ID !== 0 ? (
                             <div className="flex items-center gap-2">
                               <img src={getTeamLogoUrl(p.TEAM_ID)} className="w-6 h-6 object-contain" />
@@ -315,7 +336,7 @@ export default function Leaderboard() {
                             <span className="text-xs font-bold text-gray-500 italic uppercase">NBA Legend</span>
                           )}
                         </td>
-                        <td className="py-4 px-4 text-xs font-bold text-gray-500">
+                        <td className="py-4 px-4 text-xs font-bold text-gray-500 hidden sm:table-cell">
                           {p.GP} <span className="text-[9px] opacity-50 uppercase ml-1">games</span>
                         </td>
                         <td className="py-4 px-4 text-right">

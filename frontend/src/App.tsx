@@ -17,6 +17,7 @@ const SeasonVault = lazy(() => import('./pages/SeasonVault'));
 const TradeMachine = lazy(() => import('./pages/TradeMachine'));
 const SalaryCapHub = lazy(() => import('./pages/SalaryCapHub'));
 const HistoricalGameArchive = lazy(() => import('./pages/HistoricalGameArchive'));
+const InsightsLab = lazy(() => import('./pages/InsightsLab'));
 
 const pages: Record<string, React.ComponentType> = {
   dashboard: Dashboard,
@@ -33,6 +34,7 @@ const pages: Record<string, React.ComponentType> = {
   trades: TradeMachine,
   salary: SalaryCapHub,
   archive: HistoricalGameArchive,
+  insights: InsightsLab,
 };
 
 export default function App() {

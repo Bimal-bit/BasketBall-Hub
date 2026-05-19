@@ -298,21 +298,21 @@ export default function PlayerAnalyzer() {
   return (
     <div className="p-4 lg:p-8 space-y-12 pb-20 max-w-[1600px] mx-auto animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center bg-slate-900/50 p-10 rounded-[3rem] border border-white/5 backdrop-blur-2xl shadow-2xl">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-slate-900/50 p-5 sm:p-10 rounded-2xl sm:rounded-[3rem] border border-white/5 backdrop-blur-2xl shadow-2xl">
          <div>
-            <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter drop-shadow-lg">Player Analyzer</h1>
-            <p className="text-xs text-orange-500 font-black uppercase tracking-[0.4em] mt-3">Comprehensive NBA Database</p>
+            <h1 className="text-3xl sm:text-5xl font-black text-white italic uppercase tracking-tighter drop-shadow-lg">Player Analyzer</h1>
+            <p className="text-xs text-orange-500 font-black uppercase tracking-[0.4em] mt-2">Comprehensive NBA Database</p>
          </div>
          
-          <div className="flex flex-col md:flex-row gap-6 items-center w-full max-w-2xl">
+          <div className="flex flex-col gap-3 w-full sm:max-w-2xl">
              <div className="relative flex-1 group">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                 <input 
                   type="text" 
-                  placeholder="Search any NBA Player in History..." 
+                  placeholder="Search any NBA Player..." 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-full py-5 pl-16 pr-6 text-white focus:outline-none focus:border-orange-500 transition-all placeholder:text-gray-600 font-black italic uppercase text-xs shadow-inner"
+                  className="w-full bg-black/60 border border-white/10 rounded-full py-4 pl-12 pr-4 text-white focus:outline-none focus:border-orange-500 transition-all placeholder:text-gray-600 font-black italic uppercase text-xs shadow-inner"
                 />
              </div>
              
@@ -325,7 +325,7 @@ export default function PlayerAnalyzer() {
                    setSelectingSlot('p2');
                  }
                }}
-               className={`shrink-0 px-8 py-5 rounded-full font-black uppercase text-xs italic transition-all border
+               className={`px-6 py-4 rounded-full font-black uppercase text-xs italic transition-all border
                  ${isComparing ? 'bg-orange-500 border-orange-400 text-white shadow-[0_0_30px_rgba(249,115,22,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'}`}
              >
                {isComparing ? 'Exit Comparison' : 'Compare Players'}
@@ -352,9 +352,9 @@ export default function PlayerAnalyzer() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Left Column: Player List */}
-        <div className="xl:col-span-4 bg-slate-900/30 border border-white/5 rounded-[3.5rem] p-6 flex flex-col backdrop-blur-md min-h-[600px] xl:min-h-[800px]">
+        <div className="xl:col-span-4 bg-slate-900/30 border border-white/5 rounded-2xl sm:rounded-[3.5rem] p-4 flex flex-col backdrop-blur-md min-h-[400px] xl:min-h-[800px]">
           <div className="px-6 py-4 border-b border-white/5 mb-4 shrink-0">
              <div className="flex items-center justify-between mb-2">
                <div className="text-xs font-black text-gray-500 uppercase tracking-widest">Player Directory</div>

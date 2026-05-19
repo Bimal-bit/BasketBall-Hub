@@ -162,16 +162,16 @@ export default function Standings() {
           <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">League Standings</h1>
           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.5em] mt-2">NBA Official Season {season}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-3 bg-black/60 border border-white/10 rounded-2xl px-6 py-3.5">
-            <Calendar size={18} className="text-orange-500" />
-            <select value={season} onChange={e => setSeason(e.target.value)} className="bg-transparent text-white text-sm font-black uppercase outline-none cursor-pointer">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex items-center gap-3 bg-black/60 border border-white/10 rounded-2xl px-4 py-3">
+            <Calendar size={18} className="text-orange-500 shrink-0" />
+            <select value={season} onChange={e => setSeason(e.target.value)} className="bg-transparent text-white text-sm font-black uppercase outline-none cursor-pointer w-full">
               {seasons.map(s => <option key={s} value={s} className="bg-slate-950">{s}</option>)}
             </select>
           </div>
           <div className="flex bg-black/60 border border-white/10 rounded-2xl p-1.5">
             {['Regular Season', 'Playoffs', 'Finals'].map(type => (
-              <button key={type} onClick={() => setSeasonType(type)} className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${seasonType === type ? 'bg-orange-500 text-white shadow-xl' : 'text-gray-500 hover:text-white'}`}>
+              <button key={type} onClick={() => setSeasonType(type)} className={`px-4 sm:px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${seasonType === type ? 'bg-orange-500 text-white shadow-xl' : 'text-gray-500 hover:text-white'}`}>
                 {type.split(' ')[0]}
               </button>
             ))}
@@ -207,28 +207,28 @@ function ConferenceTable({ title, teams, onTeamClick }: any) {
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter px-2">{title}</h2>
-      <div className="bg-slate-900/20 border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-md">
-        <table className="w-full text-left">
+      <div className="bg-slate-900/20 border border-white/5 rounded-[2.5rem] overflow-x-auto backdrop-blur-md">
+        <table className="w-full text-left min-w-[480px]">
           <thead>
             <tr className="bg-white/5 border-b border-white/5">
-              <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-500">Rank</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-500">Team</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-500 text-center">W-L</th>
-              <th className="px-8 py-5 text-[10px] font-black uppercase text-gray-500 text-center">PCT</th>
+              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500">Rank</th>
+              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500">Team</th>
+              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500 text-center">W-L</th>
+              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500 text-center">PCT</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.02]">
             {teams.map((team: any, i: number) => (
               <tr key={team.TeamID} onClick={() => onTeamClick(team)} className="group hover:bg-white/5 transition-all cursor-pointer">
-                <td className="px-8 py-5 font-black text-gray-600">{i + 1}</td>
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-6">
-                    <img src={getTeamLogoUrl(team.TeamID)} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform" alt="" />
-                    <div className="text-base font-black text-white uppercase group-hover:text-orange-400">{team.TeamCity} {team.TeamName}</div>
+                <td className="px-4 sm:px-8 py-4 font-black text-gray-600">{i + 1}</td>
+                <td className="px-4 sm:px-8 py-4">
+                  <div className="flex items-center gap-3 sm:gap-6">
+                    <img src={getTeamLogoUrl(team.TeamID)} className="w-8 h-8 sm:w-12 sm:h-12 object-contain group-hover:scale-110 transition-transform shrink-0" alt="" />
+                    <div className="text-sm sm:text-base font-black text-white uppercase group-hover:text-orange-400 truncate">{team.TeamCity} {team.TeamName}</div>
                   </div>
                 </td>
-                <td className="px-8 py-5 text-center font-black text-white italic">{team.Wins}-{team.Losses}</td>
-                <td className="px-8 py-5 text-center font-black text-orange-400 italic">{((team.WinPCT || 0) * 100).toFixed(1)}%</td>
+                <td className="px-4 sm:px-8 py-4 text-center font-black text-white italic">{team.Wins}-{team.Losses}</td>
+                <td className="px-4 sm:px-8 py-4 text-center font-black text-orange-400 italic">{((team.WinPCT || 0) * 100).toFixed(1)}%</td>
               </tr>
             ))}
           </tbody>
@@ -240,17 +240,19 @@ function ConferenceTable({ title, teams, onTeamClick }: any) {
 
 function PlayoffBracket({ series, onTeamClick }: any) {
   return (
-    <div className="flex justify-between items-start min-w-[1200px] gap-12 p-8 overflow-x-auto scrollbar-hide">
-      <div className="flex gap-16">
-        <RoundColumn title="First Round" series={series.filter(s => s.round === 1 && s.conference === 'West')} onTeamClick={onTeamClick} />
-        <RoundColumn title="Semifinals" series={series.filter(s => s.round === 2 && s.conference === 'West')} onTeamClick={onTeamClick} />
-        <RoundColumn title="Conf. Finals" series={series.filter(s => s.round === 3 && s.conference === 'West')} onTeamClick={onTeamClick} />
-      </div>
-      <div className="flex flex-col items-center justify-center pt-32"><Trophy size={80} className="text-orange-500/20 animate-pulse" /></div>
-      <div className="flex flex-row-reverse gap-16">
-        <RoundColumn title="First Round" series={series.filter(s => s.round === 1 && s.conference === 'East')} onTeamClick={onTeamClick} />
-        <RoundColumn title="Semifinals" series={series.filter(s => s.round === 2 && s.conference === 'East')} onTeamClick={onTeamClick} />
-        <RoundColumn title="Conf. Finals" series={series.filter(s => s.round === 3 && s.conference === 'East')} onTeamClick={onTeamClick} />
+    <div className="overflow-x-auto -mx-4 px-4">
+      <div className="flex justify-between items-start min-w-[900px] gap-8 p-4 sm:p-8">
+        <div className="flex gap-8 sm:gap-16">
+          <RoundColumn title="First Round" series={series.filter(s => s.round === 1 && s.conference === 'West')} onTeamClick={onTeamClick} />
+          <RoundColumn title="Semifinals" series={series.filter(s => s.round === 2 && s.conference === 'West')} onTeamClick={onTeamClick} />
+          <RoundColumn title="Conf. Finals" series={series.filter(s => s.round === 3 && s.conference === 'West')} onTeamClick={onTeamClick} />
+        </div>
+        <div className="flex flex-col items-center justify-center pt-32"><Trophy size={60} className="text-orange-500/20 animate-pulse" /></div>
+        <div className="flex flex-row-reverse gap-8 sm:gap-16">
+          <RoundColumn title="First Round" series={series.filter(s => s.round === 1 && s.conference === 'East')} onTeamClick={onTeamClick} />
+          <RoundColumn title="Semifinals" series={series.filter(s => s.round === 2 && s.conference === 'East')} onTeamClick={onTeamClick} />
+          <RoundColumn title="Conf. Finals" series={series.filter(s => s.round === 3 && s.conference === 'East')} onTeamClick={onTeamClick} />
+        </div>
       </div>
     </div>
   );
@@ -292,17 +294,17 @@ function FinalsView({ series, onTeamClick, onGameClick }: any) {
       <div className="relative overflow-hidden rounded-[5rem] border border-orange-500/20 bg-slate-950 p-24 text-center shadow-[0_0_100px_rgba(249,115,22,0.1)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.15),transparent)]" />
         <div className="relative z-10 flex flex-col items-center gap-16">
-          <div className="flex items-center justify-center gap-20 sm:gap-40">
+          <div className="flex items-center justify-center gap-6 sm:gap-20 sm:gap-40 flex-wrap">
              <div onClick={() => onTeamClick({ TeamID: series.homeId, name: series.homeName })} className="cursor-pointer group text-center">
-                <img src={getTeamLogoUrl(series.homeId)} className="w-64 h-64 object-contain group-hover:scale-110 transition-transform mb-8 mx-auto" alt="" />
-                <div className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">{series.homeName}</div>
-                <div className="text-8xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.homeWins}</div>
+                <img src={getTeamLogoUrl(series.homeId)} className="w-32 h-32 sm:w-64 sm:h-64 object-contain group-hover:scale-110 transition-transform mb-4 sm:mb-8 mx-auto" alt="" />
+                <div className="text-2xl sm:text-4xl font-black text-white uppercase italic tracking-tighter mb-2 sm:mb-4">{series.homeName}</div>
+                <div className="text-5xl sm:text-8xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.homeWins}</div>
              </div>
-             <div className="text-[120px] font-black text-gray-900 italic select-none">VS</div>
+             <div className="text-5xl sm:text-[120px] font-black text-gray-900 italic select-none">VS</div>
              <div onClick={() => onTeamClick({ TeamID: series.visitorId, name: series.visitorName })} className="cursor-pointer group text-center">
-                <img src={getTeamLogoUrl(series.visitorId)} className="w-64 h-64 object-contain group-hover:scale-110 transition-transform mb-8 mx-auto" alt="" />
-                <div className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">{series.visitorName}</div>
-                <div className="text-8xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.visitorWins}</div>
+                <img src={getTeamLogoUrl(series.visitorId)} className="w-32 h-32 sm:w-64 sm:h-64 object-contain group-hover:scale-110 transition-transform mb-4 sm:mb-8 mx-auto" alt="" />
+                <div className="text-2xl sm:text-4xl font-black text-white uppercase italic tracking-tighter mb-2 sm:mb-4">{series.visitorName}</div>
+                <div className="text-5xl sm:text-8xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.visitorWins}</div>
              </div>
           </div>
           <div className="text-sm font-black text-gray-500 uppercase tracking-[1.5em]">NBA Finals Championship</div>

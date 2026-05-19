@@ -104,9 +104,9 @@ export default function SalaryCapHub() {
           </div>
           <div className="space-y-2">
             {rosterContracts.map(({ player, salary, years, status }) => (
-              <div key={getPlayerId(player)} className="grid grid-cols-[1fr_80px_70px_92px] items-center gap-3 rounded-lg bg-gray-800/40 p-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <img src={getPlayerHeadshotUrl(getPlayerId(player))} alt="" className="h-9 w-9 rounded-full object-cover object-top bg-gray-950" />
+              <div key={getPlayerId(player)} className="flex flex-wrap sm:grid sm:grid-cols-[1fr_80px_70px_92px] items-center gap-2 sm:gap-3 rounded-lg bg-gray-800/40 p-3">
+                <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                  <img src={getPlayerHeadshotUrl(getPlayerId(player))} alt="" className="h-9 w-9 rounded-full object-cover object-top bg-gray-950 shrink-0" />
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-white truncate">{getPlayerName(player)}</div>
                     <div className="text-xs text-gray-500">{player.POSITION || 'G/F'} / {player.TEAM_ABBREVIATION}</div>

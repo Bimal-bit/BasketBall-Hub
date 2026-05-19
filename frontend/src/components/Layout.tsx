@@ -1,7 +1,7 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import {
   Activity, BarChart2, Zap, Target, Shuffle, Clock,
-  ChevronLeft, ChevronRight, TrendingUp, Menu, Trophy, Landmark, History, Repeat2, Sun, Moon
+  ChevronLeft, ChevronRight, TrendingUp, Menu, Trophy, Landmark, History, Repeat2, Sun, Moon, Search, X, BrainCircuit
 } from 'lucide-react';
 import { useTheme } from '../lib/theme';
 
@@ -10,23 +10,28 @@ type NavItem = {
   label: string;
   icon: ReactNode;
   badge?: string;
+  description: string;
+  group: 'Live' | 'Analysis' | 'League';
 };
 
 const navItems: NavItem[] = [
-  { id: 'dashboard', label: 'Live Dashboard', icon: <Activity size={18} />, badge: 'LIVE' },
-  { id: 'players', label: 'Player Analyzer', icon: <BarChart2 size={18} /> },
-  { id: 'fatigue', label: 'Fatigue Detection', icon: <Zap size={18} /> },
-  { id: 'shots', label: 'Shot Predictor', icon: <Target size={18} /> },
-  { id: 'simulator', label: 'Strategy Simulator', icon: <Shuffle size={18} /> },
-  { id: 'clutch', label: 'Clutch Moments', icon: <Clock size={18} /> },
-  { id: 'awards', label: 'Awards History', icon: <Trophy size={18} /> },
-  { id: 'standings', label: 'League Standings', icon: <BarChart2 size={18} /> },
-  { id: 'leaderboard', label: 'Leaderboard', icon: <TrendingUp size={18} /> },
-  { id: 'vault', label: 'Season Vault', icon: <Trophy size={18} /> },
-  { id: 'trades', label: 'Trade Machine', icon: <Repeat2 size={18} /> },
-  { id: 'salary', label: 'Salary Cap Hub', icon: <Landmark size={18} /> },
-  { id: 'archive', label: 'Game Archive', icon: <History size={18} /> },
+  { id: 'dashboard', label: 'Live Dashboard', icon: <Activity size={18} />, badge: 'LIVE', description: 'Scores, leaders, and game details', group: 'Live' },
+  { id: 'insights', label: 'Insights Lab', icon: <BrainCircuit size={18} />, badge: 'NEW', description: 'Compare, predict, recap, and watch', group: 'Live' },
+  { id: 'players', label: 'Player Analyzer', icon: <BarChart2 size={18} />, description: 'Player trends and stat profiles', group: 'Analysis' },
+  { id: 'fatigue', label: 'Fatigue Detection', icon: <Zap size={18} />, description: 'Workload and rest signals', group: 'Analysis' },
+  { id: 'shots', label: 'Shot Predictor', icon: <Target size={18} />, description: 'Shot quality and court zones', group: 'Analysis' },
+  { id: 'simulator', label: 'Strategy Simulator', icon: <Shuffle size={18} />, description: 'Lineup and matchup scenarios', group: 'Analysis' },
+  { id: 'clutch', label: 'Clutch Moments', icon: <Clock size={18} />, description: 'Late-game performance', group: 'Analysis' },
+  { id: 'awards', label: 'Awards History', icon: <Trophy size={18} />, description: 'MVP, DPOY, and award races', group: 'League' },
+  { id: 'standings', label: 'League Standings', icon: <BarChart2 size={18} />, description: 'Conference and division tables', group: 'League' },
+  { id: 'leaderboard', label: 'Leaderboard', icon: <TrendingUp size={18} />, description: 'Season statistical leaders', group: 'League' },
+  { id: 'vault', label: 'Season Vault', icon: <Trophy size={18} />, description: 'Historical season archive', group: 'League' },
+  { id: 'trades', label: 'Trade Machine', icon: <Repeat2 size={18} />, description: 'Roster movement scenarios', group: 'League' },
+  { id: 'salary', label: 'Salary Cap Hub', icon: <Landmark size={18} />, description: 'Contracts and cap room', group: 'League' },
+  { id: 'archive', label: 'Game Archive', icon: <History size={18} />, description: 'Past game lookup', group: 'League' },
 ];
+
+const navGroups: NavItem['group'][] = ['Live', 'Analysis', 'League'];
 
 type Props = {
   children: ReactNode;
@@ -37,7 +42,36 @@ type Props = {
 export default function Layout({ children, activePage, onNavigate }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navQuery, setNavQuery] = useState('');
   const { theme, toggleTheme } = useTheme();
+  const activeItem = navItems.find(n => n.id === activePage) ?? navItems[0];
+
+  const filteredNav = useMemo(() => {
+    const query = navQuery.trim().toLowerCase();
+    if (!query) return navItems;
+
+    return navItems.filter(item => {
+      const searchable = `${item.label} ${item.description} ${item.group}`.toLowerCase();
+      return searchable.includes(query);
+    });
+  }, [navQuery]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
+
+  function handleNavigate(page: string) {
+    onNavigate(page);
+    setMobileOpen(false);
+    setNavQuery('');
+  }
 
   return (
     <div className="min-h-screen relative flex bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-300">
@@ -70,33 +104,85 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
           )}
         </div>
 
+        {!collapsed && (
+          <div className="px-4 pt-4">
+            <label className="relative block">
+              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                value={navQuery}
+                onChange={(event) => setNavQuery(event.target.value)}
+                className="h-10 w-full rounded-xl border border-[var(--border-main)] bg-[var(--surface-muted)] pl-9 pr-9 text-sm text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)] focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/20"
+                placeholder="Search sections"
+                type="search"
+              />
+              {navQuery && (
+                <button
+                  type="button"
+                  onClick={() => setNavQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)]"
+                  aria-label="Clear navigation search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </label>
+          </div>
+        )}
+
         {/* Nav */}
-        <nav className="flex-1 py-4 overflow-y-auto space-y-1">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => { onNavigate(item.id); setMobileOpen(false); }}
-              className={`
-                w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all duration-200 ease-out
-                ${collapsed ? 'justify-center' : ''}
-                ${activePage === item.id
-                  ? 'bg-[var(--accent-soft)] text-[var(--accent-strong)] shadow-sm ring-1 ring-orange-500/20'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--surface-muted)]'
-                }
-              `}
-              title={collapsed ? item.label : undefined}
-            >
-              <span className="flex-shrink-0">{item.icon}</span>
-              {!collapsed && (
-                <span className="flex-1 text-left">{item.label}</span>
-              )}
-              {!collapsed && item.badge && (
-                <span className="text-[10px] font-semibold tracking-wide uppercase bg-red-500 text-white px-2 py-1 rounded-full shadow-sm">
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          ))}
+        <nav className="flex-1 overflow-y-auto px-2 py-4">
+          {navGroups.map(group => {
+            const groupItems = filteredNav.filter(item => item.group === group);
+            if (groupItems.length === 0) return null;
+
+            return (
+              <div key={group} className="mb-5 last:mb-0">
+                {!collapsed && (
+                  <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--text-muted)]">
+                    {group}
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {groupItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNavigate(item.id)}
+                      className={`
+                        group/nav w-full flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-all duration-200 ease-out
+                        ${collapsed ? 'justify-center' : ''}
+                        ${activePage === item.id
+                          ? 'bg-[var(--accent-soft)] text-[var(--accent-strong)] shadow-sm ring-1 ring-orange-500/20'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--surface-muted)]'
+                        }
+                      `}
+                      title={collapsed ? item.label : undefined}
+                      aria-current={activePage === item.id ? 'page' : undefined}
+                    >
+                      <span className="flex-shrink-0">{item.icon}</span>
+                      {!collapsed && (
+                        <span className="min-w-0 flex-1 text-left">
+                          <span className="block truncate font-medium">{item.label}</span>
+                          <span className="mt-0.5 block truncate text-[11px] text-[var(--text-muted)]">
+                            {item.description}
+                          </span>
+                        </span>
+                      )}
+                      {!collapsed && item.badge && (
+                        <span className="text-[10px] font-semibold tracking-wide uppercase bg-red-500 text-white px-2 py-1 rounded-full shadow-sm">
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          {!collapsed && filteredNav.length === 0 && (
+            <div className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">
+              No sections found.
+            </div>
+          )}
         </nav>
 
         {/* Collapse toggle */}
@@ -117,19 +203,24 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden text-[var(--text-muted)] hover:text-[var(--text-main)]"
+              className="rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)] lg:hidden"
+              aria-label="Open navigation"
             >
               <Menu size={20} />
             </button>
-            <div>
+            <div className="min-w-0">
               <h1 className="text-sm font-semibold text-[var(--text-main)]">
-                {navItems.find(n => n.id === activePage)?.label}
+                {activeItem.label}
               </h1>
-              <p className="text-xs text-gray-400">2025-2026 Season • Playoffs</p>
+              <p className="truncate text-xs text-gray-400">{activeItem.description}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-green-400">
+            <div className="hidden items-center gap-2 rounded-full border border-[var(--border-main)] bg-[var(--surface-muted)] px-3 py-1.5 text-xs text-[var(--text-muted)] sm:flex">
+              <span className="font-medium text-[var(--text-main)]">2025-2026</span>
+              <span>Playoffs</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-green-400" aria-label="Live data status">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               Live
             </div>

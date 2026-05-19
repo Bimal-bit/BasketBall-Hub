@@ -136,8 +136,8 @@ export default function FatigueDetection() {
         <MetricCard icon={<Zap size={20} className="text-orange-400 mx-auto mb-1" />} value={b2bCount} label="Back-to-Back" />
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-3">
+        <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             value={search}
@@ -146,39 +146,41 @@ export default function FatigueDetection() {
             className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50 placeholder:text-gray-600"
           />
         </div>
-        <select
-          value={teamFilter}
-          onChange={(event) => {
-            setTeamFilter(event.target.value === 'all' ? 'all' : Number(event.target.value));
-          }}
-          className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
-        >
-          <option value="all">All NBA teams</option>
-          {teamOptions.map(team => <option key={team.id} value={team.id}>{team.abbreviation} - {team.full_name}</option>)}
-        </select>
-        <select
-          value={selected ? getPlayerId(selected) : ''}
-          onChange={(event) => setSelected(players.find(player => getPlayerId(player) === Number(event.target.value)) ?? null)}
-          className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
-        >
-          {filtered.map(player => <option key={getPlayerId(player)} value={getPlayerId(player)}>{getPlayerName(player)}</option>)}
-          {filtered.length === 0 && <option value="">No players</option>}
-        </select>
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal size={15} className="text-gray-500" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <select
-            value={sortMode}
-            onChange={(event) => setSortMode(event.target.value as SortMode)}
+            value={teamFilter}
+            onChange={(event) => {
+              setTeamFilter(event.target.value === 'all' ? 'all' : Number(event.target.value));
+            }}
             className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
           >
-            <option value="risk">Sort by risk</option>
-            <option value="minutes">Sort by minutes</option>
-            <option value="drop">Sort by performance drop</option>
-            <option value="points">Sort by points</option>
-            <option value="name">Sort by name</option>
-            <option value="age">Sort by age</option>
-            <option value="position">Sort by position</option>
+            <option value="all">All NBA teams</option>
+            {teamOptions.map(team => <option key={team.id} value={team.id}>{team.abbreviation} - {team.full_name}</option>)}
           </select>
+          <select
+            value={selected ? getPlayerId(selected) : ''}
+            onChange={(event) => setSelected(players.find(player => getPlayerId(player) === Number(event.target.value)) ?? null)}
+            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+          >
+            {filtered.map(player => <option key={getPlayerId(player)} value={getPlayerId(player)}>{getPlayerName(player)}</option>)}
+            {filtered.length === 0 && <option value="">No players</option>}
+          </select>
+          <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-1">
+            <SlidersHorizontal size={15} className="text-gray-500 shrink-0" />
+            <select
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as SortMode)}
+              className="flex-1 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+            >
+              <option value="risk">Sort by risk</option>
+              <option value="minutes">Sort by minutes</option>
+              <option value="drop">Sort by performance drop</option>
+              <option value="points">Sort by points</option>
+              <option value="name">Sort by name</option>
+              <option value="age">Sort by age</option>
+              <option value="position">Sort by position</option>
+            </select>
+          </div>
         </div>
       </div>
 

@@ -325,6 +325,8 @@ export default function Dashboard() {
           PTS: g.home_leader.points,
           REB: g.home_leader.rebounds,
           AST: g.home_leader.assists,
+          STL: null,
+          BLK: null,
           TEAM_ID: g.home_team_id,
           TEAM_ABBREVIATION: g.home_team_abbreviation,
           GAME_ID: g.game_id
@@ -338,6 +340,8 @@ export default function Dashboard() {
           PTS: g.away_leader.points,
           REB: g.away_leader.rebounds,
           AST: g.away_leader.assists,
+          STL: null,
+          BLK: null,
           TEAM_ID: g.away_team_id,
           TEAM_ABBREVIATION: g.away_team_abbreviation,
           GAME_ID: g.game_id
@@ -375,7 +379,7 @@ export default function Dashboard() {
       </div>
 
       <section className="space-y-8">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {dayOffsets.map(offset => {
             const date = parseDateKey(getNBADate());
             date.setDate(date.getDate() + offset);
@@ -385,14 +389,14 @@ export default function Dashboard() {
               <button
                 key={offset}
                 onClick={() => setSelectedDate(dateKey)}
-                className={`rounded-2xl border px-5 py-3 text-left transition-all ${
+                className={`shrink-0 rounded-2xl border px-3 sm:px-5 py-2 sm:py-3 text-left transition-all ${
                   active
                     ? 'border-orange-500/50 bg-orange-500/10 text-orange-400 shadow-2xl shadow-orange-500/10'
                     : 'border-gray-800 bg-gray-900/40 text-gray-500 hover:border-orange-500/30 hover:text-white'
                 }`}
               >
-                <div className="text-[10px] font-black uppercase tracking-[0.2em]">{date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
-                <div className="text-xl font-black italic uppercase tracking-tighter">{date.toLocaleDateString(undefined, { weekday: 'short' })}</div>
+                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">{date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
+                <div className="text-lg sm:text-xl font-black italic uppercase tracking-tighter">{date.toLocaleDateString(undefined, { weekday: 'short' })}</div>
               </button>
             );
           })}
@@ -419,7 +423,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
           Official NBA Data
           <span className="rounded-full bg-gray-700 px-1 text-[10px] text-slate-950">check</span>
-          <span className="ml-auto">Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span className="ml-auto">Updated {formatIndianTime(lastUpdated)} IST</span>
         </div>
       </section>
 
@@ -613,16 +617,20 @@ function PlayerLeaderCard({ player, rank, onClick }: { player: DashboardPlayer &
           </div>
           <Trophy className="text-gray-700" size={24} />
         </div>
-        <div className="mt-6 flex items-center gap-6">
-          <div className="h-16 w-16 overflow-hidden rounded-2xl border border-gray-700 bg-gray-800 transition-colors group-hover:border-orange-500">
+        <div className="mt-6 flex items-center gap-4">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-gray-700 bg-gray-800 transition-colors group-hover:border-orange-500">
             <img src={getPlayerHeadshotUrl(playerId)} className="h-full w-full object-cover object-top scale-125 translate-y-2" alt={playerName} />
           </div>
-          <div className="flex gap-4">
-            <MiniStat label="PTS" value={player.PTS} />
-            <MiniStat label="REB" value={player.REB} />
-            <MiniStat label="AST" value={player.AST} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <MiniStat label="PTS" value={player.PTS} />
+              <MiniStat label="REB" value={player.REB} />
+              <MiniStat label="AST" value={player.AST} />
+              <MiniStat label="STL" value={player.STL} />
+              <MiniStat label="BLK" value={player.BLK} />
+            </div>
           </div>
-          <img src={getTeamLogoUrl(player.TEAM_ID)} alt={player.TEAM_ABBREVIATION} className="ml-auto h-9 w-9 object-contain opacity-80" />
+          <img src={getTeamLogoUrl(player.TEAM_ID)} alt={player.TEAM_ABBREVIATION} className="shrink-0 h-9 w-9 object-contain opacity-80" />
         </div>
       </div>
     </div>
@@ -631,8 +639,8 @@ function PlayerLeaderCard({ player, rank, onClick }: { player: DashboardPlayer &
 
 function MiniStat({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
-    <div>
-      <div className="text-lg font-black text-white">{value}</div>
+    <div className="shrink-0">
+      <div className="text-lg font-black text-white">{value ?? '-'}</div>
       <div className="text-[8px] font-bold uppercase text-gray-500">{label}</div>
     </div>
   );
@@ -678,27 +686,27 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
         >
           <X className="text-white" size={20} />
         </button>
-        <div className="border-b border-white/10 p-6">
-          <div className="mb-5 flex gap-3 overflow-x-auto pr-12">
+        <div className="border-b border-white/10 p-4 sm:p-6">
+          <div className="mb-4 sm:mb-5 flex gap-2 sm:gap-3 overflow-x-auto pr-12 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {games.map(item => (
               <button
                 key={item.game_id}
                 onClick={() => onGameSelect(item)}
-                className={`min-w-44 rounded-2xl border px-4 py-3 text-left transition-all ${
+                className={`min-w-36 sm:min-w-44 rounded-2xl border px-3 sm:px-4 py-2 sm:py-3 text-left transition-all shrink-0 ${
                   item.game_id === game.game_id ? 'border-orange-500/50 bg-orange-500/10 text-orange-400' : 'border-white/10 bg-slate-900/50 text-gray-500 hover:border-orange-500/30 hover:text-white'
                 }`}
               >
                 <div className="text-[10px] font-black uppercase tracking-[0.2em]">{statusText(item)}</div>
-                <div className="mt-1 flex items-center gap-2 text-sm font-black text-white">
-                  <img src={getTeamLogoUrl(item.away_team_id)} className="h-5 w-5 object-contain" alt="" />
+                <div className="mt-1 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-black text-white">
+                  <img src={getTeamLogoUrl(item.away_team_id)} className="h-4 w-4 sm:h-5 sm:w-5 object-contain" alt="" />
                   {item.away_score || '-'}-{item.home_score || '-'}
-                  <img src={getTeamLogoUrl(item.home_team_id)} className="h-5 w-5 object-contain" alt="" />
+                  <img src={getTeamLogoUrl(item.home_team_id)} className="h-4 w-4 sm:h-5 sm:w-5 object-contain" alt="" />
                 </div>
               </button>
             ))}
           </div>
 
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-[1fr_auto_1fr] md:items-center">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-[1fr_auto_1fr] md:items-center">
             <GameHeroTeam teamId={game.away_team_id} name={awayName} score={game.away_score} align="left" />
             <div className="text-center py-2 md:py-0">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
@@ -879,12 +887,13 @@ function PlayerStatRow({ player, onClick }: { player: BoxScorePlayer; onClick: (
             </div>
           </div>
           
-          <div className="flex gap-6 overflow-hidden">
+          <div className="flex gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <PlayerStat value={minuteValue(player.MIN)} label="MIN" />
             <PlayerStat value={player.PTS ?? '-'} label="PTS" />
             <PlayerStat value={player.REB ?? '-'} label="REB" />
             <PlayerStat value={player.AST ?? '-'} label="AST" />
             <PlayerStat value={player.STL ?? '-'} label="STL" />
+            <PlayerStat value={player.BLK ?? '-'} label="BLK" />
           </div>
         </div>
       </div>
@@ -976,25 +985,25 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
            <X className="text-white" size={20} />
         </button>
 
-        <div className="relative shrink-0 h-72 sm:h-80 md:h-96 overflow-hidden bg-slate-900/40">
+        <div className="relative shrink-0 h-56 sm:h-72 md:h-80 overflow-hidden bg-slate-900/40">
            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent z-10" />
            <img 
              src={getPlayerHeadshotUrl(playerId)} 
              className="absolute inset-0 w-full h-full object-cover object-top"
              alt={fullName} 
            />
-           <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-6 sm:px-10 sm:pb-8">
-             <div className="inline-flex items-center gap-3 rounded-full bg-slate-950/70 px-4 py-2 mb-3 text-sm font-semibold uppercase tracking-[0.16em]">
-                <img src={getTeamLogoUrl(player.TEAM_ID)} className="h-5 w-5 object-contain drop-shadow-md" alt="" />
+           <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 sm:px-10 sm:pb-8">
+             <div className="inline-flex items-center gap-2 sm:gap-3 rounded-full bg-slate-950/70 px-3 sm:px-4 py-2 mb-2 sm:mb-3 text-xs font-semibold uppercase tracking-[0.16em]">
+                <img src={getTeamLogoUrl(player.TEAM_ID)} className="h-4 w-4 sm:h-5 sm:w-5 object-contain drop-shadow-md" alt="" />
                 <span className="text-orange-500">{player.START_POSITION ? 'STARTER' : 'BENCH'}</span>
              </div>
-             <h2 className="max-w-3xl text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight uppercase leading-tight">
+             <h2 className="max-w-3xl text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight uppercase leading-tight">
                {fullName}
              </h2>
            </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 p-6 lg:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 p-4 sm:p-6 lg:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600">
            <div className="w-full lg:w-1/2 space-y-6">
               <div className="rounded-3xl border border-white/10 bg-slate-950/80 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.25)]">
                  <h3 className="text-sm font-black uppercase tracking-[0.24em] text-slate-400 mb-6">Advanced Stats</h3>
@@ -1470,7 +1479,58 @@ function PlaceholderPanel({ title }: { title: string }) {
 function statusText(game: Game) {
   if (game.status === 'live') return game.status_text || `Q${game.quarter}`;
   if (game.status === 'final') return game.status_text || 'Final';
-  return game.status_text && game.status_text !== 'TBD' ? game.status_text : 'TBD';
+  return formatScheduledStatusInIndia(game);
+}
+
+function formatIndianTime(date: Date) {
+  return date.toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatScheduledStatusInIndia(game: Game) {
+  const status = game.status_text;
+  if (!status || status === 'TBD') return 'TBD';
+
+  const match = status.match(/(\d{1,2}):(\d{2})\s*([ap])m\s*ET/i);
+  if (!match) return status;
+
+  const [, hourText, minuteText, meridiem] = match;
+  let hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (meridiem.toLowerCase() === 'p' && hour !== 12) hour += 12;
+  if (meridiem.toLowerCase() === 'a' && hour === 12) hour = 0;
+
+  const [year, month, day] = (game.game_date || '').split('-').map(Number);
+  if (!year || !month || !day) return status;
+
+  const easternUtcOffsetHours = easternOffsetHours(year, month, day);
+  const utcTime = Date.UTC(year, month - 1, day, hour - easternUtcOffsetHours, minute);
+  const indiaTime = new Date(utcTime);
+
+  return `${indiaTime.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })} IST`;
+}
+
+function easternOffsetHours(year: number, month: number, day: number) {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const dstStart = nthWeekdayOfMonthUtc(year, 2, 0, 2);
+  const dstEnd = nthWeekdayOfMonthUtc(year, 10, 0, 1);
+  return date >= dstStart && date < dstEnd ? -4 : -5;
+}
+
+function nthWeekdayOfMonthUtc(year: number, monthIndex: number, weekday: number, n: number) {
+  const date = new Date(Date.UTC(year, monthIndex, 1));
+  const offset = (weekday - date.getUTCDay() + 7) % 7;
+  return new Date(Date.UTC(year, monthIndex, 1 + offset + (n - 1) * 7));
 }
 
 
@@ -1541,6 +1601,177 @@ function getShotChartType(shot: PlayerShot) {
 function isMissedFreeThrow(description: string) {
   const desc = description.toUpperCase();
   return desc.includes('MISS') || desc.includes('MISSED');
+}
+
+function formatPlayDescription(raw: string, eventType: number, player1?: string | null, player2?: string | null): string {
+  // Strip score/pts annotations like "(27 PTS)", "[112-108]", "(D. Davis 5 AST)"
+  const clean = raw
+    .replace(/\(\d+\s*PTS\)/gi, '')
+    .replace(/\[\d+-\d+\]/g, '')
+    .replace(/\([A-Z]\.\s*\w+\s+\d+\s*AST\)/gi, '')
+    .trim();
+
+  const up = clean.toUpperCase();
+  const name = player1 || 'Player';
+  const assister = player2 || null;
+
+  // ── MADE SHOTS ──────────────────────────────────────────────────────────────
+  if (eventType === 1) {
+    // 3-pointers
+    if (up.includes('3PT') || up.includes('3-PT') || up.includes('THREE') || up.includes('3 PT')) {
+      const locations: Record<string, string> = {
+        'CORNER': 'from the corner',
+        'WING': 'from the wing',
+        'TOP OF THE KEY': 'from the top of the key',
+        'ABOVE THE BREAK': 'from above the break',
+        'STEP BACK': 'off a step-back',
+        'PULL-UP': 'off the dribble',
+        'CATCH AND SHOOT': 'on the catch-and-shoot',
+      };
+      let loc = '';
+      for (const [key, phrase] of Object.entries(locations)) {
+        if (up.includes(key)) { loc = ` ${phrase}`; break; }
+      }
+      const verbs = ['drains', 'buries', 'knocks down', 'nails', 'splashes in'];
+      const verb = verbs[Math.floor(Math.random() * verbs.length)];
+      const assist = assister ? ` — assisted by ${assister}` : '';
+      return `${name} ${verb} a three-pointer${loc}!${assist}`;
+    }
+
+    // Dunks
+    if (up.includes('DUNK')) {
+      const verbs = ['throws down a dunk', 'slams it home', 'hammers it in', 'posterizes with a dunk'];
+      const verb = verbs[Math.floor(Math.random() * verbs.length)];
+      const assist = assister ? ` — fed by ${assister}` : '';
+      return `${name} ${verb}!${assist}`;
+    }
+
+    // Layups
+    if (up.includes('LAYUP') || up.includes('LAY UP') || up.includes('FINGER ROLL')) {
+      const verbs = ['converts the layup', 'finishes at the rim', 'lays it in', 'rolls it in'];
+      const verb = verbs[Math.floor(Math.random() * verbs.length)];
+      const assist = assister ? ` — pass from ${assister}` : '';
+      return `${name} ${verb}!${assist}`;
+    }
+
+    // Alley-oop
+    if (up.includes('ALLEY OOP') || up.includes('ALLEY-OOP')) {
+      const assist = assister ? ` from ${assister}` : '';
+      return `${name} finishes the alley-oop${assist}!`;
+    }
+
+    // Hook shot
+    if (up.includes('HOOK')) {
+      return `${name} hits the hook shot!`;
+    }
+
+    // Floater
+    if (up.includes('FLOATER') || up.includes('RUNNER')) {
+      return `${name} floats it in!`;
+    }
+
+    // Turnaround
+    if (up.includes('TURNAROUND')) {
+      return `${name} hits the turnaround jumper!`;
+    }
+
+    // Fadeaway
+    if (up.includes('FADEAWAY') || up.includes('FADE AWAY')) {
+      return `${name} drains the fadeaway!`;
+    }
+
+    // Generic jump shot / mid-range
+    if (up.includes('JUMP SHOT') || up.includes('JUMPER') || up.includes('PULL-UP')) {
+      const verbs = ['knocks down the jumper', 'hits the mid-range', 'drills the jump shot', 'connects on the pull-up'];
+      const verb = verbs[Math.floor(Math.random() * verbs.length)];
+      const assist = assister ? ` — ${assister} with the assist` : '';
+      return `${name} ${verb}!${assist}`;
+    }
+
+    // Generic made basket
+    const assist = assister ? ` — ${assister} with the assist` : '';
+    return `${name} scores!${assist}`;
+  }
+
+  // ── MISSED SHOTS ─────────────────────────────────────────────────────────────
+  if (eventType === 2) {
+    if (up.includes('3PT') || up.includes('THREE') || up.includes('3-PT')) {
+      return `${name} misses the three-pointer.`;
+    }
+    if (up.includes('DUNK')) return `${name} misses the dunk attempt.`;
+    if (up.includes('LAYUP') || up.includes('LAY UP')) return `${name} misses the layup.`;
+    if (up.includes('HOOK')) return `${name} misses the hook shot.`;
+    if (up.includes('FLOATER')) return `${name} misses the floater.`;
+    if (up.includes('FADEAWAY')) return `${name} misses the fadeaway.`;
+    return `${name} misses the shot.`;
+  }
+
+  // ── FREE THROWS ───────────────────────────────────────────────────────────────
+  if (eventType === 3) {
+    const missed = up.includes('MISS') || up.includes('MISSED');
+    // Extract "1 of 2" style
+    const ftMatch = clean.match(/(\d+)\s+of\s+(\d+)/i);
+    const ftLabel = ftMatch ? ` (${ftMatch[1]} of ${ftMatch[2]})` : '';
+    if (missed) return `${name} misses the free throw${ftLabel}.`;
+    return `${name} makes the free throw${ftLabel}.`;
+  }
+
+  // ── REBOUNDS ─────────────────────────────────────────────────────────────────
+  if (eventType === 4) {
+    if (up.includes('OFFENSIVE')) return `${name} grabs the offensive rebound!`;
+    if (up.includes('DEFENSIVE')) return `${name} pulls down the defensive rebound.`;
+    return `${name} gets the rebound.`;
+  }
+
+  // ── TURNOVERS ────────────────────────────────────────────────────────────────
+  if (eventType === 5) {
+    if (up.includes('STEAL')) return `${player2 || 'Defender'} steals it from ${name}!`;
+    if (up.includes('OUT OF BOUNDS')) return `${name} turns it over — out of bounds.`;
+    if (up.includes('LOST BALL')) return `${name} loses the ball — turnover.`;
+    if (up.includes('BAD PASS')) return `${name} throws a bad pass — turnover.`;
+    if (up.includes('TRAVELING')) return `${name} called for traveling.`;
+    if (up.includes('SHOT CLOCK')) return `Shot clock violation on ${name}'s team.`;
+    return `${name} turns it over.`;
+  }
+
+  // ── FOULS ─────────────────────────────────────────────────────────────────────
+  if (eventType === 6) {
+    if (up.includes('SHOOTING')) return `Shooting foul on ${name} — free throws coming.`;
+    if (up.includes('LOOSE BALL')) return `Loose ball foul called on ${name}.`;
+    if (up.includes('FLAGRANT')) return `Flagrant foul called on ${name}!`;
+    if (up.includes('TECHNICAL')) return `Technical foul on ${name}.`;
+    return `Foul called on ${name}.`;
+  }
+
+  // ── BLOCKS ────────────────────────────────────────────────────────────────────
+  // Blocks are embedded in missed shot descriptions — handle via raw text
+  if (up.includes('BLOCK') || up.includes('BLK')) {
+    return `${name} gets the block!`;
+  }
+
+  // ── SUBSTITUTIONS ─────────────────────────────────────────────────────────────
+  if (eventType === 8) {
+    if (up.includes('IN')) return `${name} checks into the game.`;
+    if (up.includes('OUT')) return `${name} heads to the bench.`;
+    return `Substitution: ${name}.`;
+  }
+
+  // ── TIMEOUTS ──────────────────────────────────────────────────────────────────
+  if (eventType === 9) {
+    return `Timeout called.`;
+  }
+
+  // ── JUMP BALL ─────────────────────────────────────────────────────────────────
+  if (eventType === 10) {
+    return `Jump ball — ${name} tips it off.`;
+  }
+
+  // ── PERIOD START/END ──────────────────────────────────────────────────────────
+  if (eventType === 12) return `Quarter underway.`;
+  if (eventType === 13) return `End of quarter.`;
+
+  // ── FALLBACK: clean up the raw string ─────────────────────────────────────────
+  return clean || raw;
 }
 
 function clockToSeconds(clock?: string | null) {
@@ -1693,7 +1924,7 @@ function FeedItem({ event, boxScore, game }: { event: PlayByPlay; boxScore: BoxS
   };
 
   const cleanDescription = (d: string) => {
-    return d.replace(/\(\d+ PTS\)/g, '').replace(/\[\d+-\d+\]/g, '').trim();
+    return formatPlayDescription(d, event.EVENTMSGTYPE, event.PLAYER1_NAME, event.PLAYER2_NAME);
   };
 
   return (

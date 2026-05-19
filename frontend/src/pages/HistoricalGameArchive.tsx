@@ -80,7 +80,7 @@ export default function HistoricalGameArchive() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <select value={season} onChange={event => setSeason(event.target.value)} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
           {SEASONS.map(item => <option key={item} value={item}>{item}</option>)}
         </select>
@@ -99,7 +99,7 @@ export default function HistoricalGameArchive() {
           <option value={1230}>All season games</option>
           <option value={2000}>Full archive</option>
         </select>
-        <select value={sortMode} onChange={event => setSortMode(event.target.value as SortMode)} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
+        <select value={sortMode} onChange={event => setSortMode(event.target.value as SortMode)} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 sm:col-span-2 lg:col-span-1">
           <option value="date">Sort by newest</option>
           <option value="score">Sort by total score</option>
           <option value="margin">Sort by closest</option>

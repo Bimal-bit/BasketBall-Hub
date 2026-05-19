@@ -223,16 +223,65 @@
     h1,
     .text-5xl,
     .text-4xl {
-      font-size: clamp(1.75rem, 9vw, 2.5rem) !important;
+      font-size: clamp(1.5rem, 8vw, 2.25rem) !important;
       line-height: 1.05 !important;
     }
 
-    .p-10 {
-      padding: 1.25rem !important;
+    .text-7xl, .text-8xl, .text-9xl {
+      font-size: clamp(2rem, 10vw, 3.5rem) !important;
+      line-height: 1 !important;
     }
 
-    .gap-10 {
-      gap: 1.25rem !important;
+    .text-6xl {
+      font-size: clamp(1.75rem, 9vw, 3rem) !important;
+      line-height: 1.05 !important;
+    }
+
+    /* Reduce extreme padding on mobile */
+    .p-10, .p-12, .p-16, .p-20, .p-24 {
+      padding: 1rem !important;
+    }
+
+    .px-10, .px-12, .px-16, .px-20, .px-24 {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    .py-10, .py-12, .py-16, .py-20, .py-24 {
+      padding-top: 1.25rem !important;
+      padding-bottom: 1.25rem !important;
+    }
+
+    .gap-10, .gap-12, .gap-16 {
+      gap: 1rem !important;
+    }
+
+    /* Reduce extreme border-radius on mobile */
+    [class*="rounded-[4rem]"],
+    [class*="rounded-[5rem]"],
+    [class*="rounded-[5.5rem]"] {
+      border-radius: 1.5rem !important;
+    }
+
+    [class*="rounded-[3rem]"],
+    [class*="rounded-[3.5rem]"] {
+      border-radius: 1.25rem !important;
+    }
+
+    /* Modals: full screen on mobile */
+    .fixed.inset-0 > div[class*="max-w"] {
+      max-height: 100dvh !important;
+      border-radius: 0 !important;
+    }
+
+    /* Tables: allow horizontal scroll */
+    table {
+      min-width: 480px;
+    }
+
+    /* Prevent overflow on player names */
+    .truncate {
+      max-width: 100%;
     }
   }
 
@@ -259,6 +308,26 @@
   select,
   textarea {
     transition: all 0.2s ease;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    outline: 2px solid rgba(249, 115, 22, 0.75);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   .surface-card {

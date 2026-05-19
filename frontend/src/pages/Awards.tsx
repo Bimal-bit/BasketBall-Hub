@@ -136,7 +136,7 @@ export default function Awards() {
         {filteredAwards.map((seasonData, idx) => (
           <div key={idx} className="space-y-6 sm:space-y-12">
             <div className="flex items-center gap-4 sm:gap-10">
-              <h2 className="text-4xl sm:text-7xl font-black text-white italic uppercase tracking-tighter leading-none opacity-5">{seasonData.season}</h2>
+              <h2 className="text-4xl sm:text-7xl font-black text-orange-500 italic uppercase tracking-tighter leading-none">{seasonData.season}</h2>
               <div className="h-px flex-1 bg-gradient-to-r from-gray-800/50 to-transparent" />
             </div>
             
@@ -158,20 +158,20 @@ export default function Awards() {
           <div className="relative bg-slate-950 w-full max-w-6xl max-h-[92vh] rounded-[4rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col">
             <button onClick={() => setSelectedPlayer(null)} className="absolute top-10 right-10 z-[110] w-16 h-16 flex items-center justify-center bg-white/5 hover:bg-orange-500/20 text-white rounded-full transition-all border border-white/5"><X size={32} /></button>
 
-            <div className="relative h-80 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950">
-               <div className="absolute inset-0 flex items-end p-16 gap-16">
-                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-64 h-64 rounded-[4rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl translate-y-20" alt="" />
-                  <div className="pb-8">
-                    <div className="inline-flex items-center gap-4 px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-xs font-black uppercase tracking-[0.4em] mb-6 border border-orange-500/20 shadow-xl">
-                       <Trophy size={18} />
+            <div className="relative h-64 sm:h-80 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950">
+               <div className="absolute inset-0 flex items-end p-6 sm:p-16 gap-6 sm:gap-16">
+                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-32 h-32 sm:w-64 sm:h-64 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl translate-y-16 sm:translate-y-20" alt="" />
+                  <div className="pb-4 sm:pb-8">
+                    <div className="inline-flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] mb-3 sm:mb-6 border border-orange-500/20 shadow-xl">
+                       <Trophy size={14} />
                        {selectedSeason} {selectedPlayer.awardType}
                     </div>
-                    <h2 className="text-7xl font-black text-white tracking-tighter uppercase italic leading-none">{selectedPlayer.name}</h2>
+                    <h2 className="text-3xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">{selectedPlayer.name}</h2>
                   </div>
                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-16 pt-32 scrollbar-hide space-y-24">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-16 pt-20 sm:pt-32 scrollbar-hide space-y-10 sm:space-y-24">
                {loading ? (
                   <div className="flex flex-col items-center justify-center py-40 gap-8"><Loader2 className="w-20 h-20 text-orange-500 animate-spin" /><div className="text-sm font-black text-gray-700 uppercase tracking-[1em]">Synchronizing Records</div></div>
                ) : (
@@ -199,18 +199,18 @@ export default function Awards() {
 
                      <section className="space-y-12 pb-20">
                         <div className="flex items-center gap-6"><div className="text-[10px] font-black text-orange-500 uppercase tracking-[0.6em]">Seasonal Match Journey</div><div className="h-px flex-1 bg-white/5" /><div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{playerStats.length} Games Played</div></div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                            {playerStats.map((log, i) => (
-                              <button key={i} onClick={() => handleGameClick(log)} className="flex items-center justify-between p-8 rounded-[3rem] bg-white/[0.02] border border-white/5 hover:border-orange-500/50 hover:bg-white/[0.05] transition-all group text-left">
-                                 <div className="space-y-2">
+                              <button key={i} onClick={() => handleGameClick(log)} className="flex items-center justify-between p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] bg-white/[0.02] border border-white/5 hover:border-orange-500/50 hover:bg-white/[0.05] transition-all group text-left">
+                                 <div className="space-y-1 sm:space-y-2 min-w-0">
                                     <div className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em]">{log.GAME_DATE}</div>
-                                    <div className="text-lg font-black text-white uppercase group-hover:text-orange-400 italic tracking-tight">{log.MATCHUP}</div>
+                                    <div className="text-sm sm:text-lg font-black text-white uppercase group-hover:text-orange-400 italic tracking-tight truncate">{log.MATCHUP}</div>
                                  </div>
-                                 <div className="flex items-center gap-10">
+                                 <div className="flex items-center gap-4 sm:gap-10 shrink-0 ml-3">
                                     <MiniStat val={log.PTS} label="PTS" />
                                     <MiniStat val={log.REB} label="REB" />
                                     <MiniStat val={log.AST} label="AST" />
-                                    <ChevronRight size={20} className="text-gray-800 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
+                                    <ChevronRight size={16} className="text-gray-800 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
                                  </div>
                               </button>
                            ))}
