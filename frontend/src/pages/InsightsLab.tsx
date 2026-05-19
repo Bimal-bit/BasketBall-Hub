@@ -11,7 +11,6 @@ import {
   Users,
 } from 'lucide-react';
 import {
-  getNBADate,
   getPlayerHeadshotUrl,
   getTeamLogoUrl,
   nbaApi,
@@ -25,7 +24,7 @@ import {
   type TeamGame,
 } from '../lib/api';
 import { mockPlayers, mockTeams } from '../lib/mockData';
-import { gameStatusInIndia } from '../lib/time';
+import { gameStatusInIndia, getIndianDateKey } from '../lib/time';
 
 type WatchItem = {
   id: string;
@@ -84,7 +83,7 @@ export default function InsightsLab() {
       nbaApi.getTopPlayers(),
       nbaApi.getTeams(),
       nbaApi.getStandings(),
-      nbaApi.getScoreboard(getNBADate()),
+      nbaApi.getScoreboard(getIndianDateKey()),
     ]);
 
     if (cancelled()) return;
@@ -240,18 +239,18 @@ export default function InsightsLab() {
   }
 
   return (
-    <div className="max-w-full space-y-6 overflow-hidden sm:space-y-8">
+    <div className="max-w-full space-y-4 overflow-hidden sm:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-orange-500">
+          <div className="mb-2 flex items-center gap-2 text-[11px] sm:text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.22em] text-orange-500">
             <BrainCircuit size={16} />
             Insights Lab
           </div>
-          <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white sm:text-4xl">
+          <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white sm:text-4xl">
             Compare, predict, recap, and follow
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-gray-400">
-            A single workspace for player matchups, team scouting, live win probability, AI-style recaps, and your personal NBA watchlist.
+          <p className="mt-2 max-w-2xl text-xs sm:text-sm text-gray-400">
+            Player matchups, team scouting, win probability, recaps, and watchlist in one compact workspace.
           </p>
         </div>
         <button
@@ -263,7 +262,7 @@ export default function InsightsLab() {
         </button>
       </div>
 
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-6">
         <Panel title="Player Comparison" icon={<Users size={18} />}>
           <div className="grid gap-3 sm:grid-cols-2">
             <PlayerSelect label="Player A" value={playerAId} players={players} onChange={setPlayerAId} />
@@ -309,16 +308,16 @@ export default function InsightsLab() {
         </Panel>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr] xl:gap-6">
         <Panel title="Win Probability Graph" icon={<Sparkles size={18} />}>
           <GameSelect value={gameId} games={games} onChange={setGameId} />
           {selectedGame && winModel ? (
-            <div className="space-y-5">
-              <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-4 sm:space-y-5">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 <TeamWinBlock game={selectedGame} side="away" probability={100 - winModel.homeProbability} />
-                <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4 text-center">
+                <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-2 text-center sm:p-4">
                   <div className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">{selectedGame.status}</div>
-                  <div className="mt-2 text-2xl font-black text-white sm:text-3xl">{selectedGame.away_score}-{selectedGame.home_score}</div>
+                  <div className="mt-2 text-lg font-black text-white sm:text-3xl">{selectedGame.away_score}-{selectedGame.home_score}</div>
                   <div className="mt-1 text-xs text-gray-400">{gameStatusInIndia(selectedGame)}</div>
                 </div>
                 <TeamWinBlock game={selectedGame} side="home" probability={winModel.homeProbability} />
@@ -352,7 +351,7 @@ export default function InsightsLab() {
             <Sparkles size={15} />
             {recapLoading ? 'Writing recap' : 'Generate recap'}
           </button>
-          <div className="mt-4 rounded-xl border border-gray-800 bg-black/30 p-4 text-sm leading-6 text-gray-300">
+          <div className="mt-4 max-h-56 overflow-y-auto rounded-xl border border-gray-800 bg-black/30 p-3 text-xs leading-5 text-gray-300 sm:max-h-none sm:p-4 sm:text-sm sm:leading-6">
             {recap || 'Choose a game and generate a recap to summarize leaders, score flow, and the most important notes.'}
           </div>
         </Panel>
@@ -389,9 +388,9 @@ export default function InsightsLab() {
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-gray-800 bg-gray-900/40 p-4 shadow-2xl shadow-black/10 sm:p-5">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400">{icon}</div>
+    <div className="min-w-0 rounded-2xl border border-gray-800 bg-gray-900/40 p-3 shadow-2xl shadow-black/10 sm:p-5">
+      <div className="mb-3 flex items-center gap-3 sm:mb-5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 sm:h-9 sm:w-9">{icon}</div>
         <h2 className="min-w-0 text-base font-black uppercase italic tracking-tight text-white sm:text-lg">{title}</h2>
       </div>
       {children}
@@ -411,7 +410,7 @@ function PlayerSelect({ label, value, players, onChange }: {
       <select
         value={value ?? ''}
         onChange={event => onChange(Number(event.target.value))}
-        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white"
+        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-2.5 text-xs text-white sm:py-3 sm:text-sm"
       >
         {players.map(player => (
           <option key={player.PERSON_ID} value={player.PERSON_ID}>{playerName(player)}</option>
@@ -433,7 +432,7 @@ function TeamSelect({ label, value, teams, onChange }: {
       <select
         value={value ?? ''}
         onChange={event => onChange(Number(event.target.value))}
-        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white"
+        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-2.5 text-xs text-white sm:py-3 sm:text-sm"
       >
         {teams.map(team => (
           <option key={team.id} value={team.id}>{team.full_name}</option>
@@ -449,7 +448,7 @@ function GameSelect({ value, games, onChange }: { value: string; games: Game[]; 
       value={value}
       onChange={event => onChange(event.target.value)}
       disabled={games.length === 0}
-      className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white disabled:opacity-60"
+      className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-2.5 text-xs text-white disabled:opacity-60 sm:py-3 sm:text-sm"
     >
       {games.length === 0 && <option value="">No games available today</option>}
       {games.map(game => (
@@ -479,8 +478,8 @@ function ComparePlayers({ playerA, playerB, playerALogs, playerBLogs }: {
   const bClutch = clutchEstimate(playerB, bTrend);
 
   return (
-    <div className="mt-5 space-y-5">
-      <div className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
+    <div className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
+      <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_180px] lg:gap-4">
         <PlayerFace player={playerA} recentPpg={aTrend} />
         <div className="space-y-3">
           <MetricRow label="Points" a={playerA.PTS} b={playerB.PTS} />
@@ -504,11 +503,11 @@ function ComparePlayers({ playerA, playerB, playerALogs, playerBLogs }: {
 
 function PlayerFace({ player, align = 'left', recentPpg }: { player: Player; align?: 'left' | 'right'; recentPpg?: number }) {
   return (
-    <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4 ${align === 'right' ? 'text-right' : ''}`}>
+    <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 ${align === 'right' ? 'text-right' : ''}`}>
       <img
         src={getPlayerHeadshotUrl(player.PERSON_ID)}
         alt={playerName(player)}
-        className={`mb-3 h-24 w-24 rounded-full border border-gray-800 bg-gray-950 object-cover object-top ${align === 'right' ? 'ml-auto' : ''}`}
+        className={`mb-3 h-16 w-16 rounded-full border border-gray-800 bg-gray-950 object-cover object-top sm:h-24 sm:w-24 ${align === 'right' ? 'ml-auto' : ''}`}
       />
       <div className="truncate font-black text-white">{playerName(player)}</div>
       <div className="text-xs text-gray-400">{player.TEAM_ABBREVIATION || 'NBA'}</div>
@@ -535,8 +534,8 @@ function CompareTeams({ teamA, teamB, teamALogs, teamBLogs, teamARoster, teamBRo
   const bProfile = teamProfile(teamB, teamBLogs, teamBRoster);
 
   return (
-    <div className="mt-5 space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+    <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         <TeamMiniCard team={teamA} profile={aProfile} />
         <TeamMiniCard team={teamB} profile={bProfile} />
       </div>
@@ -547,11 +546,11 @@ function CompareTeams({ teamA, teamB, teamALogs, teamBLogs, teamARoster, teamBRo
       <MetricRow label="Pace" a={aProfile.pace} b={bProfile.pace} />
       <MetricRow label="Recent form" a={aProfile.formScore} b={bProfile.formScore} />
       <MetricRow label="Playoff odds" a={aProfile.playoffOdds} b={bProfile.playoffOdds} suffix="%" />
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2 md:gap-3">
         <TeamDetailList title={`${teamA.abbreviation} top scorers`} items={aProfile.topScorers} />
         <TeamDetailList title={`${teamB.abbreviation} top scorers`} items={bProfile.topScorers} />
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2 md:gap-3">
         <InfoStrip title={`${teamA.abbreviation} injuries`} value={aProfile.injuryNote} />
         <InfoStrip title={`${teamB.abbreviation} injuries`} value={bProfile.injuryNote} />
       </div>
@@ -561,15 +560,15 @@ function CompareTeams({ teamA, teamB, teamALogs, teamBLogs, teamARoster, teamBRo
 
 function TeamMiniCard({ team, profile }: { team: TeamOption; profile: TeamProfile }) {
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
       <div className="flex min-w-0 items-center gap-3">
-        <img src={getTeamLogoUrl(team.id)} alt={team.full_name} className="h-12 w-12 object-contain" />
+        <img src={getTeamLogoUrl(team.id)} alt={team.full_name} className="h-9 w-9 object-contain sm:h-12 sm:w-12" />
         <div className="min-w-0">
           <div className="truncate font-black text-white">{team.full_name}</div>
           <div className="truncate text-xs text-gray-400">{team.conference || team.state || 'NBA'} - {team.l10 || 'L10 unavailable'}</div>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+      <div className="mt-3 grid grid-cols-3 gap-1.5 text-center sm:mt-4 sm:gap-2">
         <TinyStat label="Record" value={`${team.wins ?? 0}-${team.losses ?? 0}`} />
         <TinyStat label="Streak" value={team.streak || '-'} />
         <TinyStat label="PPG" value={profile.ppg ? profile.ppg.toFixed(1) : '-'} />
@@ -610,12 +609,12 @@ function ProbabilityChart({ data }: { data: number[] }) {
   }).join(' ');
 
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
         <span>Away control</span>
         <span>Home win probability</span>
       </div>
-      <svg viewBox="0 0 100 100" className="h-36 w-full overflow-hidden sm:h-40" preserveAspectRatio="none">
+      <svg viewBox="0 0 100 100" className="h-24 w-full overflow-hidden sm:h-40" preserveAspectRatio="none">
         <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(148,163,184,0.25)" strokeDasharray="4 4" />
         <polyline points={points} fill="none" stroke="#f97316" strokeWidth="3" vectorEffect="non-scaling-stroke" />
       </svg>
@@ -628,10 +627,10 @@ function TeamWinBlock({ game, side, probability }: { game: Game; side: 'home' | 
   const abbr = side === 'home' ? game.home_team_abbreviation : game.away_team_abbreviation;
 
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4 text-center">
-      <img src={getTeamLogoUrl(teamId)} alt={abbr || 'Team'} className="mx-auto h-12 w-12 object-contain" />
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-2 text-center sm:p-4">
+      <img src={getTeamLogoUrl(teamId)} alt={abbr || 'Team'} className="mx-auto h-8 w-8 object-contain sm:h-12 sm:w-12" />
       <div className="mt-2 text-sm font-black text-white">{abbr}</div>
-      <div className="mt-1 text-2xl font-black text-orange-400 sm:text-3xl">{probability.toFixed(0)}%</div>
+      <div className="mt-1 text-lg font-black text-orange-400 sm:text-3xl">{probability.toFixed(0)}%</div>
     </div>
   );
 }
@@ -640,7 +639,7 @@ function AddButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
+      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:mt-4 sm:w-auto"
     >
       <Plus size={14} />
       Add to watchlist
@@ -650,9 +649,9 @@ function AddButton({ onClick }: { onClick: () => void }) {
 
 function TinyStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-lg bg-gray-950/80 p-2">
+    <div className="min-w-0 rounded-lg bg-gray-950/80 p-1.5 sm:p-2">
       <div className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">{label}</div>
-      <div className="mt-1 truncate font-black text-white">{value}</div>
+      <div className="mt-1 truncate text-xs font-black text-white sm:text-base">{value}</div>
     </div>
   );
 }
@@ -663,12 +662,12 @@ function TrendCard({ title, logs }: { title: string; logs: PlayerGameLog[] }) {
   const high = Math.max(...points, 0);
 
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0 truncate text-sm font-black text-white">{title}</div>
         <div className="shrink-0 text-xs font-bold uppercase tracking-[0.16em] text-orange-400">{recent ? `${recent.toFixed(1)} PPG` : 'No logs'}</div>
       </div>
-      <div className="flex h-20 items-end gap-1">
+      <div className="flex h-14 items-end gap-1 sm:h-20">
         {points.length ? points.map((value, index) => (
           <div key={`${value}-${index}`} className="flex-1 rounded-t bg-orange-500/70" style={{ height: `${Math.max(10, (value / Math.max(high, 1)) * 100)}%` }} />
         )) : (
@@ -681,7 +680,7 @@ function TrendCard({ title, logs }: { title: string; logs: PlayerGameLog[] }) {
 
 function TeamDetailList({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
       <div className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">{title}</div>
       <div className="space-y-2">
         {items.length ? items.map(item => (
@@ -696,7 +695,7 @@ function TeamDetailList({ title, items }: { title: string; items: string[] }) {
 
 function InfoStrip({ title, value }: { title: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
       <div className="text-xs font-black uppercase tracking-[0.18em] text-gray-500">{title}</div>
       <div className="mt-2 break-words text-sm text-gray-300">{value}</div>
     </div>

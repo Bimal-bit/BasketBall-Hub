@@ -1,7 +1,8 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { Activity, Award, Clock, Filter, Flame, TrendingUp } from 'lucide-react';
-import { nbaApi, getNBADate, type BoxScorePlayer, type Game, type NbaTeam, type PlayByPlay } from '../lib/api';
+import { nbaApi, type BoxScorePlayer, type Game, type NbaTeam, type PlayByPlay } from '../lib/api';
 import MiniLineChart from '../components/MiniLineChart';
+import { formatIndianDate, getIndianDateKey } from '../lib/time';
 
 const CLUTCH_PRESSURE_THRESHOLD = 62;
 
@@ -56,7 +57,7 @@ export default function ClutchMoments() {
   async function loadData() {
     setLoading(true);
     try {
-      const dates = buildRecentDates(getNBADate(), 8);
+      const dates = buildRecentDates(getIndianDateKey(), 8);
       const firstWave = await Promise.all(dates.slice(0, 3).map(date => withTimeout(nbaApi.getScoreboard(date), 1800, [] as Game[]).catch(() => [])));
       const hasEnoughGames = firstWave.flat().filter(game => game.status !== 'scheduled').length >= 8;
       const recentScoreboardSets = hasEnoughGames
@@ -157,18 +158,18 @@ export default function ClutchMoments() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-lg font-bold text-white mb-1">Clutch Moment Detector</h2>
-        <p className="text-sm text-gray-400">Choose any recent official NBA match from `nba_api`, then rank late-game pressure and real boxscore impact.</p>
+        <h2 className="text-lg sm:text-xl font-bold text-white mb-1">Clutch Moment Detector</h2>
+        <p className="text-xs sm:text-sm text-gray-400">Recent NBA games ranked by late pressure and boxscore impact.</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <MetricCard icon={<Flame size={18} className="text-orange-400 mx-auto mb-1" />} value={totalClutchGames} label="Clutch Games" />
-        <MetricCard icon={<Clock size={18} className="text-blue-400 mx-auto mb-1" />} value={liveClutchGames} label="Live Clutch" />
-        <MetricCard icon={<TrendingUp size={18} className="text-green-400 mx-auto mb-1" />} value={allTopPerformers[0]?.playerName.split(' ').slice(-1)[0] ?? '--'} label="Top Player" />
-        <MetricCard icon={<Award size={18} className="text-yellow-400 mx-auto mb-1" />} value={allTopPerformers[0]?.clutchScore.toFixed(0) ?? '--'} label="Top Score" />
-        <MetricCard icon={<Activity size={18} className="text-cyan-400 mx-auto mb-1" />} value={averagePressure} label="Avg Pressure" />
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-3">
+        <MetricCard icon={<Flame size={16} className="text-orange-400 mx-auto mb-1" />} value={totalClutchGames} label="Clutch" />
+        <MetricCard icon={<Clock size={16} className="text-blue-400 mx-auto mb-1" />} value={liveClutchGames} label="Live" />
+        <MetricCard icon={<TrendingUp size={16} className="text-green-400 mx-auto mb-1" />} value={allTopPerformers[0]?.playerName.split(' ').slice(-1)[0] ?? '--'} label="Top" />
+        <MetricCard icon={<Award size={16} className="text-yellow-400 mx-auto mb-1" />} value={allTopPerformers[0]?.clutchScore.toFixed(0) ?? '--'} label="Score" />
+        <MetricCard icon={<Activity size={16} className="text-cyan-400 mx-auto mb-1" />} value={averagePressure} label="Pressure" />
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -186,7 +187,7 @@ export default function ClutchMoments() {
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <select value={selectedGame?.game.game_id ?? ''} onChange={event => setSelectedGame(clutchGames.find(game => game.game.game_id === event.target.value) ?? null)} className="bg-gray-900 border border-gray-800 rounded px-3 py-2 text-xs text-gray-300 outline-none focus:border-orange-500/40">
-            {clutchGames.map(game => <option key={game.game.game_id} value={game.game.game_id}>{game.game.away_team_abbreviation} @ {game.game.home_team_abbreviation} / {new Date(game.game.game_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</option>)}
+            {clutchGames.map(game => <option key={game.game.game_id} value={game.game.game_id}>{game.game.away_team_abbreviation} @ {game.game.home_team_abbreviation} / {formatIndianDate(new Date(`${game.game.game_date}T12:00:00`), { month: 'short', day: 'numeric' })}</option>)}
           </select>
           <select value={sortMode} onChange={event => setSortMode(event.target.value as SortMode)} className="bg-gray-900 border border-gray-800 rounded px-3 py-2 text-xs text-gray-300 outline-none focus:border-orange-500/40">
             <option value="pressure">Sort by pressure</option>
@@ -201,8 +202,9 @@ export default function ClutchMoments() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-2">
+        <div className="order-2 lg:order-1 lg:col-span-1 space-y-2">
           <h3 className="text-sm font-semibold text-white">Recent Games</h3>
+          <div className="max-h-64 space-y-2 overflow-y-auto pr-1 lg:max-h-none">
           {filteredGames.map(clutchGame => (
             <button key={clutchGame.game.game_id} onClick={() => setSelectedGame(clutchGame)} className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${selectedGame?.game.game_id === clutchGame.game.game_id ? 'bg-gray-800 border-orange-500/40' : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}>
               <div className="flex-1 min-w-0">
@@ -211,7 +213,7 @@ export default function ClutchMoments() {
                   <span className="text-xs font-medium text-white truncate">{clutchGame.game.away_team_abbreviation} @ {clutchGame.game.home_team_abbreviation}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span>{new Date(clutchGame.game.game_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                  <span>{formatIndianDate(new Date(`${clutchGame.game.game_date}T12:00:00`), { month: 'short', day: 'numeric' })}</span>
                   <span className="text-white font-medium">{clutchGame.game.away_score}-{clutchGame.game.home_score}</span>
                   {clutchGame.game.status === 'live' && <span className="text-green-400 font-medium">Q{clutchGame.game.quarter}</span>}
                 </div>
@@ -222,17 +224,18 @@ export default function ClutchMoments() {
               </div>
             </button>
           ))}
+          </div>
           {filteredGames.length === 0 && <div className="text-center py-8 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">No recent games found from NBA API</div>}
         </div>
 
-        <div className="lg:col-span-2 space-y-4">
+        <div className="order-1 lg:order-2 lg:col-span-2 space-y-3 sm:space-y-4">
           {selectedGame ? (
             <>
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                   <div>
                     <div className="text-base font-bold text-white">{selectedGame.game.away_team_name} @ {selectedGame.game.home_team_name}</div>
-                    <div className="text-xs text-gray-400">{new Date(selectedGame.game.game_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+                    <div className="text-xs text-gray-400">{formatIndianDate(new Date(`${selectedGame.game.game_date}T12:00:00`), { weekday: 'short', month: 'short', day: 'numeric' })}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     {selectedGame.isClutch && <span className="flex items-center gap-1 text-xs bg-orange-500/15 text-orange-400 px-2 py-1 rounded-full font-medium"><Flame size={10} />Clutch Game</span>}
@@ -240,7 +243,7 @@ export default function ClutchMoments() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-8 mb-4">
+                <div className="flex items-center justify-center gap-6 sm:gap-8 mb-4">
                   <ScoreBlock score={selectedGame.game.away_score} label={selectedGame.game.away_team_abbreviation ?? 'AWAY'} />
                   <div className="text-gray-500">-</div>
                   <ScoreBlock score={selectedGame.game.home_score} label={selectedGame.game.home_team_abbreviation ?? 'HOME'} />
@@ -262,9 +265,9 @@ export default function ClutchMoments() {
                 </div>
               </div>
 
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
                 <h4 className="text-sm font-semibold text-white mb-3">Late-Game Moment Feed</h4>
-                <div className="space-y-2">
+                <div className="max-h-56 space-y-2 overflow-y-auto pr-1 sm:max-h-none">
                   {selectedGame.keyMoments.map((moment, index) => (
                     <div key={`${moment.period}-${moment.clock}-${index}`} className="flex items-start gap-3 rounded-lg bg-gray-800/40 p-3">
                       <div className="text-[10px] font-bold text-orange-300 w-14 flex-shrink-0">Q{moment.period} {moment.clock}</div>
@@ -295,9 +298,14 @@ export default function ClutchMoments() {
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
         <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2"><Award size={14} className="text-yellow-400" />Clutch Leaderboard</h3>
-        <div className="overflow-x-auto">
+        <div className="grid gap-2 sm:hidden">
+          {allTopPerformers.slice(0, 5).map((performer, index) => (
+            <PerformerRow key={`${performer.playerId}-mobile-${index}`} performer={performer} rank={index + 1} />
+          ))}
+        </div>
+        <div className="hidden overflow-x-auto sm:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-800">
@@ -461,10 +469,10 @@ function buildLeaderBoxScore(game: Game): BoxScorePlayer[] {
 
 function MetricCard({ icon, value, label }: { icon: ReactNode; value: string | number; label: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-2 text-center sm:p-4 min-w-0">
       {icon}
-      <div className="text-2xl font-bold text-white truncate">{value}</div>
-      <div className="text-xs text-gray-400">{label}</div>
+      <div className="text-base sm:text-2xl font-bold text-white truncate">{value}</div>
+      <div className="text-[10px] sm:text-xs text-gray-400 truncate">{label}</div>
     </div>
   );
 }
@@ -472,7 +480,7 @@ function MetricCard({ icon, value, label }: { icon: ReactNode; value: string | n
 function ScoreBlock({ score, label }: { score: number; label: string }) {
   return (
     <div className="text-center">
-      <div className="text-3xl font-black text-white">{score}</div>
+      <div className="text-2xl sm:text-3xl font-black text-white">{score}</div>
       <div className="text-xs text-gray-400">{label}</div>
     </div>
   );
@@ -480,7 +488,7 @@ function ScoreBlock({ score, label }: { score: number; label: string }) {
 
 function DetailTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-gray-800/50 rounded-lg p-3">
+    <div className="bg-gray-800/50 rounded-lg p-2 sm:p-3 min-w-0">
       <div className="text-xs text-gray-500 mb-1">{label}</div>
       <div className="text-xs font-medium text-gray-300 truncate">{value}</div>
     </div>
@@ -499,17 +507,17 @@ function PerformerRow({ performer, rank }: { performer: ClutchPerformer; rank: n
   ].map(value => Math.max(0, Math.round(value)));
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3 rounded-lg bg-gray-800/30 p-2 sm:bg-transparent sm:p-0">
       <div className="text-sm font-bold text-gray-500 w-4">{rank}</div>
-      <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">{performer.playerName.split(' ').map(name => name[0]).join('')}</div>
+      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-800 flex items-center justify-center text-[10px] sm:text-xs font-bold text-white flex-shrink-0">{performer.playerName.split(' ').map(name => name[0]).join('')}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-white truncate">{performer.playerName}</span>
           {rank === 1 && <Flame size={12} className="text-orange-400 flex-shrink-0" />}
         </div>
-        <div className="text-xs text-gray-400">{performer.stat.PTS ?? 0}pts / {performer.stat.REB ?? 0}reb / {performer.stat.AST ?? 0}ast / {performer.grade}</div>
+        <div className="text-[11px] sm:text-xs text-gray-400 truncate">{performer.stat.PTS ?? 0}pts / {performer.stat.REB ?? 0}reb / {performer.stat.AST ?? 0}ast / {performer.grade}</div>
       </div>
-      <div className="w-20 flex-shrink-0"><MiniLineChart data={sparkData} color="#f97316" height={30} /></div>
+      <div className="hidden w-20 flex-shrink-0 sm:block"><MiniLineChart data={sparkData} color="#f97316" height={30} /></div>
       <div className="text-right flex-shrink-0">
         <div className={`text-sm font-bold ${performer.clutchScore >= 40 ? 'text-orange-400' : 'text-white'}`}>{performer.clutchScore.toFixed(0)}</div>
         <div className="text-xs text-gray-500">score</div>

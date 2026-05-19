@@ -231,8 +231,8 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto">
-          <div className="min-h-[calc(100vh-88px)] px-4 py-6 sm:px-6 lg:px-8 xl:px-10 transition-all duration-500 animate-fade-in-up">
+        <main className="flex-1 min-w-0 overflow-auto">
+          <div className="min-h-[calc(100vh-88px)] min-w-0 px-2 py-3 sm:px-5 sm:py-5 lg:px-8 xl:px-10 transition-all duration-500 animate-fade-in-up">
             {children}
           </div>
         </main>

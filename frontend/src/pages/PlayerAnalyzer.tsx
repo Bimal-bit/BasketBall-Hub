@@ -296,7 +296,7 @@ export default function PlayerAnalyzer() {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-12 pb-20 max-w-[1600px] mx-auto animate-fade-in">
+    <div className="p-3 sm:p-4 lg:p-8 space-y-6 lg:space-y-12 pb-20 max-w-[1600px] mx-auto animate-fade-in">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-slate-900/50 p-5 sm:p-10 rounded-2xl sm:rounded-[3rem] border border-white/5 backdrop-blur-2xl shadow-2xl">
          <div>
@@ -354,8 +354,8 @@ export default function PlayerAnalyzer() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Left Column: Player List */}
-        <div className="xl:col-span-4 bg-slate-900/30 border border-white/5 rounded-2xl sm:rounded-[3.5rem] p-4 flex flex-col backdrop-blur-md min-h-[400px] xl:min-h-[800px]">
-          <div className="px-6 py-4 border-b border-white/5 mb-4 shrink-0">
+        <div className={`${selectedPlayer || isComparing ? 'order-2' : 'order-1'} xl:order-1 xl:col-span-4 bg-slate-900/30 border border-white/5 rounded-2xl sm:rounded-[3.5rem] p-3 sm:p-4 flex flex-col backdrop-blur-md min-h-[320px] max-h-[48vh] xl:max-h-none xl:min-h-[800px]`}>
+          <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5 mb-3 sm:mb-4 shrink-0">
              <div className="flex items-center justify-between mb-2">
                <div className="text-xs font-black text-gray-500 uppercase tracking-widest">Player Directory</div>
                <div className="text-[10px] font-black text-orange-500 uppercase bg-orange-500/10 px-3 py-1 rounded-full">{allPlayers.length} Total</div>
@@ -381,7 +381,7 @@ export default function PlayerAnalyzer() {
                </button>
              </div>
           </div>
-          <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-2 sm:space-y-3 custom-scrollbar">
             {loadingList ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <BasketballLoader />
@@ -407,13 +407,13 @@ export default function PlayerAnalyzer() {
                 <button 
                   key={getPlayerId(p)}
                   onClick={() => handlePlayerSelect(p)}
-                  className={`w-full flex items-center gap-5 p-4 rounded-3xl transition-all border text-left group
+                  className={`w-full flex items-center gap-3 sm:gap-5 p-3 sm:p-4 rounded-2xl sm:rounded-3xl transition-all border text-left group
                     ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'bg-orange-500/10 border-orange-500/50' : 'bg-black/20 border-transparent hover:bg-white/5 hover:border-white/10'}`}
                 >
                    <div className="relative shrink-0">
                       <img 
                         src={getPlayerHeadshotUrl(getPlayerId(p))} 
-                        className="w-14 h-14 rounded-full object-cover bg-slate-950 shadow-lg border border-white/5" 
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover bg-slate-950 shadow-lg border border-white/5" 
                         alt="" 
                         onError={(e: any) => {
                           e.target.src = '/assets/images/nba-6.svg'; // Fallback
@@ -424,7 +424,7 @@ export default function PlayerAnalyzer() {
                       {isComparing && getPlayerId(selectedPlayer2) === getPlayerId(p) && <div className="absolute -top-1 -right-1 bg-blue-500 text-[8px] font-black px-1.5 py-0.5 rounded-full text-white border border-black">P2</div>}
                    </div>
                    <div className="flex-1 min-w-0">
-                     <div className={`text-lg font-black uppercase italic truncate ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'text-orange-400' : 'text-white group-hover:text-gray-300'}`}>{getPlayerName(p)}</div>
+                     <div className={`text-base sm:text-lg font-black uppercase italic truncate ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'text-orange-400' : 'text-white group-hover:text-gray-300'}`}>{getPlayerName(p)}</div>
                      <div className="flex items-center gap-2 mt-1">
                        <span className={`w-2 h-2 rounded-full ${p.is_active ? 'bg-green-500' : 'bg-gray-600'}`} />
                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{p.is_active ? 'Active' : 'Retired'}</span>
@@ -437,7 +437,7 @@ export default function PlayerAnalyzer() {
         </div>
 
         {/* Right Column: Player Profile & Stats */}
-        <div className="xl:col-span-8">
+        <div className={`${selectedPlayer || isComparing ? 'order-1' : 'order-2'} xl:order-2 xl:col-span-8`}>
           {!selectedPlayer && !isComparing ? (
             <div className="h-full flex flex-col items-center justify-center bg-slate-900/20 border border-white/5 rounded-[3.5rem] border-dashed text-gray-600">
                <User size={80} className="mb-6 opacity-20" />
@@ -534,30 +534,30 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
   const yearsActive = isValidStatValue(profile?.from_year) && isValidStatValue(profile?.to_year) && profile.from_year !== 'N/A' && profile.to_year !== 'N/A' ? `${profile.from_year}-${profile.to_year}` : 'N/A';
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       {/* Identity Card */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-black border border-white/10 rounded-[4rem] p-12 relative overflow-hidden shadow-2xl">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-black border border-white/10 rounded-3xl sm:rounded-[4rem] p-5 sm:p-12 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/10 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3" />
         
-        <div className="flex flex-col md:flex-row gap-12 relative z-10 items-center md:items-start">
+        <div className="flex flex-col md:flex-row gap-5 sm:gap-12 relative z-10 items-center md:items-start">
            <img 
               src={getPlayerHeadshotUrl(playerId)} 
-              className="w-56 h-56 rounded-[3rem] object-cover bg-gray-950 border-[6px] border-slate-900 shadow-2xl shrink-0" 
+              className="w-32 h-32 sm:w-56 sm:h-56 rounded-3xl sm:rounded-[3rem] object-cover bg-gray-950 border-4 sm:border-[6px] border-slate-900 shadow-2xl shrink-0" 
               alt="" 
               onError={(e: any) => {
                 e.target.src = '/assets/images/nba-6.svg';
                 e.target.classList.add('p-8', 'opacity-20');
               }}
            />
-           <div className="flex-1 w-full text-center md:text-left space-y-8">
+           <div className="flex-1 w-full text-center md:text-left space-y-5 sm:space-y-8">
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
                   {playerPosition}
                 </div>
-                <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter leading-none">{playerName}</h2>
+                <h2 className="text-3xl sm:text-6xl font-black text-white italic uppercase tracking-tighter leading-none break-words">{playerName}</h2>
               </div>
 
-               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
                  <InfoBox
                    label="Draft Pick"
                    value={draftRound !== 'N/A' && draftPick !== 'N/A'
@@ -577,16 +577,16 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
       </div>
 
       {/* Analytics Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-6 bg-slate-900/40 p-4 sm:p-6 rounded-3xl sm:rounded-[2.5rem] border border-white/5">
         <div className="flex items-center gap-4">
           <Calendar className="text-orange-500" size={24} />
           <span className="text-sm font-black text-white uppercase tracking-widest">Season Filter</span>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
            <select 
              value={activeSeason} 
              onChange={(e) => handleSeasonSelect(playerId, e.target.value)}
-             className="appearance-none bg-black border border-white/10 rounded-full py-4 pl-8 pr-16 text-white text-sm font-black italic focus:outline-none focus:border-orange-500 cursor-pointer shadow-inner"
+             className="w-full appearance-none bg-black border border-white/10 rounded-full py-4 pl-6 sm:pl-8 pr-14 sm:pr-16 text-white text-sm font-black italic focus:outline-none focus:border-orange-500 cursor-pointer shadow-inner"
            >
              <option value="Lifetime">Lifetime Stats</option>
              {seasons.map((s: string) => <option key={s} value={s}>{s} Season</option>)}
@@ -605,14 +605,14 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
         <div className="space-y-10 animate-in fade-in duration-500">
            
            {/* Averages Grid */}
-           <div className="bg-slate-900/30 rounded-[3rem] p-10 border border-white/5 space-y-8">
+           <div className="bg-slate-900/30 rounded-3xl sm:rounded-[3rem] p-4 sm:p-10 border border-white/5 space-y-6 sm:space-y-8">
              <div className="flex items-center gap-4">
                <TrendingUp className="text-orange-500" size={20} />
                <h3 className="text-lg font-black text-white uppercase tracking-widest">Season Averages</h3>
              </div>
              {seasonStats ? (
                <>
-                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+                     <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
                    <StatCard label="GP" val={seasonStats.GP} />
                    <StatCard label="PTS" val={seasonStats.PTS} />
                    <StatCard label="REB" val={seasonStats.REB} />
@@ -620,12 +620,12 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
                    <StatCard label="STL" val={seasonStats.STL} />
                    <StatCard label="BLK" val={seasonStats.BLK} />
                  </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
                    <PctCard label="FG%" val={seasonStats.FG_PCT} made={seasonStats.FGM} att={seasonStats.FGA} />
                    <PctCard label="3P%" val={seasonStats.FG3_PCT} made={seasonStats.FG3M} att={seasonStats.FG3A} />
                    <PctCard label="FT%" val={seasonStats.FT_PCT} made={seasonStats.FTM} att={seasonStats.FTA} />
                  </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
                    <InsightCard label="Scoring Load" value={`${Math.round(sanitizeNumberValue(seasonStats.PTS) * 2.7)}%`} note="usage estimate" />
                    <InsightCard label="Playmaking Mix" value={`${Math.round((sanitizeNumberValue(seasonStats.AST) / Math.max(1, sanitizeNumberValue(seasonStats.TOV, 1))) * 10) / 10}`} note="AST/TOV" />
                    <InsightCard label="Shot Profile" value={formatStatPercent(seasonStats.FG_PCT)} note="field goal efficiency" />
@@ -637,9 +637,9 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
            </div>
 
            {/* Awards & Contracts */}
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-10">
              
-             <div className="bg-slate-900/30 rounded-[3rem] p-10 border border-white/5 space-y-8">
+             <div className="bg-slate-900/30 rounded-3xl sm:rounded-[3rem] p-4 sm:p-10 border border-white/5 space-y-6 sm:space-y-8">
                <div className="flex items-center gap-4">
                  <Trophy className="text-orange-500" size={20} />
                  <h3 className="text-lg font-black text-white uppercase tracking-widest">Achievements</h3>
@@ -647,7 +647,7 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
                {seasonAwards.length > 0 ? (
                  <div className="space-y-4">
                    {seasonAwards.map((a: any, i: number) => (
-                     <div key={i} className="flex items-center gap-4 p-5 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                     <div key={i} className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
                        <Star className="text-orange-400 shrink-0" size={16} />
                        <div>
                          <div className="text-sm font-black text-white uppercase italic">{a.DESCRIPTION || a.TYPE || 'Official NBA Award'}</div>
@@ -661,7 +661,7 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
                )}
              </div>
 
-             <div className="bg-slate-900/30 rounded-[3rem] p-10 border border-white/5 space-y-8 relative overflow-hidden">
+             <div className="bg-slate-900/30 rounded-3xl sm:rounded-[3rem] p-4 sm:p-10 border border-white/5 space-y-6 sm:space-y-8 relative overflow-hidden">
                <div className="flex items-center gap-4 relative z-10">
                  <DollarSign className="text-green-500" size={20} />
                  <h3 className="text-lg font-black text-white uppercase tracking-widest">Contract Status</h3>
@@ -678,8 +678,8 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
            </div>
 
            {/* Detailed Game Log */}
-           <div className="bg-slate-900/30 rounded-[3rem] p-10 border border-white/5 space-y-8">
-             <div className="flex items-center justify-between">
+           <div className="bg-slate-900/30 rounded-3xl sm:rounded-[3rem] p-4 sm:p-10 border border-white/5 space-y-6 sm:space-y-8">
+             <div className="flex items-center justify-between gap-4">
                <div className="flex items-center gap-4">
                  <Activity className="text-orange-500" size={20} />
                  <h3 className="text-lg font-black text-white uppercase tracking-widest">Seasonal Match Journey</h3>
@@ -690,12 +690,12 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
              {Array.isArray(detailedStats) && detailedStats.length > 0 ? (
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  {detailedStats.slice(0, 20).map((log: any, i: number) => (
-                   <div key={i} className="flex items-center justify-between p-6 rounded-3xl bg-black/40 border border-white/5 hover:border-white/10 transition-all group">
-                     <div className="space-y-1">
+                   <div key={i} className="flex items-center justify-between gap-3 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-black/40 border border-white/5 hover:border-white/10 transition-all group">
+                     <div className="space-y-1 min-w-0">
                        <div className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{log.GAME_DATE}</div>
-                       <div className="text-sm font-black text-white uppercase italic group-hover:text-orange-400 transition-colors">{log.MATCHUP}</div>
+                       <div className="text-xs sm:text-sm font-black text-white uppercase italic group-hover:text-orange-400 transition-colors truncate">{log.MATCHUP}</div>
                      </div>
-                     <div className="flex items-center gap-6">
+                     <div className="flex items-center gap-3 sm:gap-6 shrink-0">
                        <MiniStat val={log.PTS} label="PTS" />
                        <MiniStat val={log.REB} label="REB" />
                        <MiniStat val={log.AST} label="AST" />
@@ -720,8 +720,8 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
 
 function InsightCard({ label, value, note }: { label: string; value: string; note: string }) {
   return (
-    <div className="bg-black/40 border border-white/5 p-6 rounded-3xl text-center">
-      <div className="text-2xl font-black text-cyan-300 italic">{value}</div>
+    <div className="bg-black/40 border border-white/5 p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-center">
+      <div className="text-xl sm:text-2xl font-black text-cyan-300 italic">{value}</div>
       <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">{label}</div>
       <div className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.2em] mt-1">{note}</div>
     </div>
@@ -751,7 +751,7 @@ function PlayerColumn({
   return (
     <div 
       onClick={onSelect}
-      className={`space-y-8 p-6 rounded-[3.5rem] border transition-all cursor-pointer relative
+      className={`space-y-6 sm:space-y-8 p-4 sm:p-6 rounded-3xl sm:rounded-[3.5rem] border transition-all cursor-pointer relative
         ${isActive ? `bg-white/[0.03] ${accentBorder} shadow-2xl` : 'bg-slate-900/10 border-white/5 opacity-80 hover:opacity-100'}`}
     >
        <div className="flex items-center justify-between">
@@ -785,10 +785,10 @@ function PlayerColumn({
                </div>
             )}
             {/* mini identity */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
                <img 
                   src={getPlayerHeadshotUrl(playerId)} 
-                  className="w-32 h-32 rounded-3xl object-cover bg-gray-950 border-4 border-slate-900 shadow-xl shrink-0" 
+                  className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl object-cover bg-gray-950 border-4 border-slate-900 shadow-xl shrink-0" 
                   alt="" 
                   onError={(e: any) => {
                     e.target.src = '/assets/images/nba-6.svg';
@@ -796,7 +796,7 @@ function PlayerColumn({
                   }}
                />
                <div className="min-w-0">
-                  <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter truncate leading-none">{profile.name}</h3>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tighter truncate leading-none">{profile.name}</h3>
                   <div className="flex items-center gap-2 mt-3">
                     <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{profile.position}</span>
                     <span className="w-1 h-1 rounded-full bg-gray-700" />
@@ -905,17 +905,17 @@ function CompareStat({ label, val, highlight }: any) {
 
 function InfoBox({ label, value }: { label: string, value: string }) {
   return (
-    <div className="bg-black/50 border border-white/5 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+    <div className="bg-black/50 border border-white/5 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center text-center min-w-0">
       <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{label}</div>
-      <div className="text-sm font-black text-white uppercase italic">{value || '-'}</div>
+      <div className="text-xs sm:text-sm font-black text-white uppercase italic truncate max-w-full">{value || '-'}</div>
     </div>
   );
 }
 
 function StatCard({ label, val }: any) {
   return (
-    <div className="bg-black/40 border border-white/5 p-6 rounded-3xl text-center shadow-inner group hover:bg-white/5 transition-colors">
-      <div className="text-4xl font-black text-white italic group-hover:text-orange-500 transition-colors">{val ?? '-'}</div>
+    <div className="bg-black/40 border border-white/5 p-3 sm:p-6 rounded-2xl sm:rounded-3xl text-center shadow-inner group hover:bg-white/5 transition-colors">
+      <div className="text-2xl sm:text-4xl font-black text-white italic group-hover:text-orange-500 transition-colors">{val ?? '-'}</div>
       <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mt-2">{label}</div>
     </div>
   );
@@ -925,10 +925,10 @@ function PctCard({ label, val, made, att }: any) {
   const normalized = val !== undefined && val !== null ? (Number(val) > 1 ? Number(val) / 100 : Number(val)) : NaN;
   const displayPct = Number.isFinite(normalized) ? `${(normalized * 100).toFixed(1)}%` : '-';
   return (
-    <div className="bg-black/60 border border-white/10 p-8 rounded-3xl text-center shadow-2xl relative overflow-hidden group">
+    <div className="bg-black/60 border border-white/10 p-5 sm:p-8 rounded-2xl sm:rounded-3xl text-center shadow-2xl relative overflow-hidden group">
       <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       <div className="relative z-10">
-        <div className="text-4xl font-black text-orange-500 italic drop-shadow-[0_0_15px_rgba(249,115,22,0.4)]">{displayPct}</div>
+        <div className="text-3xl sm:text-4xl font-black text-orange-500 italic drop-shadow-[0_0_15px_rgba(249,115,22,0.4)]">{displayPct}</div>
         <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-3 mb-1">{label}</div>
         <div className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.2em]">{made !== undefined ? `${made}/${att} M/A` : ''}</div>
       </div>
@@ -938,8 +938,8 @@ function PctCard({ label, val, made, att }: any) {
 
 function MiniStat({ val, label }: { val: any, label: string }) {
   return (
-    <div className="text-center min-w-[40px]">
-      <div className="text-lg font-black text-white italic">{val ?? 0}</div>
+    <div className="text-center min-w-8 sm:min-w-[40px]">
+      <div className="text-base sm:text-lg font-black text-white italic">{val ?? 0}</div>
       <div className="text-[8px] text-gray-700 font-black uppercase tracking-tighter">{label}</div>
     </div>
   );

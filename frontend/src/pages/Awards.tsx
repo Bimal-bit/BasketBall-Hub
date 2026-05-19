@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Trophy, Star, X, BarChart3, Users, Search, Loader2, Calendar } from 'lucide-react';
+import { Trophy, X, BarChart3, Search, Loader2 } from 'lucide-react';
 import { 
   nbaApi, 
   getTeamLogoUrl, 
@@ -154,31 +154,31 @@ export default function Awards() {
       </div>
 
       {selectedPlayer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-10 bg-black/98 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="relative bg-slate-950 w-full max-w-6xl max-h-[92vh] rounded-[4rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col">
-            <button onClick={() => setSelectedPlayer(null)} className="absolute top-10 right-10 z-[110] w-16 h-16 flex items-center justify-center bg-white/5 hover:bg-orange-500/20 text-white rounded-full transition-all border border-white/5"><X size={32} /></button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-10 bg-black/98 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="relative bg-slate-950 w-full max-w-6xl max-h-[96vh] sm:max-h-[92vh] rounded-3xl sm:rounded-[4rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col">
+            <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 sm:top-10 sm:right-10 z-[110] w-11 h-11 sm:w-16 sm:h-16 flex items-center justify-center bg-white/10 hover:bg-orange-500/20 text-white rounded-full transition-all border border-white/5"><X size={22} /></button>
 
-            <div className="relative h-64 sm:h-80 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950">
-               <div className="absolute inset-0 flex items-end p-6 sm:p-16 gap-6 sm:gap-16">
-                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-32 h-32 sm:w-64 sm:h-64 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl translate-y-16 sm:translate-y-20" alt="" />
-                  <div className="pb-4 sm:pb-8">
-                    <div className="inline-flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] sm:tracking-[0.4em] mb-3 sm:mb-6 border border-orange-500/20 shadow-xl">
+            <div className="relative h-36 sm:h-80 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950">
+               <div className="absolute inset-0 flex items-end p-4 sm:p-16 gap-4 sm:gap-16 pr-16 sm:pr-24">
+                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-24 h-24 sm:w-64 sm:h-64 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl translate-y-8 sm:translate-y-20" alt="" />
+                  <div className="pb-2 sm:pb-8 min-w-0">
+                    <div className="inline-flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-[9px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.4em] mb-2 sm:mb-6 border border-orange-500/20 shadow-xl max-w-full">
                        <Trophy size={14} />
-                       {selectedSeason} {selectedPlayer.awardType}
+                       <span className="truncate">{selectedSeason} {selectedPlayer.awardType}</span>
                     </div>
-                    <h2 className="text-3xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-none">{selectedPlayer.name}</h2>
+                    <h2 className="text-2xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-none truncate">{selectedPlayer.name}</h2>
                   </div>
                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 sm:p-16 pt-20 sm:pt-32 scrollbar-hide space-y-10 sm:space-y-24">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-16 pt-10 sm:pt-32 scrollbar-hide space-y-6 sm:space-y-24">
                {loading ? (
-                  <div className="flex flex-col items-center justify-center py-40 gap-8"><Loader2 className="w-20 h-20 text-orange-500 animate-spin" /><div className="text-sm font-black text-gray-700 uppercase tracking-[1em]">Synchronizing Records</div></div>
+                  <div className="flex flex-col items-center justify-center py-24 sm:py-40 gap-6 sm:gap-8"><Loader2 className="w-14 h-14 sm:w-20 sm:h-20 text-orange-500 animate-spin" /><div className="text-xs sm:text-sm font-black text-gray-700 uppercase tracking-[0.35em] sm:tracking-[1em]">Synchronizing Records</div></div>
                ) : (
                   <>
-                     <section className="space-y-12">
-                        <div className="flex items-center gap-6"><div className="text-[10px] font-black text-orange-500 uppercase tracking-[0.6em]">Official Season Averages</div><div className="h-px flex-1 bg-white/5" /></div>
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+                     <section className="space-y-4 sm:space-y-12">
+                        <div className="flex items-center gap-3 sm:gap-6"><div className="text-[9px] sm:text-[10px] font-black text-orange-500 uppercase tracking-[0.18em] sm:tracking-[0.6em]">Official Season Averages</div><div className="h-px flex-1 bg-white/5" /></div>
+                        <div className="grid grid-cols-5 gap-2 sm:gap-8">
                            <StatBox label="MIN" value={playerAverages?.MIN} />
                            <StatBox label="PTS" value={playerAverages?.PTS} />
                            <StatBox label="REB" value={playerAverages?.REB} />
@@ -190,15 +190,15 @@ export default function Awards() {
                            <StatBox label="3FG" value={playerAverages?.FG3M !== undefined ? `${playerAverages.FG3M}/${playerAverages.FG3A}` : '-'} />
                            <StatBox label="FT" value={playerAverages?.FTM !== undefined ? `${playerAverages.FTM}/${playerAverages.FTA}` : '-'} />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-8">
                            <PctBox label="FIELD GOAL %" value={playerAverages?.FG_PCT} />
                            <PctBox label="THREE POINT %" value={playerAverages?.FG3_PCT} />
                            <PctBox label="FREE THROW %" value={playerAverages?.FT_PCT} />
                         </div>
                      </section>
 
-                     <section className="space-y-12 pb-20">
-                        <div className="flex items-center gap-6"><div className="text-[10px] font-black text-orange-500 uppercase tracking-[0.6em]">Seasonal Match Journey</div><div className="h-px flex-1 bg-white/5" /><div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{playerStats.length} Games Played</div></div>
+                     <section className="space-y-4 sm:space-y-12 pb-10 sm:pb-20">
+                        <div className="flex items-center gap-3 sm:gap-6"><div className="text-[9px] sm:text-[10px] font-black text-orange-500 uppercase tracking-[0.18em] sm:tracking-[0.6em]">Seasonal Match Journey</div><div className="h-px flex-1 bg-white/5" /><div className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest shrink-0">{playerStats.length} Games</div></div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                            {playerStats.map((log, i) => (
                               <button key={i} onClick={() => handleGameClick(log)} className="flex items-center justify-between p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] bg-white/[0.02] border border-white/5 hover:border-orange-500/50 hover:bg-white/[0.05] transition-all group text-left">
@@ -290,22 +290,13 @@ function AwardCard({ label, player, onClick, isCoach }: any) {
   );
 }
 
-function AwardMiniStat({ label, val }: any) {
-  return (
-    <div className="flex flex-col">
-       <span className="text-lg font-black text-white italic leading-none">{val || '0'}</span>
-       <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mt-1">{label}</span>
-    </div>
-  );
-}
-
 function StatBox({ label, value }: any) {
   return (
-    <div className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 text-center group hover:bg-white/[0.04] transition-colors shadow-inner min-w-0">
-      <div className="text-4xl font-black text-white italic group-hover:text-orange-500 transition-colors tabular-nums truncate">
+    <div className="p-2 sm:p-8 rounded-xl sm:rounded-[2.5rem] bg-white/[0.02] border border-white/5 text-center group hover:bg-white/[0.04] transition-colors shadow-inner min-w-0">
+      <div className="text-base sm:text-4xl font-black text-white italic group-hover:text-orange-500 transition-colors tabular-nums truncate">
         {value !== undefined && value !== null ? value : '0'}
       </div>
-      <div className="text-[10px] font-black text-gray-700 uppercase tracking-widest mt-3">{label}</div>
+      <div className="text-[8px] sm:text-[10px] font-black text-gray-700 uppercase tracking-widest mt-1 sm:mt-3">{label}</div>
     </div>
   );
 }
@@ -313,9 +304,9 @@ function StatBox({ label, value }: any) {
 function PctBox({ label, value }: any) {
   const displayVal = value !== undefined && value !== null && !isNaN(value) ? (value * 100).toFixed(1) + '%' : '0.0%';
   return (
-    <div className="p-10 rounded-[3rem] bg-black/40 border border-white/5 text-center shadow-2xl group">
-       <div className="text-4xl font-black text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]">{displayVal}</div>
-       <div className="text-[10px] font-black text-gray-700 uppercase tracking-widest mt-3">{label}</div>
+    <div className="p-3 sm:p-10 rounded-xl sm:rounded-[3rem] bg-black/40 border border-white/5 text-center shadow-2xl group min-w-0">
+       <div className="text-lg sm:text-4xl font-black text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)] truncate">{displayVal}</div>
+       <div className="text-[7px] sm:text-[10px] font-black text-gray-700 uppercase tracking-widest mt-1 sm:mt-3 truncate">{label}</div>
     </div>
   );
 }
@@ -328,35 +319,35 @@ function MiniStat({ val, label }: any) {
 
 function BoxScoreModal({ game, boxScore, loading, onPlayerClick, onClose }: any) {
   const [teamFilter, setTeamFilter] = useState<number | null>(null);
-  const teamIds = useMemo(() => Array.from(new Set(boxScore.map(p => p.TEAM_ID))), [boxScore]);
+  const teamIds = useMemo<number[]>(() => Array.from(new Set((boxScore as BoxScorePlayer[]).map((p: BoxScorePlayer) => p.TEAM_ID))), [boxScore]);
   useEffect(() => { if (teamIds.length > 0 && !teamFilter) setTeamFilter(teamIds[0]); }, [teamIds, teamFilter]);
-  const filtered = useMemo(() => teamFilter ? boxScore.filter(p => p.TEAM_ID === teamFilter) : boxScore, [boxScore, teamFilter]);
+  const filtered = useMemo<BoxScorePlayer[]>(() => teamFilter ? (boxScore as BoxScorePlayer[]).filter((p: BoxScorePlayer) => p.TEAM_ID === teamFilter) : boxScore, [boxScore, teamFilter]);
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/99 backdrop-blur-3xl animate-in slide-in-from-bottom-20 duration-500">
-      <div className="relative w-full max-w-7xl max-h-[95vh] overflow-hidden rounded-[5rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
-        <div className="p-16 bg-slate-900/40 border-b border-white/5 flex flex-col items-center">
-          <button onClick={onClose} className="absolute top-12 right-12 text-gray-500 hover:text-white"><X size={44} /></button>
-          <div className="text-7xl font-black text-white italic uppercase tracking-tighter mb-12 drop-shadow-2xl">{game.MATCHUP}</div>
-          <div className="flex gap-8 p-3 bg-black/60 rounded-[3rem] border border-white/10 shadow-inner">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-black/99 backdrop-blur-3xl animate-in slide-in-from-bottom-20 duration-500">
+      <div className="relative w-full max-w-7xl max-h-[96vh] overflow-hidden rounded-3xl sm:rounded-[3rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
+        <div className="p-4 sm:p-10 bg-slate-900/40 border-b border-white/5 flex flex-col items-center">
+          <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-gray-500 hover:text-white"><X size={28} /></button>
+          <div className="pr-10 text-3xl sm:text-6xl font-black text-white italic uppercase tracking-tighter mb-4 sm:mb-8 drop-shadow-2xl text-center truncate max-w-full">{game.MATCHUP}</div>
+          <div className="flex max-w-full gap-2 overflow-x-auto p-2 bg-black/60 rounded-2xl sm:rounded-[3rem] border border-white/10 shadow-inner">
             {teamIds.map(tid => (
-              <button key={tid} onClick={() => setTeamFilter(tid)} className={`flex items-center gap-6 px-12 py-6 rounded-[2.5rem] transition-all ${teamFilter === tid ? 'bg-orange-500 text-white shadow-[0_0_40px_rgba(249,115,22,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                <img src={getTeamLogoUrl(tid)} className="w-14 h-14 object-contain" alt="" />
-                <span className="text-lg font-black uppercase tracking-widest">View Team</span>
+              <button key={tid} onClick={() => setTeamFilter(tid)} className={`flex shrink-0 items-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-xl sm:rounded-[2.5rem] transition-all ${teamFilter === tid ? 'bg-orange-500 text-white shadow-[0_0_40px_rgba(249,115,22,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                <img src={getTeamLogoUrl(tid)} className="w-9 h-9 sm:w-14 sm:h-14 object-contain" alt="" />
+                <span className="text-xs sm:text-base font-black uppercase tracking-widest">Team</span>
               </button>
             ))}
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 scrollbar-hide">
           {loading ? <div className="col-span-full py-40 flex justify-center"><Loader2 className="w-20 h-20 text-orange-500 animate-spin" /></div> :
             filtered.map((p: any) => (
-              <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-8 p-8 rounded-[3.5rem] border border-white/5 bg-white/[0.03] hover:border-orange-500/40 hover:bg-white/5 transition-all text-left group">
-                <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-24 h-24 rounded-[2.5rem] object-cover bg-gray-900 shadow-2xl group-hover:scale-110 transition-transform" alt="" />
+              <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-white/5 bg-white/[0.03] hover:border-orange-500/40 hover:bg-white/5 transition-all text-left group">
+                <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-[2rem] object-cover bg-gray-900 shadow-2xl group-hover:scale-110 transition-transform" alt="" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-lg font-black text-white uppercase truncate group-hover:text-orange-400">{p.PLAYER_NAME}</div>
+                  <div className="text-sm sm:text-lg font-black text-white uppercase truncate group-hover:text-orange-400">{p.PLAYER_NAME}</div>
                   <div className="text-[10px] text-gray-700 font-black uppercase mt-2 tracking-widest">{p.START_POSITION || 'BENCH'}</div>
                 </div>
-                <div className="text-right"><div className="text-5xl font-black text-orange-500 tabular-nums">{p.PTS || 0}</div><div className="text-[10px] text-gray-800 font-black uppercase mt-1">PTS</div></div>
+                <div className="text-right"><div className="text-2xl sm:text-4xl font-black text-orange-500 tabular-nums">{p.PTS || 0}</div><div className="text-[10px] text-gray-800 font-black uppercase mt-1">PTS</div></div>
               </button>
             ))
           }
@@ -372,29 +363,29 @@ function PlayerOverlay({ player, season, onClose }: any) {
   useEffect(() => { nbaApi.getPlayerDetailedStats(player.PLAYER_ID, season).then(res => setStats(res.slice(0, 10))).finally(() => setLoading(false)); }, [player.PLAYER_ID, season]);
 
   return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/99 backdrop-blur-3xl animate-in zoom-in-95 duration-300">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-[5.5rem] border border-white/10 bg-slate-950 shadow-[0_0_150px_rgba(0,0,0,1)]">
-        <div className="h-80 bg-gradient-to-br from-orange-600/50 to-transparent relative p-16 flex items-end gap-16">
-          <button onClick={onClose} className="absolute top-12 right-12 text-white hover:text-orange-500 transition-colors"><X size={44} /></button>
-          <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-72 h-72 rounded-[5rem] object-cover bg-gray-950 border-[10px] border-slate-950 shadow-2xl translate-y-32" alt="" />
-          <h2 className="text-7xl font-black text-white italic uppercase tracking-tighter pb-8 leading-none drop-shadow-2xl">{player.PLAYER_NAME}</h2>
+    <div className="fixed inset-0 z-[130] flex items-center justify-center p-2 sm:p-4 bg-black/99 backdrop-blur-3xl animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-3xl max-h-[96vh] overflow-hidden rounded-3xl sm:rounded-[4rem] border border-white/10 bg-slate-950 shadow-[0_0_150px_rgba(0,0,0,1)] flex flex-col">
+        <div className="h-36 sm:h-72 bg-gradient-to-br from-orange-600/50 to-transparent relative p-4 sm:p-12 flex items-end gap-4 sm:gap-10 pr-14">
+          <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-orange-500 transition-colors"><X size={28} /></button>
+          <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-24 h-24 sm:w-56 sm:h-56 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 sm:border-8 border-slate-950 shadow-2xl translate-y-8 sm:translate-y-24" alt="" />
+          <h2 className="text-2xl sm:text-6xl font-black text-white italic uppercase tracking-tighter pb-2 sm:pb-6 leading-none drop-shadow-2xl truncate">{player.PLAYER_NAME}</h2>
         </div>
-        <div className="p-20 pt-44 space-y-20">
-          <div className="grid grid-cols-4 gap-10">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-12 pt-10 sm:pt-32 space-y-6 sm:space-y-12">
+          <div className="grid grid-cols-4 gap-2 sm:gap-6">
              <Pill val={player.PTS} label="Points" />
              <Pill val={player.REB} label="Rebounds" />
              <Pill val={player.AST} label="Assists" />
              <Pill val={player.STL} label="Steals" />
           </div>
-          <div className="space-y-10">
-            <h3 className="text-[11px] font-black text-gray-700 uppercase tracking-[0.6em] border-b border-white/5 pb-8">Historical Log Feed</h3>
-            <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-8">
+            <h3 className="text-[10px] sm:text-[11px] font-black text-gray-700 uppercase tracking-[0.2em] sm:tracking-[0.6em] border-b border-white/5 pb-4 sm:pb-6">Historical Log Feed</h3>
+            <div className="space-y-2 sm:space-y-4">
               {loading ? <div className="py-20 flex justify-center"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div> :
                 stats.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between p-10 rounded-[3.5rem] bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] transition-all">
-                    <div className="text-[10px] text-gray-600 w-32 uppercase font-black tracking-widest">{s.GAME_DATE}</div>
-                    <div className="text-sm font-black text-white flex-1 uppercase italic tracking-tight">{s.MATCHUP}</div>
-                    <div className="text-4xl font-black text-orange-500 italic tabular-nums">{s.PTS} <span className="text-sm uppercase tracking-normal">PTS</span></div>
+                  <div key={i} className="flex items-center justify-between gap-3 p-3 sm:p-6 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] transition-all">
+                    <div className="text-[9px] sm:text-[10px] text-gray-600 w-20 sm:w-28 uppercase font-black tracking-widest shrink-0">{s.GAME_DATE}</div>
+                    <div className="text-xs sm:text-sm font-black text-white flex-1 uppercase italic tracking-tight truncate">{s.MATCHUP}</div>
+                    <div className="text-2xl sm:text-3xl font-black text-orange-500 italic tabular-nums">{s.PTS} <span className="text-[10px] sm:text-sm uppercase tracking-normal">PTS</span></div>
                   </div>
                 ))
               }
@@ -408,9 +399,9 @@ function PlayerOverlay({ player, season, onClose }: any) {
 
 function Pill({ val, label }: any) {
   return (
-    <div className="p-10 rounded-[3.5rem] bg-white/5 border border-white/5 text-center shadow-2xl">
-      <div className="text-5xl font-black text-white italic drop-shadow-2xl tabular-nums">{val || 0}</div>
-      <div className="text-[10px] font-black text-gray-700 uppercase mt-4 tracking-widest">{label}</div>
+    <div className="p-2 sm:p-6 rounded-xl sm:rounded-[2.5rem] bg-white/5 border border-white/5 text-center shadow-2xl min-w-0">
+      <div className="text-xl sm:text-4xl font-black text-white italic drop-shadow-2xl tabular-nums">{val || 0}</div>
+      <div className="text-[8px] sm:text-[10px] font-black text-gray-700 uppercase mt-1 sm:mt-3 tracking-widest truncate">{label}</div>
     </div>
   );
 }

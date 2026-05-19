@@ -291,9 +291,9 @@ function FinalsView({ series, onTeamClick, onGameClick }: any) {
   if (!series) return <div className="py-40 text-center text-gray-700 font-black uppercase tracking-widest">Finals Matchup Pending</div>;
   return (
     <div className="max-w-7xl mx-auto space-y-16">
-      <div className="relative overflow-hidden rounded-[5rem] border border-orange-500/20 bg-slate-950 p-24 text-center shadow-[0_0_100px_rgba(249,115,22,0.1)]">
+      <div className="relative overflow-hidden rounded-3xl sm:rounded-[5rem] border border-orange-500/20 bg-slate-950 p-4 sm:p-16 xl:p-24 text-center shadow-[0_0_100px_rgba(249,115,22,0.1)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.15),transparent)]" />
-        <div className="relative z-10 flex flex-col items-center gap-16">
+        <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-16">
           <div className="flex items-center justify-center gap-6 sm:gap-20 sm:gap-40 flex-wrap">
              <div onClick={() => onTeamClick({ TeamID: series.homeId, name: series.homeName })} className="cursor-pointer group text-center">
                 <img src={getTeamLogoUrl(series.homeId)} className="w-32 h-32 sm:w-64 sm:h-64 object-contain group-hover:scale-110 transition-transform mb-4 sm:mb-8 mx-auto" alt="" />
@@ -307,7 +307,7 @@ function FinalsView({ series, onTeamClick, onGameClick }: any) {
                 <div className="text-5xl sm:text-8xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.visitorWins}</div>
              </div>
           </div>
-          <div className="text-sm font-black text-gray-500 uppercase tracking-[1.5em]">NBA Finals Championship</div>
+          <div className="text-xs sm:text-sm font-black text-gray-500 uppercase tracking-[0.18em] sm:tracking-[1.5em]">NBA Finals Championship</div>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
@@ -321,7 +321,7 @@ function FinalsView({ series, onTeamClick, onGameClick }: any) {
               key={i} 
               onClick={hasScore ? () => onGameClick(g) : undefined} 
               disabled={!hasScore}
-              className={`p-10 rounded-[3rem] border border-white/5 bg-white/5 transition-all text-left group ${hasScore ? 'hover:border-orange-500/50 hover:bg-orange-500/5 cursor-pointer' : 'opacity-40 cursor-default'}`}
+              className={`p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] border border-white/5 bg-white/5 transition-all text-left group ${hasScore ? 'hover:border-orange-500/50 hover:bg-orange-500/5 cursor-pointer' : 'opacity-40 cursor-default'}`}
             >
               <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6">Game {i+1}</div>
               <div className={`text-3xl font-black italic ${hasScore ? 'text-white group-hover:text-orange-400' : 'text-gray-500'}`}>
@@ -340,24 +340,24 @@ function FinalsView({ series, onTeamClick, onGameClick }: any) {
 
 function TeamLogModal({ team, games, loading, onGameClick, onClose }: any) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/98 backdrop-blur-3xl">
-      <div className="relative w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-[4rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
-        <div className="p-10 border-b border-white/5 flex items-center justify-between bg-slate-900/40">
-          <div className="flex items-center gap-8">
-            <img src={getTeamLogoUrl(team.TeamID)} className="w-20 h-20 object-contain" alt="" />
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">{team.TeamCity} {team.TeamName}</h2>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/98 backdrop-blur-3xl">
+      <div className="relative w-full max-w-6xl max-h-[96vh] overflow-hidden rounded-3xl sm:rounded-[4rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
+        <div className="p-4 sm:p-8 border-b border-white/5 flex items-center justify-between gap-4 bg-slate-900/40">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-6">
+            <img src={getTeamLogoUrl(team.TeamID)} className="w-12 h-12 sm:w-20 sm:h-20 object-contain shrink-0" alt="" />
+            <h2 className="text-xl sm:text-4xl font-black text-white italic uppercase tracking-tighter truncate">{team.TeamCity} {team.TeamName}</h2>
           </div>
-          <button onClick={onClose} className="w-16 h-16 rounded-full bg-white/5 text-gray-500 hover:text-white transition-all"><X size={32} /></button>
+          <button onClick={onClose} className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/5 text-gray-500 hover:text-white transition-all shrink-0"><X size={24} /></button>
         </div>
-        <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 scrollbar-hide">
           {loading ? (
             <div className="col-span-full py-20 flex justify-center">
               <BasketballLoader />
             </div>
           ) :
             games.map((g: any) => (
-              <button key={g.GAME_ID} onClick={() => onGameClick(g)} className="flex items-center justify-between p-6 rounded-3xl border border-white/5 bg-white/[0.02] hover:border-orange-500/50 transition-all text-left">
-                <div>
+              <button key={g.GAME_ID} onClick={() => onGameClick(g)} className="flex items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/5 bg-white/[0.02] hover:border-orange-500/50 transition-all text-left">
+                <div className="min-w-0">
                   <div className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{g.GAME_DATE}</div>
                   <div className="text-base font-bold text-white uppercase truncate">{g.MATCHUP}</div>
                 </div>
@@ -378,35 +378,35 @@ function BoxScoreModal({ game, boxScore, loading, onPlayerClick, onClose }: any)
   const filtered = useMemo(() => teamFilter ? boxScore.filter(p => p.TEAM_ID === teamFilter) : boxScore, [boxScore, teamFilter]);
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/99 backdrop-blur-3xl animate-in slide-in-from-bottom-20 duration-500">
-      <div className="relative w-full max-w-7xl max-h-[95vh] overflow-hidden rounded-[5rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
-        <div className="p-12 bg-slate-900/60 border-b border-white/5 flex flex-col items-center">
-          <button onClick={onClose} className="absolute top-12 right-12 text-gray-500 hover:text-white"><X size={40} /></button>
-          <div className="text-6xl font-black text-white italic uppercase tracking-tighter mb-10">{game.MATCHUP}</div>
-          <div className="flex gap-6 p-2.5 bg-black/60 rounded-[2.5rem] border border-white/10 shadow-2xl">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 bg-black/99 backdrop-blur-3xl animate-in slide-in-from-bottom-20 duration-500">
+      <div className="relative w-full max-w-7xl max-h-[96vh] overflow-hidden rounded-3xl sm:rounded-[4rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
+        <div className="p-4 sm:p-10 bg-slate-900/60 border-b border-white/5 flex flex-col items-center">
+          <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-gray-500 hover:text-white"><X size={28} /></button>
+          <div className="pr-10 text-3xl sm:text-6xl font-black text-white italic uppercase tracking-tighter mb-4 sm:mb-8 text-center truncate max-w-full">{game.MATCHUP}</div>
+          <div className="flex max-w-full gap-2 overflow-x-auto p-2 bg-black/60 rounded-2xl sm:rounded-[2.5rem] border border-white/10 shadow-2xl">
             {teamIds.map(tid => (
-              <button key={tid} onClick={() => setTeamFilter(tid)} className={`flex items-center gap-5 px-10 py-5 rounded-[2rem] transition-all ${teamFilter === tid ? 'bg-orange-500 text-white shadow-2xl' : 'text-gray-500 hover:text-white'}`}>
-                <img src={getTeamLogoUrl(tid)} className="w-12 h-12 object-contain" alt="" />
-                <span className="text-base font-black uppercase tracking-widest">Select Team</span>
+              <button key={tid} onClick={() => setTeamFilter(tid)} className={`flex shrink-0 items-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-xl sm:rounded-[2rem] transition-all ${teamFilter === tid ? 'bg-orange-500 text-white shadow-2xl' : 'text-gray-500 hover:text-white'}`}>
+                <img src={getTeamLogoUrl(tid)} className="w-9 h-9 sm:w-12 sm:h-12 object-contain" alt="" />
+                <span className="text-xs sm:text-base font-black uppercase tracking-widest">Team</span>
               </button>
             ))}
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto p-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 scrollbar-hide">
           {loading ? (
             <div className="col-span-full py-20 flex justify-center">
               <BasketballLoader />
             </div>
           ) :
             filtered.map((p: any) => (
-              <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-6 p-6 rounded-[3rem] border border-white/5 bg-white/[0.03] hover:border-orange-500/40 transition-all text-left group">
-                <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-20 h-20 rounded-[2rem] object-cover bg-gray-900 shadow-2xl group-hover:scale-110 transition-transform" alt="" />
+              <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-white/5 bg-white/[0.03] hover:border-orange-500/40 transition-all text-left group">
+                <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-[2rem] object-cover bg-gray-900 shadow-2xl group-hover:scale-110 transition-transform" alt="" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-base font-black text-white uppercase truncate group-hover:text-orange-400">{p.PLAYER_NAME}</div>
+                  <div className="text-sm sm:text-base font-black text-white uppercase truncate group-hover:text-orange-400">{p.PLAYER_NAME}</div>
                   <div className="text-[10px] text-gray-600 font-black uppercase mt-1 tracking-widest">{p.START_POSITION || 'BENCH'}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-4xl font-black text-orange-500 tabular-nums">{p.PTS || 0}</div>
+                  <div className="text-2xl sm:text-4xl font-black text-orange-500 tabular-nums">{p.PTS || 0}</div>
                   <div className="text-[10px] text-gray-700 font-black uppercase">PTS</div>
                 </div>
               </button>
@@ -424,29 +424,29 @@ function PlayerStatsModal({ player, season, onClose }: any) {
   useEffect(() => { nbaApi.getPlayerDetailedStats(player.PLAYER_ID, season).then(res => setStats(res.slice(0, 10))).finally(() => setLoading(false)); }, [player.PLAYER_ID, season]);
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/99 backdrop-blur-3xl animate-in zoom-in-95 duration-300">
-      <div className="relative w-full max-w-3xl overflow-hidden rounded-[5rem] border border-white/10 bg-slate-950 shadow-2xl">
-        <div className="h-72 bg-gradient-to-br from-orange-600/50 to-transparent relative p-12 flex items-end gap-12">
-          <button onClick={onClose} className="absolute top-12 right-12 text-white hover:text-orange-500 transition-colors"><X size={40} /></button>
-          <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-64 h-64 rounded-[4rem] object-cover bg-gray-950 border-8 border-slate-950 shadow-2xl translate-y-24" alt="" />
-          <h2 className="text-6xl font-black text-white italic uppercase tracking-tighter pb-6 leading-none">{player.PLAYER_NAME}</h2>
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-black/99 backdrop-blur-3xl animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-3xl max-h-[96vh] overflow-hidden rounded-3xl sm:rounded-[4rem] border border-white/10 bg-slate-950 shadow-2xl flex flex-col">
+        <div className="h-36 sm:h-72 bg-gradient-to-br from-orange-600/50 to-transparent relative p-4 sm:p-12 flex items-end gap-4 sm:gap-10 pr-14">
+          <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-orange-500 transition-colors"><X size={28} /></button>
+          <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-24 h-24 sm:w-56 sm:h-56 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 sm:border-8 border-slate-950 shadow-2xl translate-y-8 sm:translate-y-24" alt="" />
+          <h2 className="text-2xl sm:text-6xl font-black text-white italic uppercase tracking-tighter pb-2 sm:pb-6 leading-none truncate">{player.PLAYER_NAME}</h2>
         </div>
-        <div className="p-16 pt-40 space-y-16">
-          <div className="grid grid-cols-4 gap-8">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-12 pt-10 sm:pt-32 space-y-6 sm:space-y-12">
+          <div className="grid grid-cols-4 gap-2 sm:gap-6">
             <StatPill val={player.PTS} label="Points" />
             <StatPill val={player.REB} label="Rebounds" />
             <StatPill val={player.AST} label="Assists" />
             <StatPill val={player.STL} label="Steals" />
           </div>
-          <div className="space-y-8">
-            <h3 className="text-[11px] font-black text-gray-700 uppercase tracking-[0.5em] border-b border-white/5 pb-6">Official Performance Feed</h3>
-            <div className="space-y-4">
+          <div className="space-y-4 sm:space-y-8">
+            <h3 className="text-[10px] sm:text-[11px] font-black text-gray-700 uppercase tracking-[0.2em] sm:tracking-[0.5em] border-b border-white/5 pb-4 sm:pb-6">Official Performance Feed</h3>
+            <div className="space-y-2 sm:space-y-4">
               {loading ? <div className="py-12 flex justify-center"><Loader2 className="w-10 h-10 text-orange-500 animate-spin" /></div> :
                 stats.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all">
-                    <div className="text-[10px] text-gray-500 w-32 uppercase font-black tracking-widest">{s.GAME_DATE}</div>
-                    <div className="text-xs font-black text-white flex-1 uppercase tracking-tight">{s.MATCHUP}</div>
-                    <div className="text-3xl font-black text-orange-500 italic tabular-nums">{s.PTS} <span className="text-[12px] uppercase tracking-normal">PTS</span></div>
+                  <div key={i} className="flex items-center justify-between gap-3 p-3 sm:p-6 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all">
+                    <div className="text-[9px] sm:text-[10px] text-gray-500 w-20 sm:w-28 uppercase font-black tracking-widest shrink-0">{s.GAME_DATE}</div>
+                    <div className="text-xs font-black text-white flex-1 uppercase tracking-tight truncate">{s.MATCHUP}</div>
+                    <div className="text-2xl sm:text-3xl font-black text-orange-500 italic tabular-nums">{s.PTS} <span className="text-[10px] sm:text-[12px] uppercase tracking-normal">PTS</span></div>
                   </div>
                 ))
               }
@@ -460,9 +460,9 @@ function PlayerStatsModal({ player, season, onClose }: any) {
 
 function StatPill({ val, label }: any) {
   return (
-    <div className="p-8 rounded-[3rem] bg-white/5 border border-white/5 text-center shadow-2xl">
-      <div className="text-4xl font-black text-white italic drop-shadow-2xl tabular-nums">{val || 0}</div>
-      <div className="text-[10px] text-gray-700 font-black uppercase mt-3 tracking-widest">{label}</div>
+    <div className="p-2 sm:p-6 rounded-xl sm:rounded-[2.5rem] bg-white/5 border border-white/5 text-center shadow-2xl min-w-0">
+      <div className="text-xl sm:text-4xl font-black text-white italic drop-shadow-2xl tabular-nums">{val || 0}</div>
+      <div className="text-[8px] sm:text-[10px] text-gray-700 font-black uppercase mt-1 sm:mt-3 tracking-widest truncate">{label}</div>
     </div>
   );
 }

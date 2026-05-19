@@ -8,6 +8,27 @@ export function formatIndianTime(date: Date) {
   });
 }
 
+export function formatIndianDate(date: Date, options: Intl.DateTimeFormatOptions = {}) {
+  return date.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    ...options,
+  });
+}
+
+export function getIndianDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 export function gameStatusInIndia(game: Game) {
   if (game.status === 'live') return game.status_text || `Q${game.quarter}`;
   if (game.status === 'final') return game.status_text || 'Final';
