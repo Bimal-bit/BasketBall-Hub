@@ -13,6 +13,7 @@ import {
 import {
   getPlayerHeadshotUrl,
   getTeamLogoUrl,
+  getNBADate,
   nbaApi,
   type Game,
   type BoxScorePlayer,
@@ -24,7 +25,7 @@ import {
   type TeamGame,
 } from '../lib/api';
 import { mockPlayers, mockTeams } from '../lib/mockData';
-import { gameStatusInIndia, getIndianDateKey } from '../lib/time';
+import { gameStatusInIndia } from '../lib/time';
 
 type WatchItem = {
   id: string;
@@ -55,6 +56,31 @@ type TeamProfile = {
 };
 
 const WATCHLIST_KEY = 'nba-live-watchlist';
+const KNOWN_PLAYER_IDS: Record<string, number> = {
+  'Jayson Tatum': 1628369,
+  'Jaylen Brown': 1627759,
+  'Jrue Holiday': 201950,
+  'LeBron James': 2544,
+  'Anthony Davis': 203076,
+  "D'Angelo Russell": 1626156,
+  'Stephen Curry': 201939,
+  'Klay Thompson': 202691,
+  'Draymond Green': 203110,
+  'Jimmy Butler': 202710,
+  'Bam Adebayo': 1628389,
+  'Tyler Herro': 1629639,
+  'Nikola Jokic': 203999,
+  'Nikola Jokić': 203999,
+  'Jamal Murray': 1627750,
+  'Aaron Gordon': 203932,
+};
+const TEAM_IDS_BY_ABBR: Record<string, number> = {
+  BOS: 1610612738,
+  LAL: 1610612747,
+  GSW: 1610612744,
+  MIA: 1610612748,
+  DEN: 1610612743,
+};
 
 export default function InsightsLab() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -83,12 +109,12 @@ export default function InsightsLab() {
       nbaApi.getTopPlayers(),
       nbaApi.getTeams(),
       nbaApi.getStandings(),
-      nbaApi.getScoreboard(getIndianDateKey()),
+      nbaApi.getScoreboard(getNBADate()),
     ]);
 
     if (cancelled()) return;
 
-    const apiPlayers = playerResult.status === 'fulfilled' && playerResult.value.length ? playerResult.value : fallbackPlayers();
+    const apiPlayers = normalizePlayers(playerResult.status === 'fulfilled' && playerResult.value.length ? playerResult.value : fallbackPlayers());
     const apiStandings = standingResult.status === 'fulfilled' ? standingResult.value : [];
     const apiTeams = teamResult.status === 'fulfilled' && teamResult.value.length ? teamResult.value : fallbackTeams();
     const apiGames = gameResult.status === 'fulfilled' ? gameResult.value : [];
@@ -502,7 +528,7 @@ function ComparePlayers({ playerA, playerB, playerALogs, playerBLogs }: {
 }
 
 function PlayerFace({ player, align = 'left', recentPpg }: { player: Player; align?: 'left' | 'right'; recentPpg?: number }) {
-  const playerId = player.PERSON_ID || player.PLAYER_ID || 0;
+  const playerId = getPlayerId(player);
   const teamId = player.TEAM_ID || '';
   return (
     <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 ${align === 'right' ? 'text-right' : ''}`}>
@@ -868,6 +894,21 @@ function playerName(player: Player) {
   return player.PLAYER_NAME || [player.PLAYER_FIRST_NAME, player.PLAYER_LAST_NAME].filter(Boolean).join(' ') || 'NBA Player';
 }
 
+function getPlayerId(player: Player) {
+  return player.PERSON_ID || player.PLAYER_ID || KNOWN_PLAYER_IDS[playerName(player)] || 0;
+}
+
+function normalizePlayers(players: Player[]) {
+  return players.map(player => {
+    const id = getPlayerId(player);
+    return {
+      ...player,
+      PERSON_ID: player.PERSON_ID || id,
+      PLAYER_ID: player.PLAYER_ID || id,
+    };
+  });
+}
+
 function formatMetric(value: number, suffix: string) {
   const display = suffix ? value.toFixed(1) : value.toFixed(value % 1 === 0 ? 0 : 1);
   return `${display}${suffix}`;
@@ -900,9 +941,10 @@ function readWatchlist() {
 
 function fallbackPlayers(): Player[] {
   return mockPlayers.map((player, index) => ({
-    PERSON_ID: 100000 + index,
+    PERSON_ID: KNOWN_PLAYER_IDS[player.name] || 0,
+    PLAYER_ID: KNOWN_PLAYER_IDS[player.name] || 0,
     PLAYER_NAME: player.name,
-    TEAM_ID: index,
+    TEAM_ID: TEAM_IDS_BY_ABBR[player.team_id] || index,
     TEAM_ABBREVIATION: player.team_id,
     PTS: player.ppg,
     REB: player.rpg,

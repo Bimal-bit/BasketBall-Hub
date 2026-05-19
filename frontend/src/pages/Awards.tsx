@@ -7,14 +7,35 @@ import {
   type BoxScorePlayer 
 } from '../lib/api';
 
+type AwardPlayer = {
+  id?: number;
+  name?: string;
+  pts?: number;
+  reb?: number;
+  ast?: number;
+};
+
+type AwardSeason = {
+  season: string;
+  mvp?: AwardPlayer;
+  dpoy?: AwardPlayer;
+  roty?: AwardPlayer;
+  fmvp?: AwardPlayer;
+  sixman?: AwardPlayer;
+  mip?: AwardPlayer;
+  coty?: AwardPlayer;
+};
+
 export default function Awards() {
-  const [awards, setAwards] = useState<any[]>([]);
+  const [awards, setAwards] = useState<AwardSeason[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<any | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [playerAverages, setPlayerAverages] = useState<any | null>(null);
   const [playerStats, setPlayerStats] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingAwards, setLoadingAwards] = useState(true);
+  const [awardsError, setAwardsError] = useState('');
 
   const [selectedGame, setSelectedGame] = useState<any | null>(null);
   const [boxScore, setBoxScore] = useState<BoxScorePlayer[]>([]);
@@ -22,7 +43,27 @@ export default function Awards() {
   const [drillDownPlayer, setDrillDownPlayer] = useState<BoxScorePlayer | null>(null);
 
   useEffect(() => {
-    nbaApi.getAwards().then(setAwards);
+    let mounted = true;
+
+    nbaApi.getAwards()
+      .then((data) => {
+        if (!mounted) return;
+        setAwards(normalizeAwards(data));
+        setAwardsError('');
+      })
+      .catch((error) => {
+        console.error('Awards load error:', error);
+        if (!mounted) return;
+        setAwards([]);
+        setAwardsError('Awards history is unavailable right now.');
+      })
+      .finally(() => {
+        if (mounted) setLoadingAwards(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filteredAwards = awards.filter(award => 
@@ -135,6 +176,25 @@ export default function Awards() {
       </div>
 
       <div className="space-y-16 sm:space-y-32">
+        {loadingAwards && (
+          <div className="flex flex-col items-center justify-center py-24 gap-6">
+            <Loader2 className="w-14 h-14 text-orange-500 animate-spin" />
+            <div className="text-xs font-black text-gray-700 uppercase tracking-[0.35em]">Loading Award Records</div>
+          </div>
+        )}
+
+        {!loadingAwards && awardsError && (
+          <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-10 text-center">
+            <p className="text-sm font-black text-red-300 uppercase tracking-widest">{awardsError}</p>
+          </div>
+        )}
+
+        {!loadingAwards && !awardsError && filteredAwards.length === 0 && (
+          <div className="rounded-3xl border border-white/5 bg-white/[0.02] p-10 text-center">
+            <p className="text-sm font-black text-gray-500 uppercase tracking-widest">No award records found</p>
+          </div>
+        )}
+
         {filteredAwards.map((seasonData, idx) => (
           <div key={idx} className="space-y-6 sm:space-y-12">
             <div className="flex items-center gap-4 sm:gap-10">
@@ -248,8 +308,20 @@ export default function Awards() {
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
+function normalizeAwards(data: unknown): AwardSeason[] {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .filter((item): item is Record<string, any> => Boolean(item) && typeof item === 'object')
+    .map((item) => ({
+      ...item,
+      season: String(item.season ?? item.SEASON ?? ''),
+    }))
+    .filter((item) => item.season.length > 0);
+}
+
 function AwardCard({ label, player, onClick, isCoach }: any) {
-  const isClickable = !isCoach && player.id > 0;
+  const isClickable = !isCoach && Number(player?.id || 0) > 0;
   return (
     <div 
       onClick={isClickable ? onClick : undefined} 
@@ -258,7 +330,7 @@ function AwardCard({ label, player, onClick, isCoach }: any) {
       <div className="p-5 sm:p-6 relative z-10 flex items-center gap-5 sm:gap-6">
         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[1.5rem] bg-black overflow-hidden border border-white/5 group-hover:border-orange-500/50 transition-all shadow-2xl shrink-0">
            <img 
-             src={getPlayerHeadshotUrl(player.id)} 
+             src={getPlayerHeadshotUrl(player?.id || 0)} 
              className="w-full h-full object-cover scale-125 translate-y-3 group-hover:scale-135 transition-transform" 
              alt="" 
            />
@@ -266,7 +338,7 @@ function AwardCard({ label, player, onClick, isCoach }: any) {
         <div className="flex-1 min-w-0">
           <div className="text-[8px] font-black text-orange-500 uppercase tracking-[0.4em] mb-1">{label}</div>
           <h3 className="text-base sm:text-lg font-black text-white italic uppercase tracking-tighter leading-tight group-hover:text-orange-400 transition-colors break-words">
-            {player.name}
+            {player?.name || 'Unknown'}
           </h3>
           
           {isCoach && (

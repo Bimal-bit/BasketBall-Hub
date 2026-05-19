@@ -305,8 +305,8 @@ export function toDateKey(date: Date) {
 }
 
 export function getNBADate() {
-  // The UI is used in IST, so the active dashboard day should match the user's local date.
-  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  // NBA scoreboard endpoints are keyed to the league's Eastern Time game date.
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 }
 
 export interface PlayByPlay {

@@ -1,16 +1,15 @@
-import React, { useEffect, useState, Suspense, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, MeshDistortMaterial, MeshWobbleMaterial, OrbitControls, PerspectiveCamera, Text3D, Center, PresentationControls, Stage, Environment } from '@react-three/drei';
+import { PerspectiveCamera, PresentationControls, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { 
-  Trophy, ChevronDown, TrendingUp, User, Users, Calendar, Award, 
-  Zap, Target, Shield, Clock, Search, ChevronRight, Layout,
-  Layers, Star, Activity, Sparkles, Filter, 
-  MapPin, UserCheck, BarChart3, Plus, Minus, ArrowRight, X, Brain,
-  ZapOff, Flame, Target as TargetIcon, Home, UserPlus, Info, TrendingDown,
-  History
+  TrendingUp, User, Users, Calendar,
+  Zap, Target, Shield, Clock,
+  Layers, Activity, Sparkles,
+  MapPin, UserCheck, BarChart3, Plus, Minus, ArrowRight, X,
+  Home, UserPlus, Info, TrendingDown
 } from 'lucide-react';
-import { nbaApi, type Player, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
+import { nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 import { NBA_CHAMPIONS, ARENA_IMAGES, MASCOTS, getRingImageUrl, getTeamVaultInfo } from './SeasonVaultData';
 
@@ -516,27 +515,10 @@ export default function SeasonVault() {
             {selectedPlayer && (
               <PlayerVaultModal 
                 player={selectedPlayer} 
-                onClose={() => setSelectedPlayer(null)} 
-                teamColor={team?.color}
+                onClose={() => setSelectedPlayer(null)}
               />
             )}
 
-           {/* Intelligence Section */}
-           <div className="bg-gradient-to-br from-indigo-950 to-black border border-white/10 rounded-[3.5rem] p-10 relative overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.15),transparent)] pointer-events-none" />
-              <div className="flex items-center gap-4 mb-12">
-                 <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/20">
-                    <Brain className="text-indigo-400" size={24} />
-                 </div>
-                 <h3 className="text-3xl font-black text-white italic uppercase tracking-tight">Vault Intelligence</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                 <InsightItem label="Historic Synergy Rating" value={w_pct > 0.6 ? "+22.8" : "+12.4"} sub={w_pct > 0.6 ? "Elite Starting Five Impact" : "Balanced Roster Synergy"} />
-                 <InsightItem label="Post-Season Predictor" value={isChampion ? "100%" : (w_pct * 120).toFixed(1) + "%"} sub="Statistical Probability of Title" />
-                 <InsightItem label="Era Context Analysis" value={parseInt(season) < 2000 ? "Defensive Era" : (parseInt(season) < 2015 ? "Pace+Space" : "Modern Efficiency")} sub={`Historical Context of ${season}`} />
-                 <InsightItem label="Dynasty Potential" value={w_pct > 0.7 ? "TIER S+" : (w_pct > 0.6 ? "TIER A" : "TIER B")} sub="Historical Roster Balance Multiplier" />
-              </div>
-           </div>
         </div>
       </div>
 
@@ -613,20 +595,6 @@ function ArenaVisual({ image, teamId, teamColor, arenaName, subtle = false }: an
   );
 }
 
-function InsightItem({ label, value, sub }: any) {
-  return (
-    <div className="bg-white/5 p-10 rounded-[3rem] border border-white/5 hover:border-indigo-500/50 transition-all group relative overflow-hidden shadow-xl">
-       <div className="absolute -right-8 -bottom-8 bg-indigo-500/10 w-32 h-32 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700" />
-       <div className="flex items-center justify-between mb-6">
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">{label}</p>
-          <Sparkles size={18} className="text-indigo-400 opacity-0 group-hover:opacity-100 transition-all translate-y-3 group-hover:translate-y-0" />
-       </div>
-       <p className="text-4xl font-black text-white italic uppercase tracking-tighter mb-4 group-hover:text-indigo-300 transition-colors drop-shadow-md">{value}</p>
-       <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest group-hover:text-gray-400 transition-colors leading-relaxed">{sub}</p>
-    </div>
-  );
-}
-
 function ModalStat({ label, value, trend }: any) {
   return (
     <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] text-center hover:bg-white/10 transition-all group relative overflow-hidden">
@@ -646,7 +614,7 @@ function MetricItem({ label, value }: any) {
   );
 }
 
-function PlayerVaultModal({ player, onClose, teamColor }: any) {
+function PlayerVaultModal({ player, onClose }: any) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl">
       <div className="bg-gradient-to-br from-[#0f172a] to-black border border-white/10 rounded-[3rem] w-full max-w-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative">

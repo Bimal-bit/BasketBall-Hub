@@ -761,8 +761,10 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 function GameHeroTeam({ teamId, name, score, align }: { teamId: number; name: string; score: number; align: 'left' | 'right' }) {
   return (
     <div className={`flex min-w-0 items-center gap-3 sm:gap-4 ${align === 'right' ? 'flex-row-reverse md:flex-row justify-end md:text-right' : ''}`}>
-      <img src={getTeamLogoUrl(teamId)} alt={name} className="h-12 w-12 sm:h-20 sm:w-20 shrink-0 object-contain" />
-      <div className={align === 'right' ? 'text-right' : ''}>
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/95 p-2 shadow-lg sm:h-20 sm:w-20 sm:p-3">
+        <img src={getTeamLogoUrl(teamId)} alt={name} className="h-full w-full object-contain" />
+      </div>
+      <div className={`min-w-0 ${align === 'right' ? 'text-right' : ''}`}>
         <div className="text-3xl sm:text-5xl font-black italic text-white leading-none">{score || '-'}</div>
         <div className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-gray-300 mt-1 break-words">{name}</div>
       </div>
