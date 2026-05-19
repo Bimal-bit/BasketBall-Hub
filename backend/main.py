@@ -344,11 +344,11 @@ def fetch_live_playbyplay(game_id):
             "SCOREMARGIN": action.get("scoreMargin"),
             "SHOT_VALUE": int(action.get("shotValue") or 0),
             "PLAYER1_ID": int(action.get("personId") or 0),
-            "PLAYER1_NAME": action.get("playerNameI"),
-            "PLAYER2_ID": int(action.get("assistedBy") or 0),
-            "PLAYER2_NAME": action.get("assistPlayerNameInitial") or action.get("assistPlayerNameI"),
-            "PLAYER3_ID": int(action.get("blockedBy") or 0),
-            "PLAYER3_NAME": action.get("blockPlayerNameInitial") or action.get("blockPlayerNameI")
+            "PLAYER1_NAME": action.get("playerName") or action.get("playerNameI"),
+            "PLAYER2_ID": int(action.get("assistPersonId") or action.get("assistedBy") or 0),
+            "PLAYER2_NAME": action.get("assistPlayerName") or action.get("assistPlayerNameInitial") or action.get("assistPlayerNameI"),
+            "PLAYER3_ID": int(action.get("blockPersonId") or action.get("blockedBy") or 0),
+            "PLAYER3_NAME": action.get("blockPlayerName") or action.get("blockPlayerNameInitial") or action.get("blockPlayerNameI")
         })
     return processed
 

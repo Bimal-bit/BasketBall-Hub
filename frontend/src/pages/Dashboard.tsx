@@ -16,6 +16,7 @@ import {
   type Standing
 } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
+import { formatIndianTime, gameStatusInIndia } from '../lib/time';
 
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split('-').map(Number);
@@ -61,7 +62,7 @@ function LiveTicker({ games }: { games: Game[] }) {
       <div className="flex gap-12 animate-scroll whitespace-nowrap px-4">
         {[...games, ...games].map((game, i) => (
           <div key={i} className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white">
-            <span className="text-orange-500">{game.status === 'live' ? 'LIVE' : game.status_text}</span>
+            <span className="text-orange-500">{game.status === 'live' ? 'LIVE' : gameStatusInIndia(game)}</span>
             <span>{game.away_team_abbreviation} {game.away_score}</span>
             <span className="text-gray-600">@</span>
             <span>{game.home_team_abbreviation} {game.home_score}</span>
@@ -1477,61 +1478,9 @@ function PlaceholderPanel({ title }: { title: string }) {
 
 
 function statusText(game: Game) {
-  if (game.status === 'live') return game.status_text || `Q${game.quarter}`;
-  if (game.status === 'final') return game.status_text || 'Final';
-  return formatScheduledStatusInIndia(game);
+  return gameStatusInIndia(game);
 }
 
-function formatIndianTime(date: Date) {
-  return date.toLocaleTimeString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function formatScheduledStatusInIndia(game: Game) {
-  const status = game.status_text;
-  if (!status || status === 'TBD') return 'TBD';
-
-  const match = status.match(/(\d{1,2}):(\d{2})\s*([ap])m\s*ET/i);
-  if (!match) return status;
-
-  const [, hourText, minuteText, meridiem] = match;
-  let hour = Number(hourText);
-  const minute = Number(minuteText);
-
-  if (meridiem.toLowerCase() === 'p' && hour !== 12) hour += 12;
-  if (meridiem.toLowerCase() === 'a' && hour === 12) hour = 0;
-
-  const [year, month, day] = (game.game_date || '').split('-').map(Number);
-  if (!year || !month || !day) return status;
-
-  const easternUtcOffsetHours = easternOffsetHours(year, month, day);
-  const utcTime = Date.UTC(year, month - 1, day, hour - easternUtcOffsetHours, minute);
-  const indiaTime = new Date(utcTime);
-
-  return `${indiaTime.toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })} IST`;
-}
-
-function easternOffsetHours(year: number, month: number, day: number) {
-  const date = new Date(Date.UTC(year, month - 1, day));
-  const dstStart = nthWeekdayOfMonthUtc(year, 2, 0, 2);
-  const dstEnd = nthWeekdayOfMonthUtc(year, 10, 0, 1);
-  return date >= dstStart && date < dstEnd ? -4 : -5;
-}
-
-function nthWeekdayOfMonthUtc(year: number, monthIndex: number, weekday: number, n: number) {
-  const date = new Date(Date.UTC(year, monthIndex, 1));
-  const offset = (weekday - date.getUTCDay() + 7) % 7;
-  return new Date(Date.UTC(year, monthIndex, 1 + offset + (n - 1) * 7));
-}
 
 
 function seriesText(game: Game) {
@@ -1603,55 +1552,52 @@ function isMissedFreeThrow(description: string) {
   return desc.includes('MISS') || desc.includes('MISSED');
 }
 
-function formatPlayDescription(raw: string, eventType: number, player1?: string | null, player2?: string | null): string {
-  // Strip score/pts annotations like "(27 PTS)", "[112-108]", "(D. Davis 5 AST)"
-  const clean = raw
+function stripPlayAnnotations(raw: string) {
+  return raw
     .replace(/\(\d+\s*PTS\)/gi, '')
     .replace(/\[\d+-\d+\]/g, '')
-    .replace(/\([A-Z]\.\s*\w+\s+\d+\s*AST\)/gi, '')
+    .replace(/\([^()]+?\s+\d+\s*AST\)/gi, '')
     .trim();
+}
+
+function extractPlayerNameFromRaw(raw: string) {
+  const clean = stripPlayAnnotations(raw).replace(/^MISS(?:ED)?\s+/i, '').trim();
+  const actionIndex = clean.search(/\b(3PT|3-PT|3 PT|DUNK|LAYUP|LAY UP|FREE THROW|JUMP SHOT|JUMPER|PULL-UP|PULL UP|HOOK|FLOATER|RUNNER|FADEAWAY|TURNAROUND|OFFENSIVE|DEFENSIVE|REBOUND|STEAL|TURNOVER|SHOOTING|PERSONAL|FOUL)\b/i);
+  if (actionIndex <= 0) return null;
+
+  const candidate = clean.slice(0, actionIndex).trim();
+  if (!/^[A-Za-z][A-Za-z.'-]*(?:\s+[A-Za-z][A-Za-z.'-]*){1,3}$/.test(candidate)) return null;
+  return candidate;
+}
+
+function formatPlayDescription(raw: string, eventType: number, player1?: string | null, player2?: string | null): string {
+  const rawAssister = raw.match(/\(([^()]+?)\s+\d+\s*AST\)/i)?.[1];
+  // Strip score/pts annotations like "(27 PTS)", "[112-108]", "(D. Davis 5 AST)"
+  const clean = stripPlayAnnotations(raw);
 
   const up = clean.toUpperCase();
-  const name = player1 || 'Player';
-  const assister = player2 || null;
+  const name = player1 || extractPlayerNameFromRaw(raw) || 'Player';
+  const assister = player2 || rawAssister || null;
 
   // ── MADE SHOTS ──────────────────────────────────────────────────────────────
   if (eventType === 1) {
     // 3-pointers
     if (up.includes('3PT') || up.includes('3-PT') || up.includes('THREE') || up.includes('3 PT')) {
-      const locations: Record<string, string> = {
-        'CORNER': 'from the corner',
-        'WING': 'from the wing',
-        'TOP OF THE KEY': 'from the top of the key',
-        'ABOVE THE BREAK': 'from above the break',
-        'STEP BACK': 'off a step-back',
-        'PULL-UP': 'off the dribble',
-        'CATCH AND SHOOT': 'on the catch-and-shoot',
-      };
-      let loc = '';
-      for (const [key, phrase] of Object.entries(locations)) {
-        if (up.includes(key)) { loc = ` ${phrase}`; break; }
-      }
-      const verbs = ['drains', 'buries', 'knocks down', 'nails', 'splashes in'];
-      const verb = verbs[Math.floor(Math.random() * verbs.length)];
-      const assist = assister ? ` — assisted by ${assister}` : '';
-      return `${name} ${verb} a three-pointer${loc}!${assist}`;
+      const location = getThreePointLocation(up);
+      const assistText = assister ? ` - assisted by ${assister}` : '';
+      return `${name} drains a three-pointer${location}!${assistText}`;
     }
 
     // Dunks
     if (up.includes('DUNK')) {
-      const verbs = ['throws down a dunk', 'slams it home', 'hammers it in', 'posterizes with a dunk'];
-      const verb = verbs[Math.floor(Math.random() * verbs.length)];
-      const assist = assister ? ` — fed by ${assister}` : '';
-      return `${name} ${verb}!${assist}`;
+      const assist = assister ? ` - fed by ${assister}` : '';
+      return `${name} slams it home!${assist}`;
     }
 
     // Layups
     if (up.includes('LAYUP') || up.includes('LAY UP') || up.includes('FINGER ROLL')) {
-      const verbs = ['converts the layup', 'finishes at the rim', 'lays it in', 'rolls it in'];
-      const verb = verbs[Math.floor(Math.random() * verbs.length)];
-      const assist = assister ? ` — pass from ${assister}` : '';
-      return `${name} ${verb}!${assist}`;
+      const assist = assister ? ` - pass from ${assister}` : '';
+      return `${name} finishes at the rim!${assist}`;
     }
 
     // Alley-oop
@@ -1682,14 +1628,12 @@ function formatPlayDescription(raw: string, eventType: number, player1?: string 
 
     // Generic jump shot / mid-range
     if (up.includes('JUMP SHOT') || up.includes('JUMPER') || up.includes('PULL-UP')) {
-      const verbs = ['knocks down the jumper', 'hits the mid-range', 'drills the jump shot', 'connects on the pull-up'];
-      const verb = verbs[Math.floor(Math.random() * verbs.length)];
-      const assist = assister ? ` — ${assister} with the assist` : '';
-      return `${name} ${verb}!${assist}`;
+      const assist = assister ? ` - ${assister} with the assist` : '';
+      return `${name} knocks down the jumper!${assist}`;
     }
 
     // Generic made basket
-    const assist = assister ? ` — ${assister} with the assist` : '';
+    const assist = assister ? ` - ${assister} with the assist` : '';
     return `${name} scores!${assist}`;
   }
 
@@ -1726,9 +1670,9 @@ function formatPlayDescription(raw: string, eventType: number, player1?: string 
   // ── TURNOVERS ────────────────────────────────────────────────────────────────
   if (eventType === 5) {
     if (up.includes('STEAL')) return `${player2 || 'Defender'} steals it from ${name}!`;
-    if (up.includes('OUT OF BOUNDS')) return `${name} turns it over — out of bounds.`;
-    if (up.includes('LOST BALL')) return `${name} loses the ball — turnover.`;
-    if (up.includes('BAD PASS')) return `${name} throws a bad pass — turnover.`;
+    if (up.includes('OUT OF BOUNDS')) return `${name} turns it over - out of bounds.`;
+    if (up.includes('LOST BALL')) return `${name} loses the ball - turnover.`;
+    if (up.includes('BAD PASS')) return `${name} throws a bad pass - turnover.`;
     if (up.includes('TRAVELING')) return `${name} called for traveling.`;
     if (up.includes('SHOT CLOCK')) return `Shot clock violation on ${name}'s team.`;
     return `${name} turns it over.`;
@@ -1736,7 +1680,7 @@ function formatPlayDescription(raw: string, eventType: number, player1?: string 
 
   // ── FOULS ─────────────────────────────────────────────────────────────────────
   if (eventType === 6) {
-    if (up.includes('SHOOTING')) return `Shooting foul on ${name} — free throws coming.`;
+    if (up.includes('SHOOTING')) return `Shooting foul on ${name} - free throws coming.`;
     if (up.includes('LOOSE BALL')) return `Loose ball foul called on ${name}.`;
     if (up.includes('FLAGRANT')) return `Flagrant foul called on ${name}!`;
     if (up.includes('TECHNICAL')) return `Technical foul on ${name}.`;
@@ -1763,7 +1707,7 @@ function formatPlayDescription(raw: string, eventType: number, player1?: string 
 
   // ── JUMP BALL ─────────────────────────────────────────────────────────────────
   if (eventType === 10) {
-    return `Jump ball — ${name} tips it off.`;
+    return `Jump ball - ${name} tips it off.`;
   }
 
   // ── PERIOD START/END ──────────────────────────────────────────────────────────
@@ -1772,6 +1716,26 @@ function formatPlayDescription(raw: string, eventType: number, player1?: string 
 
   // ── FALLBACK: clean up the raw string ─────────────────────────────────────────
   return clean || raw;
+}
+
+function getThreePointLocation(description: string) {
+  const locations: Array<[string, string]> = [
+    ['TOP OF THE KEY', 'from the top of the key'],
+    ['ABOVE THE BREAK', 'from above the break'],
+    ['LEFT CORNER', 'from the left corner'],
+    ['RIGHT CORNER', 'from the right corner'],
+    ['CORNER', 'from the corner'],
+    ['LEFT WING', 'from the left wing'],
+    ['RIGHT WING', 'from the right wing'],
+    ['WING', 'from the wing'],
+    ['STEP BACK', 'off a step-back'],
+    ['PULL-UP', 'off the dribble'],
+    ['PULL UP', 'off the dribble'],
+    ['CATCH AND SHOOT', 'on the catch-and-shoot'],
+  ];
+
+  const match = locations.find(([key]) => description.includes(key));
+  return ` ${match?.[1] ?? 'from the top of the key'}`;
 }
 
 function clockToSeconds(clock?: string | null) {
@@ -1872,7 +1836,7 @@ function buildFallbackFeed(game: Game, boxScore: BoxScorePlayer[]): PlayByPlay[]
     EVENTMSGTYPE: 1,
     PERIOD: game.quarter || 4,
     WCTIMESTRING: '',
-    PCTIMESTRING: game.time_remaining || game.status_text || '',
+    PCTIMESTRING: game.time_remaining && !/\bET\b/i.test(game.time_remaining) ? game.time_remaining : statusText(game),
     HOMEDESCRIPTION: player.TEAM_ID === game.home_team_id ? `${player.PLAYER_NAME} leading ${player.TEAM_ABBREVIATION} with ${player.PTS ?? 0} points` : null,
     VISITORDESCRIPTION: player.TEAM_ID === game.away_team_id ? `${player.PLAYER_NAME} leading ${player.TEAM_ABBREVIATION} with ${player.PTS ?? 0} points` : null,
     NEUTRALDESCRIPTION: player.TEAM_ID !== game.home_team_id && player.TEAM_ID !== game.away_team_id ? `${player.PLAYER_NAME} boxscore update` : null,
@@ -1890,7 +1854,7 @@ function buildFallbackFeed(game: Game, boxScore: BoxScorePlayer[]): PlayByPlay[]
       EVENTMSGTYPE: 1,
       PERIOD: game.quarter || 4,
       WCTIMESTRING: '',
-      PCTIMESTRING: game.time_remaining || game.status_text || '',
+      PCTIMESTRING: game.time_remaining && !/\bET\b/i.test(game.time_remaining) ? game.time_remaining : statusText(game),
       HOMEDESCRIPTION: index === 1 ? `${leader?.name} team-high ${leader?.points ?? 0} points` : null,
       VISITORDESCRIPTION: index === 0 ? `${leader?.name} team-high ${leader?.points ?? 0} points` : null,
       NEUTRALDESCRIPTION: null,

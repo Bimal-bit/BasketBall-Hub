@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Bell,
   BrainCircuit,
@@ -19,11 +19,13 @@ import {
   type BoxScorePlayer,
   type NbaTeam,
   type Player,
+  type PlayerGameLog,
   type PlayByPlay,
   type Standing,
   type TeamGame,
 } from '../lib/api';
 import { mockPlayers, mockTeams } from '../lib/mockData';
+import { gameStatusInIndia } from '../lib/time';
 
 type WatchItem = {
   id: string;
@@ -41,6 +43,18 @@ type TeamOption = NbaTeam & {
   conference?: string;
 };
 
+type TeamProfile = {
+  ppg: number;
+  oppPpg: number;
+  offRating: number;
+  defRating: number;
+  pace: number;
+  formScore: number;
+  playoffOdds: number;
+  topScorers: string[];
+  injuryNote: string;
+};
+
 const WATCHLIST_KEY = 'nba-live-watchlist';
 
 export default function InsightsLab() {
@@ -55,60 +69,66 @@ export default function InsightsLab() {
   const [gameId, setGameId] = useState('');
   const [teamALogs, setTeamALogs] = useState<TeamGame[]>([]);
   const [teamBLogs, setTeamBLogs] = useState<TeamGame[]>([]);
+  const [playerALogs, setPlayerALogs] = useState<PlayerGameLog[]>([]);
+  const [playerBLogs, setPlayerBLogs] = useState<PlayerGameLog[]>([]);
+  const [teamRosters, setTeamRosters] = useState<Record<string, Player[]>>({});
   const [watchlist, setWatchlist] = useState<WatchItem[]>(() => readWatchlist());
   const [recap, setRecap] = useState('');
   const [recapLoading, setRecapLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadLabData = useCallback(async (cancelled: () => boolean) => {
+    setRefreshing(true);
+    const [playerResult, teamResult, standingResult, gameResult] = await Promise.allSettled([
+      nbaApi.getTopPlayers(),
+      nbaApi.getTeams(),
+      nbaApi.getStandings(),
+      nbaApi.getScoreboard(getNBADate()),
+    ]);
+
+    if (cancelled()) return;
+
+    const apiPlayers = playerResult.status === 'fulfilled' && playerResult.value.length ? playerResult.value : fallbackPlayers();
+    const apiStandings = standingResult.status === 'fulfilled' ? standingResult.value : [];
+    const apiTeams = teamResult.status === 'fulfilled' && teamResult.value.length ? teamResult.value : fallbackTeams();
+    const apiGames = gameResult.status === 'fulfilled' ? gameResult.value : [];
+
+    const enrichedTeams = apiTeams.map(team => {
+      const standing = apiStandings.find(row => row.TeamID === team.id);
+      return {
+        ...team,
+        wins: standing?.Wins,
+        losses: standing?.Losses,
+        winPct: standing?.WinPCT,
+        l10: standing?.L10Rec,
+        streak: standing?.Strk,
+        conference: standing?.Conference,
+      };
+    });
+
+    setPlayers(apiPlayers);
+    setTeams(enrichedTeams);
+    setStandings(apiStandings);
+    setGames(apiGames);
+    setPlayerAId(current => current ?? apiPlayers[0]?.PERSON_ID ?? null);
+    setPlayerBId(current => current ?? apiPlayers[1]?.PERSON_ID ?? null);
+    setTeamAId(current => current ?? enrichedTeams[0]?.id ?? null);
+    setTeamBId(current => current ?? enrichedTeams[1]?.id ?? null);
+    setGameId(current => current || apiGames[0]?.game_id || '');
+    setLoading(false);
+    setRefreshing(false);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
-      setLoading(true);
-      const [playerResult, teamResult, standingResult, gameResult] = await Promise.allSettled([
-        nbaApi.getTopPlayers(),
-        nbaApi.getTeams(),
-        nbaApi.getStandings(),
-        nbaApi.getScoreboard(getNBADate()),
-      ]);
-
-      if (cancelled) return;
-
-      const apiPlayers = playerResult.status === 'fulfilled' ? playerResult.value : fallbackPlayers();
-      const apiStandings = standingResult.status === 'fulfilled' ? standingResult.value : [];
-      const apiTeams = teamResult.status === 'fulfilled' ? teamResult.value : fallbackTeams();
-      const apiGames = gameResult.status === 'fulfilled' ? gameResult.value : [];
-
-      const enrichedTeams = apiTeams.map(team => {
-        const standing = apiStandings.find(row => row.TeamID === team.id);
-        return {
-          ...team,
-          wins: standing?.Wins,
-          losses: standing?.Losses,
-          winPct: standing?.WinPCT,
-          l10: standing?.L10Rec,
-          streak: standing?.Strk,
-          conference: standing?.Conference,
-        };
-      });
-
-      setPlayers(apiPlayers);
-      setTeams(enrichedTeams);
-      setStandings(apiStandings);
-      setGames(apiGames);
-      setPlayerAId(apiPlayers[0]?.PERSON_ID ?? null);
-      setPlayerBId(apiPlayers[1]?.PERSON_ID ?? null);
-      setTeamAId(enrichedTeams[0]?.id ?? null);
-      setTeamBId(enrichedTeams[1]?.id ?? null);
-      setGameId(apiGames[0]?.game_id ?? '');
-      setLoading(false);
-    }
-
-    load();
+    setLoading(true);
+    loadLabData(() => cancelled);
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadLabData]);
 
   useEffect(() => {
     localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlist));
@@ -129,6 +149,52 @@ export default function InsightsLab() {
     }
 
     loadLogs();
+    return () => {
+      cancelled = true;
+    };
+  }, [teamAId, teamBId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPlayerLogs() {
+      const [a, b] = await Promise.allSettled([
+        playerAId ? nbaApi.getPlayerDetailedStats(playerAId).catch(() => []) : Promise.resolve([]),
+        playerBId ? nbaApi.getPlayerDetailedStats(playerBId).catch(() => []) : Promise.resolve([]),
+      ]);
+
+      if (cancelled) return;
+      setPlayerALogs(a.status === 'fulfilled' ? a.value.slice(0, 8) : []);
+      setPlayerBLogs(b.status === 'fulfilled' ? b.value.slice(0, 8) : []);
+    }
+
+    loadPlayerLogs();
+    return () => {
+      cancelled = true;
+    };
+  }, [playerAId, playerBId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRosters() {
+      const ids = Array.from(new Set([teamAId, teamBId].filter(Boolean) as number[]));
+      if (!ids.length) return;
+
+      const results = await Promise.allSettled(ids.map(id => nbaApi.getTeamRoster(id).catch(() => [])));
+      if (cancelled) return;
+
+      setTeamRosters(current => {
+        const next = { ...current };
+        ids.forEach((id, index) => {
+          if (next[String(id)]?.length) return;
+          next[String(id)] = results[index].status === 'fulfilled' ? results[index].value : [];
+        });
+        return next;
+      });
+    }
+
+    loadRosters();
     return () => {
       cancelled = true;
     };
@@ -174,7 +240,7 @@ export default function InsightsLab() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-full space-y-6 overflow-hidden sm:space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-orange-500">
@@ -189,11 +255,11 @@ export default function InsightsLab() {
           </p>
         </div>
         <button
-          onClick={() => window.location.reload()}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-800 bg-gray-900/60 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10"
+          onClick={() => loadLabData(() => false)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 bg-gray-900/60 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
         >
-          <RefreshCw size={15} />
-          Refresh Lab
+          <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+          {refreshing ? 'Refreshing' : 'Refresh Lab'}
         </button>
       </div>
 
@@ -203,7 +269,7 @@ export default function InsightsLab() {
             <PlayerSelect label="Player A" value={playerAId} players={players} onChange={setPlayerAId} />
             <PlayerSelect label="Player B" value={playerBId} players={players} onChange={setPlayerBId} />
           </div>
-          <ComparePlayers playerA={playerA} playerB={playerB} />
+          <ComparePlayers playerA={playerA} playerB={playerB} playerALogs={playerALogs} playerBLogs={playerBLogs} />
           <div className="flex justify-end">
             {playerA && (
               <AddButton onClick={() => addWatch({
@@ -221,7 +287,15 @@ export default function InsightsLab() {
             <TeamSelect label="Team A" value={teamAId} teams={teams} onChange={setTeamAId} />
             <TeamSelect label="Team B" value={teamBId} teams={teams} onChange={setTeamBId} />
           </div>
-          <CompareTeams teamA={teamA} teamB={teamB} teamALogs={teamALogs} teamBLogs={teamBLogs} standings={standings} />
+          <CompareTeams
+            teamA={teamA}
+            teamB={teamB}
+            teamALogs={teamALogs}
+            teamBLogs={teamBLogs}
+            teamARoster={teamA ? teamRosters[String(teamA.id)] ?? [] : []}
+            teamBRoster={teamB ? teamRosters[String(teamB.id)] ?? [] : []}
+            standings={standings}
+          />
           <div className="flex justify-end">
             {teamA && (
               <AddButton onClick={() => addWatch({
@@ -242,10 +316,10 @@ export default function InsightsLab() {
             <div className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-3">
                 <TeamWinBlock game={selectedGame} side="away" probability={100 - winModel.homeProbability} />
-                <div className="rounded-xl border border-gray-800 bg-black/30 p-4 text-center">
+                <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4 text-center">
                   <div className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">{selectedGame.status}</div>
-                  <div className="mt-2 text-3xl font-black text-white">{selectedGame.away_score}-{selectedGame.home_score}</div>
-                  <div className="mt-1 text-xs text-gray-400">{selectedGame.status_text || 'Game status'}</div>
+                  <div className="mt-2 text-2xl font-black text-white sm:text-3xl">{selectedGame.away_score}-{selectedGame.home_score}</div>
+                  <div className="mt-1 text-xs text-gray-400">{gameStatusInIndia(selectedGame)}</div>
                 </div>
                 <TeamWinBlock game={selectedGame} side="home" probability={winModel.homeProbability} />
               </div>
@@ -255,9 +329,9 @@ export default function InsightsLab() {
                   id: `game-${selectedGame.game_id}`,
                   type: 'Game',
                   label: `${selectedGame.away_team_abbreviation} @ ${selectedGame.home_team_abbreviation}`,
-                  sub: `${selectedGame.away_score}-${selectedGame.home_score} ${selectedGame.status_text || selectedGame.status}`,
+                  sub: `${selectedGame.away_score}-${selectedGame.home_score} ${gameStatusInIndia(selectedGame)}`,
                 })}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
               >
                 <Bell size={14} />
                 Watch this game
@@ -285,16 +359,17 @@ export default function InsightsLab() {
       </section>
 
       <Panel title="Personal Watchlist" icon={<Star size={18} />}>
+        <WatchlistSummary watchlist={watchlist} games={games} players={players} teams={teams} />
         {watchlist.length === 0 ? (
           <EmptyState text="Add players, teams, or games from the panels above. Your watchlist is saved in this browser." />
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {watchlist.map(item => (
-              <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4">
-                <div>
+              <div key={item.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4">
+                <div className="min-w-0">
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{item.type}</div>
-                  <div className="mt-1 font-bold text-white">{item.label}</div>
-                  <div className="text-xs text-gray-400">{item.sub}</div>
+                  <div className="mt-1 truncate font-bold text-white">{item.label}</div>
+                  <div className="truncate text-xs text-gray-400">{item.sub}</div>
                 </div>
                 <button
                   onClick={() => removeWatch(item.id)}
@@ -314,10 +389,10 @@ export default function InsightsLab() {
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-5 shadow-2xl shadow-black/10">
+    <div className="min-w-0 rounded-2xl border border-gray-800 bg-gray-900/40 p-4 shadow-2xl shadow-black/10 sm:p-5">
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400">{icon}</div>
-        <h2 className="text-lg font-black uppercase italic tracking-tight text-white">{title}</h2>
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400">{icon}</div>
+        <h2 className="min-w-0 text-base font-black uppercase italic tracking-tight text-white sm:text-lg">{title}</h2>
       </div>
       {children}
     </div>
@@ -336,7 +411,7 @@ function PlayerSelect({ label, value, players, onChange }: {
       <select
         value={value ?? ''}
         onChange={event => onChange(Number(event.target.value))}
-        className="w-full rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white"
+        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white"
       >
         {players.map(player => (
           <option key={player.PERSON_ID} value={player.PERSON_ID}>{playerName(player)}</option>
@@ -358,7 +433,7 @@ function TeamSelect({ label, value, teams, onChange }: {
       <select
         value={value ?? ''}
         onChange={event => onChange(Number(event.target.value))}
-        className="w-full rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white"
+        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white"
       >
         {teams.map(team => (
           <option key={team.id} value={team.id}>{team.full_name}</option>
@@ -373,89 +448,131 @@ function GameSelect({ value, games, onChange }: { value: string; games: Game[]; 
     <select
       value={value}
       onChange={event => onChange(event.target.value)}
-      className="w-full rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white"
+      disabled={games.length === 0}
+      className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-3 text-sm text-white disabled:opacity-60"
     >
+      {games.length === 0 && <option value="">No games available today</option>}
       {games.map(game => (
         <option key={game.game_id} value={game.game_id}>
-          {game.away_team_abbreviation} @ {game.home_team_abbreviation} - {game.status_text || game.status}
+          {game.away_team_abbreviation} @ {game.home_team_abbreviation} - {gameStatusInIndia(game)}
         </option>
       ))}
     </select>
   );
 }
 
-function ComparePlayers({ playerA, playerB }: { playerA: Player | null; playerB: Player | null }) {
+function ComparePlayers({ playerA, playerB, playerALogs, playerBLogs }: {
+  playerA: Player | null;
+  playerB: Player | null;
+  playerALogs: PlayerGameLog[];
+  playerBLogs: PlayerGameLog[];
+}) {
   if (!playerA || !playerB) return <EmptyState text="Choose two players to compare." />;
 
+  const aTrend = average(playerALogs.map(game => game.PTS));
+  const bTrend = average(playerBLogs.map(game => game.PTS));
+  const aEfficiency = playerEfficiency(playerA);
+  const bEfficiency = playerEfficiency(playerB);
+  const aUsage = playerUsageEstimate(playerA);
+  const bUsage = playerUsageEstimate(playerB);
+  const aClutch = clutchEstimate(playerA, aTrend);
+  const bClutch = clutchEstimate(playerB, bTrend);
+
   return (
-    <div className="mt-5 grid gap-4 lg:grid-cols-[180px_1fr_180px]">
-      <PlayerFace player={playerA} />
-      <div className="space-y-3">
-        <MetricRow label="Points" a={playerA.PTS} b={playerB.PTS} />
-        <MetricRow label="Rebounds" a={playerA.REB} b={playerB.REB} />
-        <MetricRow label="Assists" a={playerA.AST} b={playerB.AST} />
-        <MetricRow label="Steals" a={playerA.STL ?? 0} b={playerB.STL ?? 0} />
-        <MetricRow label="Blocks" a={playerA.BLK ?? 0} b={playerB.BLK ?? 0} />
-        <MetricRow label="FG%" a={(playerA.FG_PCT ?? 0) * 100} b={(playerB.FG_PCT ?? 0) * 100} suffix="%" />
+    <div className="mt-5 space-y-5">
+      <div className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)_180px]">
+        <PlayerFace player={playerA} recentPpg={aTrend} />
+        <div className="space-y-3">
+          <MetricRow label="Points" a={playerA.PTS} b={playerB.PTS} />
+          <MetricRow label="Rebounds" a={playerA.REB} b={playerB.REB} />
+          <MetricRow label="Assists" a={playerA.AST} b={playerB.AST} />
+          <MetricRow label="Efficiency" a={aEfficiency} b={bEfficiency} />
+          <MetricRow label="Usage" a={aUsage} b={bUsage} suffix="%" />
+          <MetricRow label="Clutch index" a={aClutch} b={bClutch} />
+          <MetricRow label="Recent PPG" a={aTrend} b={bTrend} />
+          <MetricRow label="3PT%" a={(playerA.FG3_PCT ?? 0) * 100} b={(playerB.FG3_PCT ?? 0) * 100} suffix="%" />
+        </div>
+        <PlayerFace player={playerB} align="right" recentPpg={bTrend} />
       </div>
-      <PlayerFace player={playerB} align="right" />
+      <div className="grid gap-3 md:grid-cols-2">
+        <TrendCard title={`${playerName(playerA)} trend`} logs={playerALogs} />
+        <TrendCard title={`${playerName(playerB)} trend`} logs={playerBLogs} />
+      </div>
     </div>
   );
 }
 
-function PlayerFace({ player, align = 'left' }: { player: Player; align?: 'left' | 'right' }) {
+function PlayerFace({ player, align = 'left', recentPpg }: { player: Player; align?: 'left' | 'right'; recentPpg?: number }) {
   return (
-    <div className={`rounded-xl border border-gray-800 bg-black/30 p-4 ${align === 'right' ? 'text-right' : ''}`}>
+    <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4 ${align === 'right' ? 'text-right' : ''}`}>
       <img
         src={getPlayerHeadshotUrl(player.PERSON_ID)}
         alt={playerName(player)}
         className={`mb-3 h-24 w-24 rounded-full border border-gray-800 bg-gray-950 object-cover object-top ${align === 'right' ? 'ml-auto' : ''}`}
       />
-      <div className="font-black text-white">{playerName(player)}</div>
+      <div className="truncate font-black text-white">{playerName(player)}</div>
       <div className="text-xs text-gray-400">{player.TEAM_ABBREVIATION || 'NBA'}</div>
+      <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+        <TinyStat label="FG" value={`${(((player.FG_PCT ?? 0) * 100) || 0).toFixed(1)}%`} />
+        <TinyStat label="Recent" value={recentPpg ? recentPpg.toFixed(1) : '-'} />
+      </div>
     </div>
   );
 }
 
-function CompareTeams({ teamA, teamB, teamALogs, teamBLogs }: {
+function CompareTeams({ teamA, teamB, teamALogs, teamBLogs, teamARoster, teamBRoster }: {
   teamA: TeamOption | null;
   teamB: TeamOption | null;
   teamALogs: TeamGame[];
   teamBLogs: TeamGame[];
+  teamARoster: Player[];
+  teamBRoster: Player[];
   standings: Standing[];
 }) {
   if (!teamA || !teamB) return <EmptyState text="Choose two teams to compare." />;
 
-  const aRecent = average(teamALogs.map(game => game.PTS));
-  const bRecent = average(teamBLogs.map(game => game.PTS));
+  const aProfile = teamProfile(teamA, teamALogs, teamARoster);
+  const bProfile = teamProfile(teamB, teamBLogs, teamBRoster);
 
   return (
     <div className="mt-5 space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <TeamMiniCard team={teamA} recentPpg={aRecent} />
-        <TeamMiniCard team={teamB} recentPpg={bRecent} />
+        <TeamMiniCard team={teamA} profile={aProfile} />
+        <TeamMiniCard team={teamB} profile={bProfile} />
       </div>
       <MetricRow label="Wins" a={teamA.wins ?? 0} b={teamB.wins ?? 0} />
       <MetricRow label="Win pct" a={(teamA.winPct ?? 0) * 100} b={(teamB.winPct ?? 0) * 100} suffix="%" />
-      <MetricRow label="Recent PPG" a={aRecent} b={bRecent} />
+      <MetricRow label="Off rating" a={aProfile.offRating} b={bProfile.offRating} />
+      <MetricRow label="Def rating" a={aProfile.defRating} b={bProfile.defRating} />
+      <MetricRow label="Pace" a={aProfile.pace} b={bProfile.pace} />
+      <MetricRow label="Recent form" a={aProfile.formScore} b={bProfile.formScore} />
+      <MetricRow label="Playoff odds" a={aProfile.playoffOdds} b={bProfile.playoffOdds} suffix="%" />
+      <div className="grid gap-3 md:grid-cols-2">
+        <TeamDetailList title={`${teamA.abbreviation} top scorers`} items={aProfile.topScorers} />
+        <TeamDetailList title={`${teamB.abbreviation} top scorers`} items={bProfile.topScorers} />
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <InfoStrip title={`${teamA.abbreviation} injuries`} value={aProfile.injuryNote} />
+        <InfoStrip title={`${teamB.abbreviation} injuries`} value={bProfile.injuryNote} />
+      </div>
     </div>
   );
 }
 
-function TeamMiniCard({ team, recentPpg }: { team: TeamOption; recentPpg: number }) {
+function TeamMiniCard({ team, profile }: { team: TeamOption; profile: TeamProfile }) {
   return (
-    <div className="rounded-xl border border-gray-800 bg-black/30 p-4">
-      <div className="flex items-center gap-3">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+      <div className="flex min-w-0 items-center gap-3">
         <img src={getTeamLogoUrl(team.id)} alt={team.full_name} className="h-12 w-12 object-contain" />
-        <div>
-          <div className="font-black text-white">{team.full_name}</div>
-          <div className="text-xs text-gray-400">{team.conference || team.state || 'NBA'} - {team.l10 || 'L10 unavailable'}</div>
+        <div className="min-w-0">
+          <div className="truncate font-black text-white">{team.full_name}</div>
+          <div className="truncate text-xs text-gray-400">{team.conference || team.state || 'NBA'} - {team.l10 || 'L10 unavailable'}</div>
         </div>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
         <TinyStat label="Record" value={`${team.wins ?? 0}-${team.losses ?? 0}`} />
         <TinyStat label="Streak" value={team.streak || '-'} />
-        <TinyStat label="PPG" value={recentPpg ? recentPpg.toFixed(1) : '-'} />
+        <TinyStat label="PPG" value={profile.ppg ? profile.ppg.toFixed(1) : '-'} />
       </div>
     </div>
   );
@@ -468,10 +585,10 @@ function MetricRow({ label, a, b, suffix = '' }: { label: string; a: number; b: 
 
   return (
     <div>
-      <div className="mb-1 grid grid-cols-[80px_1fr_80px] items-center gap-3 text-sm">
-        <span className="font-black text-white">{formatMetric(a, suffix)}</span>
-        <span className="text-center text-xs font-bold uppercase tracking-[0.16em] text-gray-500">{label}</span>
-        <span className="text-right font-black text-white">{formatMetric(b, suffix)}</span>
+      <div className="mb-1 grid grid-cols-[64px_minmax(0,1fr)_64px] items-center gap-2 text-xs sm:grid-cols-[80px_minmax(0,1fr)_80px] sm:gap-3 sm:text-sm">
+        <span className="truncate font-black text-white">{formatMetric(a, suffix)}</span>
+        <span className="truncate text-center text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 sm:text-xs sm:tracking-[0.16em]">{label}</span>
+        <span className="truncate text-right font-black text-white">{formatMetric(b, suffix)}</span>
       </div>
       <div className="grid grid-cols-2 gap-1">
         <div className="flex justify-end rounded-full bg-gray-950">
@@ -493,12 +610,12 @@ function ProbabilityChart({ data }: { data: number[] }) {
   }).join(' ');
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-black/30 p-4">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
       <div className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
         <span>Away control</span>
         <span>Home win probability</span>
       </div>
-      <svg viewBox="0 0 100 100" className="h-40 w-full overflow-visible" preserveAspectRatio="none">
+      <svg viewBox="0 0 100 100" className="h-36 w-full overflow-hidden sm:h-40" preserveAspectRatio="none">
         <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(148,163,184,0.25)" strokeDasharray="4 4" />
         <polyline points={points} fill="none" stroke="#f97316" strokeWidth="3" vectorEffect="non-scaling-stroke" />
       </svg>
@@ -511,10 +628,10 @@ function TeamWinBlock({ game, side, probability }: { game: Game; side: 'home' | 
   const abbr = side === 'home' ? game.home_team_abbreviation : game.away_team_abbreviation;
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-black/30 p-4 text-center">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4 text-center">
       <img src={getTeamLogoUrl(teamId)} alt={abbr || 'Team'} className="mx-auto h-12 w-12 object-contain" />
       <div className="mt-2 text-sm font-black text-white">{abbr}</div>
-      <div className="mt-1 text-3xl font-black text-orange-400">{probability.toFixed(0)}%</div>
+      <div className="mt-1 text-2xl font-black text-orange-400 sm:text-3xl">{probability.toFixed(0)}%</div>
     </div>
   );
 }
@@ -523,7 +640,7 @@ function AddButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="mt-4 inline-flex items-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10"
+      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
     >
       <Plus size={14} />
       Add to watchlist
@@ -533,9 +650,87 @@ function AddButton({ onClick }: { onClick: () => void }) {
 
 function TinyStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-gray-950/80 p-2">
-      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">{label}</div>
-      <div className="mt-1 font-black text-white">{value}</div>
+    <div className="min-w-0 rounded-lg bg-gray-950/80 p-2">
+      <div className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">{label}</div>
+      <div className="mt-1 truncate font-black text-white">{value}</div>
+    </div>
+  );
+}
+
+function TrendCard({ title, logs }: { title: string; logs: PlayerGameLog[] }) {
+  const points = logs.map(game => game.PTS).reverse();
+  const recent = average(logs.map(game => game.PTS));
+  const high = Math.max(...points, 0);
+
+  return (
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0 truncate text-sm font-black text-white">{title}</div>
+        <div className="shrink-0 text-xs font-bold uppercase tracking-[0.16em] text-orange-400">{recent ? `${recent.toFixed(1)} PPG` : 'No logs'}</div>
+      </div>
+      <div className="flex h-20 items-end gap-1">
+        {points.length ? points.map((value, index) => (
+          <div key={`${value}-${index}`} className="flex-1 rounded-t bg-orange-500/70" style={{ height: `${Math.max(10, (value / Math.max(high, 1)) * 100)}%` }} />
+        )) : (
+          <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">Recent game logs unavailable</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TeamDetailList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+      <div className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">{title}</div>
+      <div className="space-y-2">
+        {items.length ? items.map(item => (
+          <div key={item} className="truncate rounded-lg bg-gray-950/80 px-3 py-2 text-sm font-semibold text-white">{item}</div>
+        )) : (
+          <div className="text-sm text-gray-500">Roster scoring data unavailable</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InfoStrip({ title, value }: { title: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-4">
+      <div className="text-xs font-black uppercase tracking-[0.18em] text-gray-500">{title}</div>
+      <div className="mt-2 break-words text-sm text-gray-300">{value}</div>
+    </div>
+  );
+}
+
+function WatchlistSummary({ watchlist, games, players, teams }: {
+  watchlist: WatchItem[];
+  games: Game[];
+  players: Player[];
+  teams: TeamOption[];
+}) {
+  if (!watchlist.length) return null;
+
+  const watchedTeamIds = new Set(watchlist.filter(item => item.type === 'Team').map(item => Number(item.id.replace('team-', ''))));
+  const watchedPlayerIds = new Set(watchlist.filter(item => item.type === 'Player').map(item => Number(item.id.replace('player-', ''))));
+  const watchedGames = games.filter(game => (
+    watchedTeamIds.has(game.home_team_id) ||
+    watchedTeamIds.has(game.away_team_id) ||
+    watchlist.some(item => item.id === `game-${game.game_id}`)
+  ));
+  const watchedPlayers = players.filter(player => watchedPlayerIds.has(player.PERSON_ID));
+  const watchedTeams = teams.filter(team => watchedTeamIds.has(team.id));
+  const alerts = [
+    ...watchedGames.filter(game => game.status === 'live').map(game => `${game.away_team_abbreviation} @ ${game.home_team_abbreviation} is live`),
+    ...watchedGames.filter(game => game.status === 'scheduled').map(game => `${game.away_team_abbreviation} @ ${game.home_team_abbreviation} tips at ${gameStatusInIndia(game)}`),
+    ...watchedPlayers.filter(player => player.PTS >= 25).map(player => `${playerName(player)} is a high-scoring watch at ${player.PTS.toFixed(1)} PPG`),
+  ].slice(0, 5);
+
+  return (
+    <div className="mb-5 grid gap-3 lg:grid-cols-3">
+      <InfoStrip title="Your games" value={watchedGames.length ? watchedGames.map(game => `${game.away_team_abbreviation} @ ${game.home_team_abbreviation}`).join(', ') : 'No watched teams play on the current board.'} />
+      <InfoStrip title="Your stats" value={[...watchedPlayers.map(player => `${playerName(player)} ${player.PTS.toFixed(1)} PPG`), ...watchedTeams.map(team => `${team.abbreviation} ${team.wins ?? 0}-${team.losses ?? 0}`)].slice(0, 4).join(' | ') || 'Add players or teams to see quick stats.'} />
+      <InfoStrip title="Alerts and news" value={alerts.length ? alerts.join(' | ') : 'No urgent alerts. News feed integration is ready for a future API source.'} />
     </div>
   );
 }
@@ -575,6 +770,67 @@ function homeWinProbability(diff: number, period: number, status: Game['status']
   if (status === 'final') return diff > 0 ? 100 : diff < 0 ? 0 : 50;
   const urgency = Math.min(Math.max(period, 1), 4) / 4;
   return clamp(50 + diff * (1.25 + urgency) + 3, 3, 97);
+}
+
+function teamProfile(team: TeamOption, logs: TeamGame[], roster: Player[]): TeamProfile {
+  const ppg = average(logs.map(game => game.PTS));
+  const oppPpg = average(logs.map(game => game.OPP_PTS ?? Math.max(0, game.PTS - (game.PLUS_MINUS ?? 0))));
+  const possessions = logs.map(game => {
+    const fga = game.FGA ?? 88;
+    const fta = game.FTA ?? 22;
+    const tov = game.TOV ?? 13;
+    return fga + 0.44 * fta + tov;
+  });
+  const pace = average(possessions) || 98;
+  const offRating = ppg ? (ppg / pace) * 100 : ratingFromRecord(team, 113);
+  const defRating = oppPpg ? (oppPpg / pace) * 100 : ratingFromRecord(team, 112, true);
+  const recentWins = logs.filter(game => game.WL === 'W').length;
+  const formScore = logs.length ? (recentWins / logs.length) * 100 : (team.winPct ?? 0.5) * 100;
+  const playoffOdds = clamp(((team.winPct ?? 0.5) * 72) + (formScore * 0.22) + streakBoost(team.streak), 3, 98);
+  const topScorers = [...roster]
+    .filter(player => Number.isFinite(player.PTS))
+    .sort((a, b) => (b.PTS ?? 0) - (a.PTS ?? 0))
+    .slice(0, 3)
+    .map(player => `${playerName(player)} - ${(player.PTS ?? 0).toFixed(1)} PPG`);
+
+  return {
+    ppg,
+    oppPpg,
+    offRating,
+    defRating,
+    pace,
+    formScore,
+    playoffOdds,
+    topScorers,
+    injuryNote: 'No official injury feed is connected yet. Add an injury API to show return dates and rotation impact here.',
+  };
+}
+
+function playerEfficiency(player: Player) {
+  const fg = (player.FG_PCT ?? 0) * 100;
+  const three = (player.FG3_PCT ?? 0) * 100;
+  const ft = (player.FT_PCT ?? 0) * 100;
+  return (fg * 0.5) + (three * 0.25) + (ft * 0.25);
+}
+
+function playerUsageEstimate(player: Player) {
+  return clamp((player.PTS * 0.72) + (player.AST * 1.8) + ((player.REB ?? 0) * 0.35), 8, 38);
+}
+
+function clutchEstimate(player: Player, recentPpg: number) {
+  return clamp((player.PTS * 1.1) + (player.AST * 1.6) + ((player.STL ?? 0) * 3) + ((player.BLK ?? 0) * 2) + Math.max(0, recentPpg - player.PTS), 1, 100);
+}
+
+function ratingFromRecord(team: TeamOption, baseline: number, defense = false) {
+  const winPct = team.winPct ?? 0.5;
+  const swing = (winPct - 0.5) * 12;
+  return defense ? baseline - swing : baseline + swing;
+}
+
+function streakBoost(streak?: string) {
+  if (!streak) return 0;
+  const amount = Number(streak.replace(/\D/g, '')) || 0;
+  return streak.toUpperCase().startsWith('W') ? Math.min(amount * 2, 10) : -Math.min(amount * 2, 10);
 }
 
 function buildRecap(game: Game, box: BoxScorePlayer[], pbp: PlayByPlay[]) {
