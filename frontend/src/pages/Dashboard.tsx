@@ -5,6 +5,7 @@ import {
   getPlayerHeadshotUrl,
   getTeamLogoUrl,
   toDateKey,
+  getNBADate,
   type BoxScorePlayer,
   type BoxScoreTeam,
   type Game,
@@ -15,11 +16,17 @@ import {
   type Standing
 } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
-import { formatIndianDate, formatIndianTime, gameStatusInIndia, getIndianDateKey } from '../lib/time';
+import { formatIndianDate, formatIndianTime, gameStatusInIndia } from '../lib/time';
 
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split('-').map(Number);
   return new Date(year, month - 1, day);
+}
+
+function formatNbaGameDateForIndia(dateKey: string, options: Intl.DateTimeFormatOptions = {}) {
+  const date = parseDateKey(dateKey);
+  date.setDate(date.getDate() + 1);
+  return formatIndianDate(date, options);
 }
 
 type DashboardPlayer = {
@@ -93,7 +100,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(() => getIndianDateKey());
+  const [selectedDate, setSelectedDate] = useState(() => getNBADate());
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [boxScore, setBoxScore] = useState<BoxScorePlayer[]>([]);
   const [teamStats, setTeamStats] = useState<BoxScoreTeam[]>([]);
@@ -294,8 +301,7 @@ export default function Dashboard() {
   }
 
   const teamsById = useMemo(() => Object.fromEntries(standings.map(team => [team.TeamID, team])), [standings]);
-  const scoreboardDate = parseDateKey(selectedDate);
-  const scoreboardLabel = formatIndianDate(scoreboardDate, { month: 'short', day: 'numeric' });
+  const scoreboardLabel = formatNbaGameDateForIndia(selectedDate, { month: 'short', day: 'numeric' });
   
   const filteredGames = useMemo(() => {
     return games.filter(game => {
@@ -381,7 +387,7 @@ export default function Dashboard() {
       <section className="space-y-8">
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {dayOffsets.map(offset => {
-            const date = parseDateKey(getIndianDateKey());
+            const date = parseDateKey(getNBADate());
             date.setDate(date.getDate() + offset);
             const dateKey = toDateKey(date);
             const active = dateKey === selectedDate;
@@ -395,8 +401,8 @@ export default function Dashboard() {
                     : 'border-gray-800 bg-gray-900/40 text-gray-500 hover:border-orange-500/30 hover:text-white'
                 }`}
               >
-                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">{formatIndianDate(date, { month: 'short', day: 'numeric' })}</div>
-                <div className="text-lg sm:text-xl font-black italic uppercase tracking-tighter">{formatIndianDate(date, { weekday: 'short' })}</div>
+                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">{formatNbaGameDateForIndia(dateKey, { month: 'short', day: 'numeric' })}</div>
+                <div className="text-lg sm:text-xl font-black italic uppercase tracking-tighter">{formatNbaGameDateForIndia(dateKey, { weekday: 'short' })}</div>
               </button>
             );
           })}
@@ -678,7 +684,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 p-2 sm:p-6 backdrop-blur-xl lg:left-16 xl:left-64">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md">
+      <div className="relative mx-auto max-w-6xl rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute right-6 top-6 z-[60] rounded-full bg-slate-900/90 p-2 transition-all hover:bg-orange-500 hover:scale-110 active:scale-95 cursor-pointer shadow-xl border border-white/10"
@@ -710,7 +716,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
             <GameHeroTeam teamId={game.away_team_id} name={awayName} score={game.away_score} align="left" />
             <div className="text-center py-2 md:py-0">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
-              <div className="mt-1 text-sm text-gray-400">{formatIndianDate(new Date(`${game.game_date}T12:00:00`), { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div className="mt-1 text-sm text-gray-400">{formatNbaGameDateForIndia(game.game_date, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
               <div className="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-500">{game.arena || 'Arena TBD'}</div>
             </div>
             <GameHeroTeam teamId={game.home_team_id} name={homeName} score={game.home_score} align="right" />
