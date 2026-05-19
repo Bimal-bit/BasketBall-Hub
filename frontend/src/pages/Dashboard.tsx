@@ -16,17 +16,11 @@ import {
   type Standing
 } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
-import { formatIndianDate, formatIndianTime, gameStatusInIndia } from '../lib/time';
+import { formatIndianTime, gameStatusInIndia } from '../lib/time';
 
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split('-').map(Number);
   return new Date(year, month - 1, day);
-}
-
-function formatNbaGameDateForIndia(dateKey: string, options: Intl.DateTimeFormatOptions = {}) {
-  const date = parseDateKey(dateKey);
-  date.setDate(date.getDate() + 1);
-  return formatIndianDate(date, options);
 }
 
 type DashboardPlayer = {
@@ -301,7 +295,8 @@ export default function Dashboard() {
   }
 
   const teamsById = useMemo(() => Object.fromEntries(standings.map(team => [team.TeamID, team])), [standings]);
-  const scoreboardLabel = formatNbaGameDateForIndia(selectedDate, { month: 'short', day: 'numeric' });
+  const scoreboardDate = parseDateKey(selectedDate);
+  const scoreboardLabel = scoreboardDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   
   const filteredGames = useMemo(() => {
     return games.filter(game => {
@@ -401,8 +396,8 @@ export default function Dashboard() {
                     : 'border-gray-800 bg-gray-900/40 text-gray-500 hover:border-orange-500/30 hover:text-white'
                 }`}
               >
-                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">{formatNbaGameDateForIndia(dateKey, { month: 'short', day: 'numeric' })}</div>
-                <div className="text-lg sm:text-xl font-black italic uppercase tracking-tighter">{formatNbaGameDateForIndia(dateKey, { weekday: 'short' })}</div>
+                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em]">{date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
+                <div className="text-lg sm:text-xl font-black italic uppercase tracking-tighter">{date.toLocaleDateString(undefined, { weekday: 'short' })}</div>
               </button>
             );
           })}
@@ -716,7 +711,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
             <GameHeroTeam teamId={game.away_team_id} name={awayName} score={game.away_score} align="left" />
             <div className="text-center py-2 md:py-0">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
-              <div className="mt-1 text-sm text-gray-400">{formatNbaGameDateForIndia(game.game_date, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div className="mt-1 text-sm text-gray-400">{new Date(game.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
               <div className="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-500">{game.arena || 'Arena TBD'}</div>
             </div>
             <GameHeroTeam teamId={game.home_team_id} name={homeName} score={game.home_score} align="right" />
