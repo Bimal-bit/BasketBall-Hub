@@ -1,13 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Calendar, Trophy, ChevronRight, X, Loader2 } from 'lucide-react';
+import { Calendar, Trophy, X, Loader2 } from 'lucide-react';
 import {
   nbaApi,
   getTeamLogoUrl,
   getPlayerHeadshotUrl,
   type Standing,
   type TeamGame,
-  type BoxScorePlayer,
-  type PlayerGameLog
+  type BoxScorePlayer
 } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 
@@ -157,10 +156,10 @@ export default function Standings() {
 
   return (
     <div className="p-4 lg:p-6 space-y-8 animate-fade-in pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-900/40 p-8 rounded-[3rem] border border-white/5 backdrop-blur-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-slate-900/40 p-4 sm:p-8 rounded-3xl sm:rounded-[3rem] border border-white/5 backdrop-blur-xl">
         <div>
-          <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">League Standings</h1>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.5em] mt-2">NBA Official Season {season}</p>
+          <h1 className="text-2xl sm:text-4xl font-black text-white italic uppercase tracking-tighter">League Standings</h1>
+          <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] sm:tracking-[0.5em] mt-2">NBA Official Season {season}</p>
         </div>
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="flex items-center gap-3 bg-black/60 border border-white/10 rounded-2xl px-4 py-3">
@@ -169,9 +168,9 @@ export default function Standings() {
               {seasons.map(s => <option key={s} value={s} className="bg-slate-950">{s}</option>)}
             </select>
           </div>
-          <div className="flex bg-black/60 border border-white/10 rounded-2xl p-1.5">
+          <div className="flex w-full overflow-x-auto bg-black/60 border border-white/10 rounded-2xl p-1.5 sm:w-auto">
             {['Regular Season', 'Playoffs', 'Finals'].map(type => (
-              <button key={type} onClick={() => setSeasonType(type)} className={`px-4 sm:px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${seasonType === type ? 'bg-orange-500 text-white shadow-xl' : 'text-gray-500 hover:text-white'}`}>
+              <button key={type} onClick={() => setSeasonType(type)} className={`min-w-max flex-1 px-4 sm:px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${seasonType === type ? 'bg-orange-500 text-white shadow-xl' : 'text-gray-500 hover:text-white'}`}>
                 {type.split(' ')[0]}
               </button>
             ))}
@@ -240,31 +239,40 @@ function ConferenceTable({ title, teams, onTeamClick }: any) {
 
 function PlayoffBracket({ series, onTeamClick }: any) {
   return (
-    <div className="overflow-x-auto -mx-4 px-4">
-      <div className="flex justify-between items-start min-w-[900px] gap-8 p-4 sm:p-8">
-        <div className="flex gap-8 sm:gap-16">
-          <RoundColumn title="First Round" series={series.filter(s => s.round === 1 && s.conference === 'West')} onTeamClick={onTeamClick} />
-          <RoundColumn title="Semifinals" series={series.filter(s => s.round === 2 && s.conference === 'West')} onTeamClick={onTeamClick} />
-          <RoundColumn title="Conf. Finals" series={series.filter(s => s.round === 3 && s.conference === 'West')} onTeamClick={onTeamClick} />
-        </div>
-        <div className="flex flex-col items-center justify-center pt-32"><Trophy size={60} className="text-orange-500/20 animate-pulse" /></div>
-        <div className="flex flex-row-reverse gap-8 sm:gap-16">
-          <RoundColumn title="First Round" series={series.filter(s => s.round === 1 && s.conference === 'East')} onTeamClick={onTeamClick} />
-          <RoundColumn title="Semifinals" series={series.filter(s => s.round === 2 && s.conference === 'East')} onTeamClick={onTeamClick} />
-          <RoundColumn title="Conf. Finals" series={series.filter(s => s.round === 3 && s.conference === 'East')} onTeamClick={onTeamClick} />
-        </div>
+    <div className="space-y-8">
+      <div className="flex items-center justify-center gap-3 text-orange-500/80">
+        <div className="h-px w-16 bg-orange-500/20" />
+        <Trophy size={34} className="animate-pulse" />
+        <div className="h-px w-16 bg-orange-500/20" />
+      </div>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <ConferenceBracket title="Western Conference" series={series.filter((s: any) => s.conference === 'West')} onTeamClick={onTeamClick} />
+        <ConferenceBracket title="Eastern Conference" series={series.filter((s: any) => s.conference === 'East')} onTeamClick={onTeamClick} />
       </div>
     </div>
   );
 }
 
+function ConferenceBracket({ title, series, onTeamClick }: any) {
+  return (
+    <section className="rounded-3xl border border-white/5 bg-slate-900/20 p-4 sm:p-6">
+      <h2 className="mb-5 text-xl sm:text-2xl font-black text-white italic uppercase tracking-tighter">{title}</h2>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <RoundColumn title="First Round" series={series.filter((s: any) => s.round === 1)} onTeamClick={onTeamClick} />
+        <RoundColumn title="Semifinals" series={series.filter((s: any) => s.round === 2)} onTeamClick={onTeamClick} />
+        <RoundColumn title="Conf. Finals" series={series.filter((s: any) => s.round === 3)} onTeamClick={onTeamClick} />
+      </div>
+    </section>
+  );
+}
+
 function RoundColumn({ title, series, onTeamClick }: any) {
   return (
-    <div className="flex flex-col gap-10 w-64">
-      <h3 className="text-center text-[11px] font-black text-gray-600 uppercase tracking-[0.5em]">{title}</h3>
-      <div className="flex flex-col gap-8 justify-center flex-1">
+    <div className="flex min-w-0 flex-col gap-4">
+      <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.24em] md:text-center md:tracking-[0.35em]">{title}</h3>
+      <div className="flex flex-col gap-3 justify-center flex-1">
         {series.map((s: any) => (
-          <div key={s.seriesId} className="rounded-[2rem] border border-white/5 bg-slate-900/40 overflow-hidden shadow-2xl backdrop-blur-md">
+          <div key={s.seriesId} className="rounded-2xl border border-white/5 bg-slate-900/40 overflow-hidden shadow-2xl backdrop-blur-md">
              <SeriesRow id={s.homeId} name={s.homeName} wins={s.homeWins} onClick={() => onTeamClick({ TeamID: s.homeId, name: s.homeName })} isWinner={s.homeWins >= 4} />
              <div className="h-px bg-white/5" />
              <SeriesRow id={s.visitorId} name={s.visitorName} wins={s.visitorWins} onClick={() => onTeamClick({ TeamID: s.visitorId, name: s.visitorName })} isWinner={s.visitorWins >= 4} />
@@ -277,12 +285,12 @@ function RoundColumn({ title, series, onTeamClick }: any) {
 
 function SeriesRow({ id, name, wins, onClick, isWinner }: any) {
   return (
-    <div onClick={onClick} className={`flex items-center justify-between p-5 cursor-pointer hover:bg-white/5 transition-all ${isWinner ? 'bg-orange-500/10' : ''}`}>
-       <div className="flex items-center gap-4">
-          <img src={getTeamLogoUrl(id)} className="w-10 h-10 object-contain" alt="" />
-          <span className={`text-xs font-black uppercase tracking-tight ${isWinner ? 'text-white' : 'text-gray-500'}`}>{name}</span>
+    <div onClick={onClick} className={`flex items-center justify-between gap-3 p-3 sm:p-4 cursor-pointer hover:bg-white/5 transition-all ${isWinner ? 'bg-orange-500/10' : ''}`}>
+       <div className="flex min-w-0 items-center gap-3">
+          <img src={getTeamLogoUrl(id)} className="w-9 h-9 shrink-0 object-contain" alt="" />
+          <span className={`truncate text-xs font-black uppercase tracking-tight ${isWinner ? 'text-white' : 'text-gray-500'}`}>{name}</span>
        </div>
-       <span className={`text-2xl font-black italic ${isWinner ? 'text-orange-500' : 'text-gray-700'}`}>{wins}</span>
+       <span className={`shrink-0 text-2xl font-black italic ${isWinner ? 'text-orange-500' : 'text-gray-700'}`}>{wins}</span>
     </div>
   );
 }
@@ -290,27 +298,27 @@ function SeriesRow({ id, name, wins, onClick, isWinner }: any) {
 function FinalsView({ series, onTeamClick, onGameClick }: any) {
   if (!series) return <div className="py-40 text-center text-gray-700 font-black uppercase tracking-widest">Finals Matchup Pending</div>;
   return (
-    <div className="max-w-7xl mx-auto space-y-16">
-      <div className="relative overflow-hidden rounded-3xl sm:rounded-[5rem] border border-orange-500/20 bg-slate-950 p-4 sm:p-16 xl:p-24 text-center shadow-[0_0_100px_rgba(249,115,22,0.1)]">
+    <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
+      <div className="relative overflow-hidden rounded-3xl sm:rounded-[3rem] border border-orange-500/20 bg-slate-950 p-4 sm:p-8 xl:p-12 text-center shadow-[0_0_100px_rgba(249,115,22,0.1)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.15),transparent)]" />
-        <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-16">
-          <div className="flex items-center justify-center gap-6 sm:gap-20 sm:gap-40 flex-wrap">
-             <div onClick={() => onTeamClick({ TeamID: series.homeId, name: series.homeName })} className="cursor-pointer group text-center">
-                <img src={getTeamLogoUrl(series.homeId)} className="w-32 h-32 sm:w-64 sm:h-64 object-contain group-hover:scale-110 transition-transform mb-4 sm:mb-8 mx-auto" alt="" />
-                <div className="text-2xl sm:text-4xl font-black text-white uppercase italic tracking-tighter mb-2 sm:mb-4">{series.homeName}</div>
-                <div className="text-5xl sm:text-8xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.homeWins}</div>
+        <div className="relative z-10 flex flex-col items-center gap-5 sm:gap-8">
+          <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-8">
+             <div onClick={() => onTeamClick({ TeamID: series.homeId, name: series.homeName })} className="min-w-0 cursor-pointer group text-center">
+                <img src={getTeamLogoUrl(series.homeId)} className="w-24 h-24 sm:w-40 sm:h-40 lg:w-52 lg:h-52 object-contain group-hover:scale-110 transition-transform mb-3 sm:mb-5 mx-auto" alt="" />
+                <div className="text-base sm:text-2xl lg:text-3xl font-black text-white uppercase italic tracking-tighter mb-2 break-words">{series.homeName}</div>
+                <div className="text-4xl sm:text-7xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.homeWins}</div>
              </div>
-             <div className="text-5xl sm:text-[120px] font-black text-gray-900 italic select-none">VS</div>
-             <div onClick={() => onTeamClick({ TeamID: series.visitorId, name: series.visitorName })} className="cursor-pointer group text-center">
-                <img src={getTeamLogoUrl(series.visitorId)} className="w-32 h-32 sm:w-64 sm:h-64 object-contain group-hover:scale-110 transition-transform mb-4 sm:mb-8 mx-auto" alt="" />
-                <div className="text-2xl sm:text-4xl font-black text-white uppercase italic tracking-tighter mb-2 sm:mb-4">{series.visitorName}</div>
-                <div className="text-5xl sm:text-8xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.visitorWins}</div>
+             <div className="text-2xl sm:text-6xl lg:text-7xl font-black text-gray-900 italic select-none">VS</div>
+             <div onClick={() => onTeamClick({ TeamID: series.visitorId, name: series.visitorName })} className="min-w-0 cursor-pointer group text-center">
+                <img src={getTeamLogoUrl(series.visitorId)} className="w-24 h-24 sm:w-40 sm:h-40 lg:w-52 lg:h-52 object-contain group-hover:scale-110 transition-transform mb-3 sm:mb-5 mx-auto" alt="" />
+                <div className="text-base sm:text-2xl lg:text-3xl font-black text-white uppercase italic tracking-tighter mb-2 break-words">{series.visitorName}</div>
+                <div className="text-4xl sm:text-7xl font-black text-orange-500 italic tabular-nums drop-shadow-[0_0_30px_rgba(249,115,22,0.5)]">{series.visitorWins}</div>
              </div>
           </div>
-          <div className="text-xs sm:text-sm font-black text-gray-500 uppercase tracking-[0.18em] sm:tracking-[1.5em]">NBA Finals Championship</div>
+          <div className="text-[10px] sm:text-sm font-black text-gray-500 uppercase tracking-[0.18em] sm:tracking-[0.55em]">NBA Finals Championship</div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {series.games.map((g: any, i: number) => {
           const hScore = g.scores[series.homeId];
           const vScore = g.scores[series.visitorId];
@@ -321,7 +329,7 @@ function FinalsView({ series, onTeamClick, onGameClick }: any) {
               key={i} 
               onClick={hasScore ? () => onGameClick(g) : undefined} 
               disabled={!hasScore}
-              className={`p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] border border-white/5 bg-white/5 transition-all text-left group ${hasScore ? 'hover:border-orange-500/50 hover:bg-orange-500/5 cursor-pointer' : 'opacity-40 cursor-default'}`}
+              className={`p-4 sm:p-6 rounded-2xl border border-white/5 bg-white/5 transition-all text-left group ${hasScore ? 'hover:border-orange-500/50 hover:bg-orange-500/5 cursor-pointer' : 'opacity-40 cursor-default'}`}
             >
               <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6">Game {i+1}</div>
               <div className={`text-3xl font-black italic ${hasScore ? 'text-white group-hover:text-orange-400' : 'text-gray-500'}`}>
@@ -373,9 +381,9 @@ function TeamLogModal({ team, games, loading, onGameClick, onClose }: any) {
 
 function BoxScoreModal({ game, boxScore, loading, onPlayerClick, onClose }: any) {
   const [teamFilter, setTeamFilter] = useState<number | null>(null);
-  const teamIds = useMemo(() => Array.from(new Set(boxScore.map(p => p.TEAM_ID))), [boxScore]);
+  const teamIds = useMemo<number[]>(() => Array.from(new Set((boxScore as BoxScorePlayer[]).map((p: BoxScorePlayer) => p.TEAM_ID))), [boxScore]);
   useEffect(() => { if (teamIds.length > 0 && !teamFilter) setTeamFilter(teamIds[0]); }, [teamIds, teamFilter]);
-  const filtered = useMemo(() => teamFilter ? boxScore.filter(p => p.TEAM_ID === teamFilter) : boxScore, [boxScore, teamFilter]);
+  const filtered = useMemo<BoxScorePlayer[]>(() => teamFilter ? (boxScore as BoxScorePlayer[]).filter((p: BoxScorePlayer) => p.TEAM_ID === teamFilter) : boxScore, [boxScore, teamFilter]);
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 bg-black/99 backdrop-blur-3xl animate-in slide-in-from-bottom-20 duration-500">

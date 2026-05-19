@@ -364,15 +364,15 @@ export default function Dashboard() {
   return (
     <div className="space-y-0">
       <LiveTicker games={games} />
-      <div className="p-4 lg:p-6 space-y-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-8 sm:space-y-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div>
           <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter">Live Dashboard</h1>
           <p className="text-sm text-gray-500">NBA live scores, box scores & player leaders</p>
         </div>
         <button
           onClick={loadData}
-          className="inline-flex items-center justify-center gap-3 rounded-2xl border border-gray-800 bg-gray-900/50 px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-orange-500 transition-all hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400"
+          className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-800 bg-gray-900/50 px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-orange-500 transition-all hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400 sm:w-auto"
         >
           <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
           Refresh
@@ -405,7 +405,7 @@ export default function Dashboard() {
 
 
         <SectionTitle title="Games" action="Standings" onAction={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'standings' }))} />
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {featuredGames.length === 0 && (
             <div className="rounded-3xl border border-gray-800 bg-gray-900/40 p-8 text-center text-gray-500">
               No NBA games returned for {scoreboardLabel}.
@@ -421,17 +421,17 @@ export default function Dashboard() {
             />
           ))}
         </div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
+        <div className="flex flex-col gap-1 text-xs font-bold uppercase tracking-[0.12em] text-gray-500 sm:flex-row sm:items-center sm:gap-2 sm:tracking-[0.18em]">
           Official NBA Data
           <span className="rounded-full bg-gray-700 px-1 text-[10px] text-slate-950">check</span>
-          <span className="ml-auto">Updated {formatIndianTime(lastUpdated)} IST</span>
+          <span className="sm:ml-auto">Updated {formatIndianTime(lastUpdated)} IST</span>
         </div>
       </section>
 
 
       <section className="space-y-6">
         <SectionTitle title="Daily Match Leaders" />
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {gameLeaders.length === 0 && (
             <div className="col-span-full rounded-3xl border border-gray-800 bg-gray-900/40 p-8 text-center text-gray-500">
               No player boxscore leaders are available yet for {scoreboardLabel}.
@@ -479,13 +479,13 @@ export default function Dashboard() {
 
 function SectionTitle({ title, action, onAction }: { title: string; action?: string, onAction?: () => void }) {
   return (
-    <div className="flex items-center gap-4">
-      <h2 className="text-4xl font-black text-gray-800 italic uppercase tracking-tighter leading-none">{title}</h2>
+    <div className="flex items-center gap-3 sm:gap-4">
+      <h2 className="text-2xl sm:text-4xl font-black text-gray-800 italic uppercase tracking-tighter leading-none">{title}</h2>
       <div className="h-px flex-1 bg-gray-900" />
       {action && (
         <button 
           onClick={onAction}
-          className="flex items-center gap-1 text-xs font-black uppercase tracking-[0.2em] text-orange-500 hover:text-orange-400"
+          className="flex shrink-0 items-center gap-1 text-[10px] sm:text-xs font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] text-orange-500 hover:text-orange-400"
         >
           {action} <ChevronRight size={18} />
         </button>
@@ -679,7 +679,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 p-2 sm:p-6 backdrop-blur-xl lg:left-16 xl:left-64">
-      <div className="relative mx-auto max-w-6xl rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md">
+      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-2xl sm:rounded-[2rem] border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute right-6 top-6 z-[60] rounded-full bg-slate-900/90 p-2 transition-all hover:bg-orange-500 hover:scale-110 active:scale-95 cursor-pointer shadow-xl border border-white/10"
@@ -687,7 +687,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
         >
           <X className="text-white" size={20} />
         </button>
-        <div className="border-b border-white/10 p-4 sm:p-6">
+        <div className="border-b border-white/10 p-3 sm:p-6">
           <div className="mb-4 sm:mb-5 flex gap-2 sm:gap-3 overflow-x-auto pr-12 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {games.map(item => (
               <button
@@ -718,12 +718,12 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
           </div>
         </div>
 
-        <div className="flex gap-1 overflow-x-auto border-b border-white/10 bg-black px-5 py-0">
+        <div className="flex gap-1 overflow-x-auto border-b border-white/10 bg-black px-2 sm:px-5 py-0">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`border-b-2 px-5 py-4 text-xs font-black uppercase tracking-[0.2em] transition-all ${
+              className={`shrink-0 border-b-2 px-4 sm:px-5 py-3 sm:py-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] transition-all ${
                 activeTab === tab.id ? 'border-orange-500 text-orange-400' : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
@@ -732,7 +732,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
           ))}
         </div>
 
-        <div className="p-6 lg:p-8">
+        <div className="p-3 sm:p-6 lg:p-8">
           {(activeTab === 'away' || activeTab === 'home') && (
             <TeamStatsPanel teamId={selectedTeamId} teamName={selectedTeamName} players={selectedPlayers} gameId={game.game_id} onPlayerClick={onPlayerClick} />
           )}
@@ -760,11 +760,11 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 
 function GameHeroTeam({ teamId, name, score, align }: { teamId: number; name: string; score: number; align: 'left' | 'right' }) {
   return (
-    <div className={`flex items-center gap-3 sm:gap-4 ${align === 'right' ? 'flex-row-reverse md:flex-row justify-end md:text-right' : ''}`}>
-      <img src={getTeamLogoUrl(teamId)} alt={name} className="h-12 w-12 sm:h-20 sm:w-20 object-contain" />
+    <div className={`flex min-w-0 items-center gap-3 sm:gap-4 ${align === 'right' ? 'flex-row-reverse md:flex-row justify-end md:text-right' : ''}`}>
+      <img src={getTeamLogoUrl(teamId)} alt={name} className="h-12 w-12 sm:h-20 sm:w-20 shrink-0 object-contain" />
       <div className={align === 'right' ? 'text-right' : ''}>
         <div className="text-3xl sm:text-5xl font-black italic text-white leading-none">{score || '-'}</div>
-        <div className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-gray-300 mt-1">{name}</div>
+        <div className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-gray-300 mt-1 break-words">{name}</div>
       </div>
     </div>
   );
@@ -799,7 +799,7 @@ function TeamStatsPanel({ teamId, teamName, players, gameId, onPlayerClick }: {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6">
+      <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-4 sm:p-6">
         <div className="flex items-center gap-4 mb-6">
           <div className="h-16 w-16 shrink-0 rounded-2xl border border-gray-700 bg-gray-800 p-2 shadow-lg">
             <img src={getTeamLogoUrl(teamId)} alt={teamName} className="h-full w-full object-contain" />
@@ -873,7 +873,7 @@ function PlayerStatRow({ player, onClick }: { player: BoxScorePlayer; onClick: (
           </div>
         </div>
 
-        <div className="flex items-center gap-6 mt-6">
+        <div className="flex items-center gap-4 sm:gap-6 mt-6">
           <div className="relative shrink-0">
             <div className="w-16 h-16 rounded-2xl bg-gray-800 overflow-hidden border border-gray-700 group-hover:border-orange-500 transition-colors">
               <img 
@@ -888,7 +888,7 @@ function PlayerStatRow({ player, onClick }: { player: BoxScorePlayer; onClick: (
             </div>
           </div>
           
-          <div className="flex gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex flex-1 gap-4 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <PlayerStat value={minuteValue(player.MIN)} label="MIN" />
             <PlayerStat value={player.PTS ?? '-'} label="PTS" />
             <PlayerStat value={player.REB ?? '-'} label="REB" />
@@ -1804,9 +1804,9 @@ function GameFeed({ playByPlay, boxScore, game }: { playByPlay: PlayByPlay[]; bo
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="border-b border-white/10 py-4 text-center">
-        <div className="text-2xl font-black text-white">End of {game.quarter ? `Q${game.quarter}` : 'Game'} · {game.away_score}-{game.home_score}</div>
-        <div className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-orange-500">
+      <div className="border-b border-white/10 py-3 text-center sm:py-4">
+        <div className="text-lg font-black text-white sm:text-2xl">End of {game.quarter ? `Q${game.quarter}` : 'Game'} - {game.away_score}-{game.home_score}</div>
+        <div className="mt-2 text-[9px] font-black uppercase tracking-[0.18em] text-orange-500 sm:text-[10px] sm:tracking-[0.22em]">
           {filteredEvents.length > 0 ? 'Official NBA play-by-play' : 'Scoreboard feed'}
         </div>
       </div>
@@ -1892,10 +1892,10 @@ function FeedItem({ event, boxScore, game }: { event: PlayByPlay; boxScore: BoxS
   };
 
   return (
-    <div className="group border-b border-white/10 px-2 py-6 transition-colors hover:bg-white/[0.03] sm:px-4">
+    <div className="group border-b border-white/10 px-1 py-4 transition-colors hover:bg-white/[0.03] sm:px-4 sm:py-6">
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+        <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
              <div className={`flex items-center gap-2 ${isHome ? 'text-blue-400' : 'text-orange-400'}`}>
                 <img src={getTeamLogoUrl(teamId)} className="h-4 w-4 object-contain" alt="" />
                 <span className="text-[11px] font-black tracking-tighter">{event.SCORE || '0-0'}</span>
@@ -1910,9 +1910,9 @@ function FeedItem({ event, boxScore, game }: { event: PlayByPlay; boxScore: BoxS
           </div>
         </div>
 
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 sm:gap-4">
           <div className="relative shrink-0">
-             <div className="h-16 w-16 rounded-full bg-slate-950 border border-white/10 overflow-hidden group-hover:border-orange-500/50 transition-colors">
+             <div className="h-12 w-12 rounded-full bg-slate-950 border border-white/10 overflow-hidden group-hover:border-orange-500/50 transition-colors sm:h-16 sm:w-16">
                 <img 
                   src={getPlayerHeadshotUrl(event.PLAYER1_ID || 0)} 
                   className="h-full w-full object-cover object-top scale-125 translate-y-2" 
@@ -1920,16 +1920,16 @@ function FeedItem({ event, boxScore, game }: { event: PlayByPlay; boxScore: BoxS
                   onError={(e:any) => e.target.src = getTeamLogoUrl(teamId)}
                 />
              </div>
-             <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-black border border-white/10 p-1">
+             <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-black border border-white/10 p-1 sm:h-7 sm:w-7">
                 <img src={getTeamLogoUrl(teamId)} className="h-full w-full object-contain" alt="" />
              </div>
           </div>
 
           <div className="flex-1 min-w-0">
-            <h4 className="text-2xl font-semibold text-white leading-tight mb-2 group-hover:text-orange-400 transition-colors">
+            <h4 className="text-base font-semibold text-white leading-tight mb-2 group-hover:text-orange-400 transition-colors sm:text-2xl">
               {cleanDescription(desc)}
             </h4>
-            <div className="flex flex-wrap items-center gap-2 text-base text-gray-400">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:text-base">
               <span className="text-white font-medium">{event.PLAYER1_NAME}</span>
               <span className="text-orange-500/60">•</span>
               <span>{getPlayerStatsString(player1, event.EVENTMSGTYPE)}</span>
@@ -1943,7 +1943,7 @@ function FeedItem({ event, boxScore, game }: { event: PlayByPlay; boxScore: BoxS
               )}
             </div>
             
-            <div className="flex items-center justify-between mt-6 pt-5 border-t border-white/5">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5 sm:mt-6 sm:pt-5">
               <div className="flex items-center gap-5">
                  <div className="flex items-center gap-2 group/reaction cursor-pointer">
                     <span className="text-[11px] font-black text-gray-500 group-hover:text-white transition-colors">Action Confirmed</span>

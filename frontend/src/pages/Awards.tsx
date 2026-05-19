@@ -33,6 +33,8 @@ export default function Awards() {
     if (!player.id) return;
     setSelectedPlayer({ ...player, awardType });
     setSelectedSeason(season);
+    setSelectedGame(null);
+    setDrillDownPlayer(null);
     setPlayerAverages(null);
     setPlayerStats([]);
     setLoading(true);
@@ -154,31 +156,31 @@ export default function Awards() {
       </div>
 
       {selectedPlayer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-10 bg-black/98 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="relative bg-slate-950 w-full max-w-6xl max-h-[96vh] sm:max-h-[92vh] rounded-3xl sm:rounded-[4rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col">
-            <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 sm:top-10 sm:right-10 z-[110] w-11 h-11 sm:w-16 sm:h-16 flex items-center justify-center bg-white/10 hover:bg-orange-500/20 text-white rounded-full transition-all border border-white/5"><X size={22} /></button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 bg-black/98 backdrop-blur-3xl animate-in fade-in duration-500">
+          <div className="relative bg-slate-950 w-full max-w-6xl max-h-[96vh] rounded-3xl sm:rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col lg:grid lg:grid-cols-[320px_1fr]">
+            <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 z-[110] w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center bg-white/10 hover:bg-orange-500/20 text-white rounded-full transition-all border border-white/5"><X size={22} /></button>
 
-            <div className="relative h-36 sm:h-80 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950">
-               <div className="absolute inset-0 flex items-end p-4 sm:p-16 gap-4 sm:gap-16 pr-16 sm:pr-24">
-                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-24 h-24 sm:w-64 sm:h-64 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl translate-y-8 sm:translate-y-20" alt="" />
-                  <div className="pb-2 sm:pb-8 min-w-0">
+            <div className="relative min-h-44 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950 lg:min-h-0">
+               <div className="absolute inset-0 flex items-end p-4 sm:p-8 gap-4 pr-16 lg:flex-col lg:items-start lg:justify-end lg:p-8">
+                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-24 h-24 sm:w-32 sm:h-32 lg:w-56 lg:h-56 rounded-2xl sm:rounded-[2rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl" alt="" />
+                  <div className="min-w-0">
                     <div className="inline-flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-[9px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.4em] mb-2 sm:mb-6 border border-orange-500/20 shadow-xl max-w-full">
                        <Trophy size={14} />
                        <span className="truncate">{selectedSeason} {selectedPlayer.awardType}</span>
                     </div>
-                    <h2 className="text-2xl sm:text-7xl font-black text-white tracking-tighter uppercase italic leading-none truncate">{selectedPlayer.name}</h2>
+                    <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase italic leading-none break-words">{selectedPlayer.name}</h2>
                   </div>
                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 sm:p-16 pt-10 sm:pt-32 scrollbar-hide space-y-6 sm:space-y-24">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-8 lg:p-10 scrollbar-hide space-y-6 sm:space-y-10">
                {loading ? (
                   <div className="flex flex-col items-center justify-center py-24 sm:py-40 gap-6 sm:gap-8"><Loader2 className="w-14 h-14 sm:w-20 sm:h-20 text-orange-500 animate-spin" /><div className="text-xs sm:text-sm font-black text-gray-700 uppercase tracking-[0.35em] sm:tracking-[1em]">Synchronizing Records</div></div>
                ) : (
                   <>
-                     <section className="space-y-4 sm:space-y-12">
+                     <section className="space-y-4 sm:space-y-8">
                         <div className="flex items-center gap-3 sm:gap-6"><div className="text-[9px] sm:text-[10px] font-black text-orange-500 uppercase tracking-[0.18em] sm:tracking-[0.6em]">Official Season Averages</div><div className="h-px flex-1 bg-white/5" /></div>
-                        <div className="grid grid-cols-5 gap-2 sm:gap-8">
+                        <div className="grid grid-cols-2 min-[420px]:grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4">
                            <StatBox label="MIN" value={playerAverages?.MIN} />
                            <StatBox label="PTS" value={playerAverages?.PTS} />
                            <StatBox label="REB" value={playerAverages?.REB} />
@@ -190,18 +192,18 @@ export default function Awards() {
                            <StatBox label="3FG" value={playerAverages?.FG3M !== undefined ? `${playerAverages.FG3M}/${playerAverages.FG3A}` : '-'} />
                            <StatBox label="FT" value={playerAverages?.FTM !== undefined ? `${playerAverages.FTM}/${playerAverages.FTA}` : '-'} />
                         </div>
-                        <div className="grid grid-cols-3 gap-2 sm:gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                            <PctBox label="FIELD GOAL %" value={playerAverages?.FG_PCT} />
                            <PctBox label="THREE POINT %" value={playerAverages?.FG3_PCT} />
                            <PctBox label="FREE THROW %" value={playerAverages?.FT_PCT} />
                         </div>
                      </section>
 
-                     <section className="space-y-4 sm:space-y-12 pb-10 sm:pb-20">
+                     <section className="space-y-4 sm:space-y-8 pb-10">
                         <div className="flex items-center gap-3 sm:gap-6"><div className="text-[9px] sm:text-[10px] font-black text-orange-500 uppercase tracking-[0.18em] sm:tracking-[0.6em]">Seasonal Match Journey</div><div className="h-px flex-1 bg-white/5" /><div className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-widest shrink-0">{playerStats.length} Games</div></div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
                            {playerStats.map((log, i) => (
-                              <button key={i} onClick={() => handleGameClick(log)} className="flex items-center justify-between p-4 sm:p-8 rounded-2xl sm:rounded-[3rem] bg-white/[0.02] border border-white/5 hover:border-orange-500/50 hover:bg-white/[0.05] transition-all group text-left">
+                              <button key={i} onClick={() => handleGameClick(log)} className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-orange-500/50 hover:bg-white/[0.05] transition-all group text-left">
                                  <div className="space-y-1 sm:space-y-2 min-w-0">
                                     <div className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em]">{log.GAME_DATE}</div>
                                     <div className="text-sm sm:text-lg font-black text-white uppercase group-hover:text-orange-400 italic tracking-tight truncate">{log.MATCHUP}</div>
