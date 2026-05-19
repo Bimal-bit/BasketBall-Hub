@@ -305,8 +305,8 @@ export function toDateKey(date: Date) {
 }
 
 export function getNBADate() {
-  // Returns current date in Eastern Time (NBA HQ)
-  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  // The UI is used in IST, so the active dashboard day should match the user's local date.
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 }
 
 export interface PlayByPlay {

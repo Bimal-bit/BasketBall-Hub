@@ -372,7 +372,7 @@ export default function Dashboard() {
         </div>
         <button
           onClick={loadData}
-          className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-800 bg-gray-900/50 px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-orange-500 transition-all hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-800 bg-gray-900/50 px-5 py-3 text-xs font-black uppercase tracking-[0.2em] text-orange-500 transition-all hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-400 sm:w-auto md:self-auto"
         >
           <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
           Refresh
@@ -423,7 +423,7 @@ export default function Dashboard() {
         </div>
         <div className="flex flex-col gap-1 text-xs font-bold uppercase tracking-[0.12em] text-gray-500 sm:flex-row sm:items-center sm:gap-2 sm:tracking-[0.18em]">
           Official NBA Data
-          <span className="rounded-full bg-gray-700 px-1 text-[10px] text-slate-950">check</span>
+          <span className="self-start rounded-full bg-gray-700 px-2 py-0.5 text-[10px] text-slate-950">check</span>
           <span className="sm:ml-auto">Updated {formatIndianTime(lastUpdated)} IST</span>
         </div>
       </section>
@@ -521,8 +521,8 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
         </div>
       )}
       
-      <div className="relative p-6">
-        <div className="mb-5 flex items-start justify-between">
+      <div className="relative p-4 sm:p-6">
+        <div className="mb-4 flex items-start justify-between">
           <div>
             <div className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
             <div className="text-xl font-black italic uppercase leading-none tracking-tighter text-white transition-colors group-hover:text-orange-400">
@@ -532,7 +532,7 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
           {!isClose && <Trophy className="text-gray-700" size={24} />}
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <TeamScore teamId={game.away_team_id} name={awayTeamName} score={game.away_score} active={game.away_score > game.home_score} />
           <TeamScore teamId={game.home_team_id} name={homeTeamName} score={game.home_score} active={game.home_score > game.away_score} />
         </div>
@@ -551,16 +551,16 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
           </div>
         )}
 
-        <div className="mt-5 flex items-center justify-between text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
+        <div className="mt-4 flex items-center justify-between gap-4 text-[10px] sm:text-xs font-bold uppercase tracking-[0.16em] sm:tracking-[0.18em] text-gray-500">
           <span>{game.arena || 'Arena TBD'}</span>
           <span>{game.status === 'scheduled' ? 'Scheduled' : seriesText(game)}</span>
         </div>
 
         {(game.home_leader || game.away_leader) && (
-          <div className="mt-6 pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
+          <div className="mt-4 pt-4 sm:mt-6 sm:pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
              {game.away_leader && (
                <div className="flex items-center gap-2">
-                  <img src={getPlayerHeadshotUrl(game.away_leader.personId)} className="h-8 w-8 rounded-lg object-cover bg-gray-800" alt="" />
+                  <img src={getPlayerHeadshotUrl(game.away_leader.personId)} onError={(e) => { e.currentTarget.src = getTeamLogoUrl(game.away_team_id); e.currentTarget.classList.add('p-1', 'object-contain'); }} className="h-8 w-8 rounded-lg object-cover bg-gray-800" alt="" />
                   <div className="min-w-0">
                      <div className="text-[10px] font-black text-white truncate uppercase">{game.away_leader.name.split(' ').pop()}</div>
                      <div className="text-[9px] font-bold text-orange-500 uppercase">{game.away_leader.points} PTS</div>
@@ -573,7 +573,7 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
                      <div className="text-[10px] font-black text-white truncate uppercase">{game.home_leader.name.split(' ').pop()}</div>
                      <div className="text-[9px] font-bold text-orange-500 uppercase">{game.home_leader.points} PTS</div>
                   </div>
-                  <img src={getPlayerHeadshotUrl(game.home_leader.personId)} className="h-8 w-8 rounded-lg object-cover bg-gray-800" alt="" />
+                  <img src={getPlayerHeadshotUrl(game.home_leader.personId)} onError={(e) => { e.currentTarget.src = getTeamLogoUrl(game.home_team_id); e.currentTarget.classList.add('p-1', 'object-contain'); }} className="h-8 w-8 rounded-lg object-cover bg-gray-800" alt="" />
                </div>
              )}
           </div>
@@ -586,15 +586,15 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
 
 function TeamScore({ teamId, name, score, active }: { teamId: number; name: string; score: number; active: boolean }) {
   return (
-    <div className="flex items-center gap-4">
-      <div className="h-14 w-14 rounded-2xl border border-gray-700 bg-gray-800 p-2 transition-colors group-hover:border-orange-500/50">
+    <div className="flex items-center gap-3 sm:gap-4">
+      <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-2xl border border-gray-700 bg-gray-800 p-2 transition-colors group-hover:border-orange-500/50">
         <img src={getTeamLogoUrl(teamId)} alt={name} className="h-full w-full object-contain" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-bold text-gray-400">{name}</div>
         <div className="text-[8px] font-bold uppercase text-gray-500">Team</div>
       </div>
-      <div className={`text-4xl font-black italic leading-none ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
+      <div className={`text-3xl sm:text-4xl font-black italic leading-none ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
     </div>
   );
 }

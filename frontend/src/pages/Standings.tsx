@@ -29,7 +29,7 @@ export default function Standings() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [playoffSeries, setPlayoffSeries] = useState<PlayoffSeries[]>([]);
   const [loading, setLoading] = useState(true);
-  const [season, setSeason] = useState('2024-25');
+  const [season, setSeason] = useState('2025-26');
   const [seasonType, setSeasonType] = useState('Regular Season');
   
   const [selectedTeam, setSelectedTeam] = useState<Standing | null>(null);

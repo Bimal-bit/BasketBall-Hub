@@ -157,23 +157,23 @@ export default function Awards() {
 
       {selectedPlayer && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 bg-black/98 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="relative bg-slate-950 w-full max-w-6xl max-h-[96vh] rounded-3xl sm:rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col lg:grid lg:grid-cols-[320px_1fr]">
+          <div className="relative bg-slate-950 w-full max-w-6xl max-h-[96vh] rounded-3xl sm:rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col lg:grid lg:grid-cols-[300px_1fr]">
             <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 z-[110] w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center bg-white/10 hover:bg-orange-500/20 text-white rounded-full transition-all border border-white/5"><X size={22} /></button>
 
-            <div className="relative min-h-44 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950 lg:min-h-0">
-               <div className="absolute inset-0 flex items-end p-4 sm:p-8 gap-4 pr-16 lg:flex-col lg:items-start lg:justify-end lg:p-8">
-                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-24 h-24 sm:w-32 sm:h-32 lg:w-56 lg:h-56 rounded-2xl sm:rounded-[2rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl" alt="" />
+            <div className="relative min-h-28 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950 sm:min-h-32 lg:min-h-0">
+               <div className="absolute inset-0 flex items-center p-3 sm:p-5 gap-3 pr-16 lg:flex-col lg:items-start lg:justify-end lg:p-8">
+                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-16 h-16 sm:w-20 sm:h-20 lg:w-52 lg:h-52 rounded-2xl sm:rounded-[2rem] object-cover bg-gray-950 border-4 border-slate-950 shadow-2xl" alt="" />
                   <div className="min-w-0">
-                    <div className="inline-flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-[9px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.4em] mb-2 sm:mb-6 border border-orange-500/20 shadow-xl max-w-full">
+                    <div className="inline-flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-[9px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.4em] mb-1 sm:mb-2 lg:mb-6 border border-orange-500/20 shadow-xl max-w-full">
                        <Trophy size={14} />
                        <span className="truncate">{selectedSeason} {selectedPlayer.awardType}</span>
                     </div>
-                    <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase italic leading-none break-words">{selectedPlayer.name}</h2>
+                    <h2 className="text-xl sm:text-3xl lg:text-5xl font-black text-white tracking-tighter uppercase italic leading-none break-words">{selectedPlayer.name}</h2>
                   </div>
                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 sm:p-8 lg:p-10 scrollbar-hide space-y-6 sm:space-y-10">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 scrollbar-hide space-y-5 sm:space-y-8">
                {loading ? (
                   <div className="flex flex-col items-center justify-center py-24 sm:py-40 gap-6 sm:gap-8"><Loader2 className="w-14 h-14 sm:w-20 sm:h-20 text-orange-500 animate-spin" /><div className="text-xs sm:text-sm font-black text-gray-700 uppercase tracking-[0.35em] sm:tracking-[1em]">Synchronizing Records</div></div>
                ) : (

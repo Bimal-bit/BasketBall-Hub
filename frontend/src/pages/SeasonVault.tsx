@@ -5,14 +5,14 @@ import * as THREE from 'three';
 import { 
   Trophy, ChevronDown, TrendingUp, User, Users, Calendar, Award, 
   Zap, Target, Shield, Clock, Search, ChevronRight, Layout,
-  Layers, Star, Activity, Image as ImageIcon, Sparkles, Filter, 
+  Layers, Star, Activity, Sparkles, Filter, 
   MapPin, UserCheck, BarChart3, Plus, Minus, ArrowRight, X, Brain,
   ZapOff, Flame, Target as TargetIcon, Home, UserPlus, Info, TrendingDown,
   History
 } from 'lucide-react';
 import { nbaApi, type Player, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
-import { NBA_CHAMPIONS, ARENA_IMAGES, MASCOTS, getRingImageUrl, getSeasonJerseys, getJerseyArchiveUrl, getNBAJerseyImage, getTeamVaultInfo } from './SeasonVaultData';
+import { NBA_CHAMPIONS, ARENA_IMAGES, MASCOTS, getRingImageUrl, getTeamVaultInfo } from './SeasonVaultData';
 
 const SEASONS = Array.from({ length: 2026 - 1985 }, (_, i) => {
   const year = 2025 - i;
@@ -105,7 +105,6 @@ export default function SeasonVault() {
   const [season, setSeason] = useState(SEASONS[0]);
   const [teamId, setTeamId] = useState(TEAMS[10].id); // Default Lakers
   const [history, setHistory] = useState<any>(null);
-  const [jerseys, setJerseys] = useState<any[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
 
@@ -114,7 +113,6 @@ export default function SeasonVault() {
     async function loadVault() {
       if (!mounted) return;
       setHistory(buildFallbackVault(teamId, season));
-      setJerseys([]);
       setLoading(false);
       try {
         const [historyData, standingsData] = await Promise.all([
@@ -128,21 +126,10 @@ export default function SeasonVault() {
           ...(historyData?.roster?.length ? historyData : fallback),
           standing: { ...fallback.standing, ...(historyData?.standing ?? {}), ...(standing ?? {}) },
         });
-        
-        // Fetch jerseys separately so it's non-fatal
-        try {
-          const jerseyData = await nbaApi.getTeamJerseys(TEAMS.find(t => t.id === teamId)?.name || '', season);
-          if (!mounted) return;
-          setJerseys(jerseyData);
-        } catch (jErr) {
-          console.warn('Jersey fetch failed (non-fatal):', jErr);
-          setJerseys([]);
-        }
       } catch (error) {
         console.error('Error loading vault:', error);
         if (mounted) {
           setHistory(buildFallbackVault(teamId, season));
-          setJerseys([]);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -396,57 +383,32 @@ export default function SeasonVault() {
               </div>
            </div>
 
-           {/* Jersey Showcase */}
-           <div className="bg-gradient-to-br from-gray-900 via-gray-950 to-black border border-white/10 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden">
+           {/* Team Stats Snapshot */}
+           <div className="bg-gradient-to-br from-gray-900 via-gray-950 to-black border border-white/10 rounded-[2rem] sm:rounded-[3.5rem] p-4 sm:p-10 shadow-2xl relative overflow-hidden">
               <div className="absolute inset-0 z-0">
                  <div className="w-full h-full opacity-20" style={{ background: `radial-gradient(circle at 20% 20%, ${team?.color || '#f97316'} 0%, transparent 30%), linear-gradient(135deg, #020617 0%, #111827 100%)` }} />
               </div>
-              <div className="relative z-10 flex items-center justify-between mb-12">
+              <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-10">
                  <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/20">
-                       <ImageIcon className="text-blue-400" size={24} />
+                       <BarChart3 className="text-blue-400" size={24} />
                     </div>
                     <div>
-                      <h3 className="text-3xl font-black text-white italic uppercase tracking-tight">Verified {season} Uniform Editions</h3>
-                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.25em] mt-1">Home / Away language mapped to Nike Association / Icon / Statement</p>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tight">Season Stats Snapshot</h3>
+                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] sm:tracking-[0.25em] mt-1">Roster production and team context</p>
                     </div>
                  </div>
-                 {vaultTeamInfo && (
-                   <a href={getJerseyArchiveUrl(teamId, season)} target="_blank" rel="noreferrer" className="hidden md:flex px-4 py-2 bg-white/5 rounded-full border border-white/10 text-[10px] font-black text-gray-300 uppercase tracking-widest hover:border-orange-500/40 hover:text-orange-300 transition-colors">
-                     Jersey Archive Source
-                   </a>
-                 )}
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-14 relative z-10">
-                  {(jerseys && jerseys.length > 0 ? jerseys : getSeasonJerseys(teamId, season)).map((j, idx) => {
-                    const rosterIndex = idx % (history?.roster?.length || 1);
-                    const player = history?.roster?.[rosterIndex];
-                    
-                    // If we have scraped data, j will have image_link and jersey_name
-                    // If we have static data, j will have label, color, border
-                    const label = j.jersey_name || j.label || 'Authentic Jersey';
-                    const imageUrl = j.image_link || getNBAJerseyImage(team?.name || '', season, (j.label || '').toLowerCase().includes('city') ? 'city' : 'association');
-                    const color = j.color || (label.toLowerCase().includes('association') ? '#FFFFFF' : (label.toLowerCase().includes('icon') ? team?.color : '#111827'));
-
-                    return (
-                      <div key={idx} onClick={() => player && setSelectedPlayer(player)} className="cursor-pointer transition-transform hover:scale-105 duration-500">
-                        <Jersey3D 
-                          label={label} 
-                          edition={j.edition}
-                          role={j.role}
-                          color={color} 
-                          trim={j.trim || team?.color || '#f97316'}
-                          border={j.border}
-                          imageUrl={imageUrl}
-                          sourceUrl={j.sourceUrl || getJerseyArchiveUrl(teamId, season)}
-                          teamAbbr={history?.standing?.TeamAbbr || team?.abbr || 'TEAM'} 
-                          player={player?.PLAYER || player?.PLAYER_NAME || 'PLAYER'} 
-                          num={player?.NUM || player?.jersey_number || '00'} 
-                        />
-                      </div>
-                    );
-                  })}
+              <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <OverviewCard label="Wins" value={recordW} icon={<Plus size={18} />} />
+                <OverviewCard label="Losses" value={recordL} icon={<Minus size={18} />} />
+                <OverviewCard label="Win Pct" value={`${(Number(w_pct || 0) * 100).toFixed(1)}%`} icon={<TrendingUp size={18} />} />
+                <OverviewCard label="Roster Size" value={history?.roster?.length || 0} icon={<Users size={18} />} />
+                <OverviewCard label="Top Scorer" value={topRosterStat(history?.roster, 'PTS')} icon={<Target size={18} />} />
+                <OverviewCard label="Top Rebounder" value={topRosterStat(history?.roster, 'REB')} icon={<Shield size={18} />} />
+                <OverviewCard label="Top Passer" value={topRosterStat(history?.roster, 'AST')} icon={<UserPlus size={18} />} />
+                <OverviewCard label="Era" value={parseInt(season) < 2000 ? 'Defensive' : parseInt(season) < 2015 ? 'Pace+Space' : 'Modern'} icon={<Clock size={18} />} />
               </div>
             </div>
  
@@ -595,6 +557,13 @@ function OverviewCard({ label, value, icon }: any) {
   );
 }
 
+function topRosterStat(roster: any[] = [], key: 'PTS' | 'REB' | 'AST') {
+  const leader = [...roster].sort((a, b) => Number(b?.[key] || 0) - Number(a?.[key] || 0))[0];
+  if (!leader) return 'N/A';
+  const name = leader.PLAYER_NAME || leader.PLAYER || 'Player';
+  return `${name.split(' ').pop()} ${Number(leader[key] || 0).toFixed(1)}`;
+}
+
 function buildFallbackVault(teamId: string, season: string) {
   const vaultInfo = getTeamVaultInfo(teamId);
   const team = TEAMS.find(t => t.id === teamId);
@@ -640,71 +609,6 @@ function ArenaVisual({ image, teamId, teamColor, arenaName, subtle = false }: an
         <img src={getTeamLogoUrl(teamId)} className="h-1/2 w-1/2 object-contain opacity-30 drop-shadow-[0_24px_60px_rgba(0,0,0,0.8)]" alt={arenaName} />
       </div>
       <div className="absolute top-5 left-5 text-[9px] font-black uppercase tracking-[0.35em] text-white/50">Verified Venue Data</div>
-    </div>
-  );
-}
-
-function Jersey3D({ label, edition, role, color, trim, border, teamAbbr, player, num, imageUrl, sourceUrl }: any) {
-  const normalizedColor = color?.toLowerCase?.() || '';
-  const isDark = ['#000000', '#111827', '#0b1f41', '#0c2340', '#002b5c', '#12173f', '#002d62'].includes(normalizedColor);
-  const lastName = (player || '').split(' ').pop().toUpperCase();
-  
-  return (
-    <div className="flex flex-col items-center jersey-card group/j">
-       <div className="w-full aspect-[3/4] jersey-3d">
-          <div className="jersey-inner">
-             {/* Front Side: Show Authentic Image or Team Branding */}
-             <div className={`jersey-front border-2 border-white/10 overflow-hidden relative shadow-2xl ${border ? 'border-gray-800' : ''}`} style={{ backgroundColor: color }}>
-                <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: `radial-gradient(#000 1px, transparent 1px)`, backgroundSize: '4px 4px' }} />
-                <div className="absolute top-0 left-0 right-0 h-4" style={{ backgroundColor: trim || '#f97316' }} />
-                <div className="absolute bottom-0 left-0 right-0 h-4" style={{ backgroundColor: trim || '#f97316' }} />
-                
-                {imageUrl ? (
-                  <div className="absolute inset-0 flex items-center justify-center p-6 z-10 bg-[#111827]">
-                    <div className="absolute inset-0 opacity-10" style={{ background: `radial-gradient(circle at center, ${color} 0%, transparent 70%)` }} />
-                    <img 
-                      src={imageUrl} 
-                      className="w-full h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] transform group-hover/j:scale-110 transition-transform duration-700" 
-                      alt="Jersey" 
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const parent = e.currentTarget.parentElement;
-                        if (parent) {
-                          parent.style.display = 'none';
-                          const fallback = parent.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'flex';
-                        }
-                      }}
-                    />
-                    <div className="absolute top-4 right-4 bg-orange-500 px-2 py-0.5 rounded text-[8px] font-black text-white uppercase tracking-widest z-20">SOURCE IMAGE</div>
-                  </div>
-                ) : null}
-                
-                <div className="flex flex-col items-center pt-12 relative z-10 h-full" style={{ display: imageUrl ? 'none' : 'flex' }}>
-                  <div className={`text-[10px] font-black uppercase tracking-[0.35em] mb-4 ${isDark ? 'text-white/70' : 'text-black/60'}`}>{edition || 'Edition'}</div>
-                  <div className={`text-6xl font-black italic tracking-tighter ${isDark ? 'text-white' : 'text-black'} drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] uppercase`}>{teamAbbr}</div>
-                  <div className={`text-[10rem] font-black italic -mt-4 leading-none ${isDark ? 'text-white' : 'text-black'} drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]`}>{num}</div>
-                </div>
-                
-                <div className="absolute bottom-4 right-4 bg-white/10 p-1 rounded-sm border border-white/5 z-20">
-                   <div className="text-[6px] font-black text-white/40 uppercase">NIKE CORE</div>
-                </div>
-             </div>
-             
-             {/* Back Side: Show Player Name and Number */}
-             <div className="jersey-back border-2 border-white/10 flex flex-col items-center justify-center p-0 bg-[#0f172a] relative overflow-hidden">
-                <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: `radial-gradient(#000 1px, transparent 1px)`, backgroundSize: '4px 4px' }} />
-                <div className="absolute inset-0 opacity-10" style={{ background: `linear-gradient(135deg, ${color} 0%, transparent 100%)` }} />
-                
-                <div className="text-[10px] font-black text-orange-500 uppercase tracking-[0.4em] mb-4 relative z-10">PLAYER EDITION</div>
-                <div className="text-5xl font-black text-white italic tracking-tighter relative z-10 uppercase drop-shadow-xl">{lastName}</div>
-                <div className="text-[10rem] font-black text-white italic -mt-2 leading-none relative z-10 drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)]">{num}</div>
-             </div>
-          </div>
-       </div>
-       <p className="text-xs font-black text-gray-500 mt-8 uppercase tracking-[0.28em] italic group-hover/j:text-white transition-colors text-center">{label}</p>
-       {role && <p className="text-[9px] text-gray-600 uppercase tracking-[0.18em] mt-2 text-center">{role}</p>}
-       {sourceUrl && <a href={sourceUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} className="mt-3 text-[9px] font-black text-orange-400 uppercase tracking-[0.22em] hover:text-orange-300">Verify Source</a>}
     </div>
   );
 }

@@ -502,11 +502,17 @@ function ComparePlayers({ playerA, playerB, playerALogs, playerBLogs }: {
 }
 
 function PlayerFace({ player, align = 'left', recentPpg }: { player: Player; align?: 'left' | 'right'; recentPpg?: number }) {
+  const playerId = player.PERSON_ID || player.PLAYER_ID || 0;
+  const teamId = player.TEAM_ID || '';
   return (
     <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 ${align === 'right' ? 'text-right' : ''}`}>
       <img
-        src={getPlayerHeadshotUrl(player.PERSON_ID)}
+        src={getPlayerHeadshotUrl(playerId)}
         alt={playerName(player)}
+        onError={(e) => {
+          e.currentTarget.src = teamId ? getTeamLogoUrl(teamId) : '/assets/images/nba-6.svg';
+          e.currentTarget.classList.add('p-2', 'object-contain');
+        }}
         className={`mb-3 h-16 w-16 rounded-full border border-gray-800 bg-gray-950 object-cover object-top sm:h-24 sm:w-24 ${align === 'right' ? 'ml-auto' : ''}`}
       />
       <div className="truncate font-black text-white">{playerName(player)}</div>
@@ -562,7 +568,7 @@ function TeamMiniCard({ team, profile }: { team: TeamOption; profile: TeamProfil
   return (
     <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
       <div className="flex min-w-0 items-center gap-3">
-        <img src={getTeamLogoUrl(team.id)} alt={team.full_name} className="h-9 w-9 object-contain sm:h-12 sm:w-12" />
+        <img src={getTeamLogoUrl(team.id)} alt={team.full_name} onError={(e) => { e.currentTarget.src = '/assets/images/nba-6.svg'; }} className="h-9 w-9 object-contain sm:h-12 sm:w-12" />
         <div className="min-w-0">
           <div className="truncate font-black text-white">{team.full_name}</div>
           <div className="truncate text-xs text-gray-400">{team.conference || team.state || 'NBA'} - {team.l10 || 'L10 unavailable'}</div>
@@ -628,7 +634,7 @@ function TeamWinBlock({ game, side, probability }: { game: Game; side: 'home' | 
 
   return (
     <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-2 text-center sm:p-4">
-      <img src={getTeamLogoUrl(teamId)} alt={abbr || 'Team'} className="mx-auto h-8 w-8 object-contain sm:h-12 sm:w-12" />
+      <img src={getTeamLogoUrl(teamId)} alt={abbr || 'Team'} onError={(e) => { e.currentTarget.src = '/assets/images/nba-6.svg'; }} className="mx-auto h-8 w-8 object-contain sm:h-12 sm:w-12" />
       <div className="mt-2 text-sm font-black text-white">{abbr}</div>
       <div className="mt-1 text-lg font-black text-orange-400 sm:text-3xl">{probability.toFixed(0)}%</div>
     </div>
