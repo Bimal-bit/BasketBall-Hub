@@ -362,9 +362,9 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="space-y-0">
+    <div className="w-full max-w-full space-y-0 overflow-hidden">
       <LiveTicker games={games} />
-      <div className="p-3 sm:p-4 lg:p-6 space-y-8 sm:space-y-12">
+      <div className="w-full max-w-full p-2 sm:p-4 lg:p-6 space-y-8 sm:space-y-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div>
           <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter">Live Dashboard</h1>
@@ -405,7 +405,7 @@ export default function Dashboard() {
 
 
         <SectionTitle title="Games" action="Standings" onAction={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'standings' }))} />
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {featuredGames.length === 0 && (
             <div className="rounded-3xl border border-gray-800 bg-gray-900/40 p-8 text-center text-gray-500">
               No NBA games returned for {scoreboardLabel}.
@@ -421,7 +421,7 @@ export default function Dashboard() {
             />
           ))}
         </div>
-        <div className="flex flex-col gap-1 text-xs font-bold uppercase tracking-[0.12em] text-gray-500 sm:flex-row sm:items-center sm:gap-2 sm:tracking-[0.18em]">
+        <div className="flex max-w-full flex-col gap-1 text-xs font-bold uppercase tracking-[0.12em] text-gray-500 sm:flex-row sm:items-center sm:gap-2 sm:tracking-[0.18em]">
           Official NBA Data
           <span className="self-start rounded-full bg-gray-700 px-2 py-0.5 text-[10px] text-slate-950">check</span>
           <span className="sm:ml-auto">Updated {formatIndianTime(lastUpdated)} IST</span>
@@ -431,7 +431,7 @@ export default function Dashboard() {
 
       <section className="space-y-6">
         <SectionTitle title="Daily Match Leaders" />
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {gameLeaders.length === 0 && (
             <div className="col-span-full rounded-3xl border border-gray-800 bg-gray-900/40 p-8 text-center text-gray-500">
               No player boxscore leaders are available yet for {scoreboardLabel}.
@@ -479,13 +479,13 @@ export default function Dashboard() {
 
 function SectionTitle({ title, action, onAction }: { title: string; action?: string, onAction?: () => void }) {
   return (
-    <div className="flex items-center gap-3 sm:gap-4">
-      <h2 className="text-2xl sm:text-4xl font-black text-gray-800 italic uppercase tracking-tighter leading-none">{title}</h2>
+    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+      <h2 className="min-w-0 shrink text-2xl sm:text-4xl font-black text-gray-800 italic uppercase tracking-tighter leading-none">{title}</h2>
       <div className="h-px flex-1 bg-gray-900" />
       {action && (
         <button 
           onClick={onAction}
-          className="flex shrink-0 items-center gap-1 text-[10px] sm:text-xs font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] text-orange-500 hover:text-orange-400"
+          className="flex shrink-0 items-center gap-1 text-[10px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-orange-500 hover:text-orange-400"
         >
           {action} <ChevronRight size={18} />
         </button>
@@ -512,7 +512,7 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/40 transition-all duration-300 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/10 relative"
+      className="group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/40 transition-all duration-300 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/10"
     >
       {isClose && (
         <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-orange-600 px-2.5 py-1 rounded-full animate-pulse shadow-lg shadow-orange-600/20">
@@ -522,14 +522,14 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
       )}
       
       <div className="relative p-4 sm:p-6">
-        <div className="mb-4 flex items-start justify-between">
-          <div>
+        <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
             <div className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
             <div className="text-xl font-black italic uppercase leading-none tracking-tighter text-white transition-colors group-hover:text-orange-400">
               {game.away_team_abbreviation || 'AWAY'} @ {game.home_team_abbreviation || 'HOME'}
             </div>
           </div>
-          {!isClose && <Trophy className="text-gray-700" size={24} />}
+          {!isClose && <Trophy className="shrink-0 text-gray-700" size={24} />}
         </div>
         
         <div className="space-y-3 sm:space-y-4">
@@ -551,9 +551,9 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between gap-4 text-[10px] sm:text-xs font-bold uppercase tracking-[0.16em] sm:tracking-[0.18em] text-gray-500">
-          <span>{game.arena || 'Arena TBD'}</span>
-          <span>{game.status === 'scheduled' ? 'Scheduled' : seriesText(game)}</span>
+        <div className="mt-4 flex min-w-0 items-center justify-between gap-4 text-[10px] sm:text-xs font-bold uppercase tracking-[0.12em] sm:tracking-[0.18em] text-gray-500">
+          <span className="min-w-0 truncate">{game.arena || 'Arena TBD'}</span>
+          <span className="shrink-0">{game.status === 'scheduled' ? 'Scheduled' : seriesText(game)}</span>
         </div>
 
         {(game.home_leader || game.away_leader) && (
@@ -586,7 +586,7 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
 
 function TeamScore({ teamId, name, score, active }: { teamId: number; name: string; score: number; active: boolean }) {
   return (
-    <div className="flex items-center gap-3 sm:gap-4">
+    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
       <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-2xl border border-gray-700 bg-gray-800 p-2 transition-colors group-hover:border-orange-500/50">
         <img src={getTeamLogoUrl(teamId)} alt={name} className="h-full w-full object-contain" />
       </div>
@@ -594,7 +594,7 @@ function TeamScore({ teamId, name, score, active }: { teamId: number; name: stri
         <div className="truncate text-sm font-bold text-gray-400">{name}</div>
         <div className="text-[8px] font-bold uppercase text-gray-500">Team</div>
       </div>
-      <div className={`text-3xl sm:text-4xl font-black italic leading-none ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
+      <div className={`shrink-0 text-3xl sm:text-4xl font-black italic leading-none tabular-nums ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
     </div>
   );
 }
@@ -678,8 +678,8 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 p-2 sm:p-6 backdrop-blur-xl lg:left-16 xl:left-64">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-2xl sm:rounded-[2rem] border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md">
+    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/80 p-0 sm:p-6 backdrop-blur-xl lg:left-16 xl:left-64">
+      <div className="relative mx-auto min-h-dvh w-full max-w-6xl overflow-hidden rounded-none border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md sm:min-h-0 sm:rounded-[2rem]">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute right-6 top-6 z-[60] rounded-full bg-slate-900/90 p-2 transition-all hover:bg-orange-500 hover:scale-110 active:scale-95 cursor-pointer shadow-xl border border-white/10"
@@ -707,7 +707,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
             ))}
           </div>
 
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-[1fr_auto_1fr] md:items-center">
+          <div className="grid min-w-0 gap-4 sm:gap-6 grid-cols-1 md:grid-cols-[1fr_auto_1fr] md:items-center">
             <GameHeroTeam teamId={game.away_team_id} name={awayName} score={game.away_score} align="left" />
             <div className="text-center py-2 md:py-0">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
@@ -718,12 +718,12 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
           </div>
         </div>
 
-        <div className="flex gap-1 overflow-x-auto border-b border-white/10 bg-black px-2 sm:px-5 py-0">
+        <div className="flex w-full justify-between gap-1 overflow-x-auto border-b border-white/10 bg-black px-1 sm:justify-start sm:px-5 py-0">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`shrink-0 border-b-2 px-4 sm:px-5 py-3 sm:py-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.16em] sm:tracking-[0.2em] transition-all ${
+              className={`shrink-0 border-b-2 px-3 sm:px-5 py-3 sm:py-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] transition-all ${
                 activeTab === tab.id ? 'border-orange-500 text-orange-400' : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
@@ -732,7 +732,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
           ))}
         </div>
 
-        <div className="p-3 sm:p-6 lg:p-8">
+        <div className="w-full max-w-full p-2 sm:p-6 lg:p-8">
           {(activeTab === 'away' || activeTab === 'home') && (
             <TeamStatsPanel teamId={selectedTeamId} teamName={selectedTeamName} players={selectedPlayers} gameId={game.game_id} onPlayerClick={onPlayerClick} />
           )}
@@ -760,12 +760,12 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 
 function GameHeroTeam({ teamId, name, score, align }: { teamId: number; name: string; score: number; align: 'left' | 'right' }) {
   return (
-    <div className={`flex min-w-0 items-center gap-3 sm:gap-4 ${align === 'right' ? 'flex-row-reverse md:flex-row justify-end md:text-right' : ''}`}>
+    <div className={`flex min-w-0 items-center gap-3 sm:gap-4 ${align === 'right' ? 'flex-row-reverse justify-between md:flex-row md:justify-end md:text-right' : 'justify-between md:justify-start'}`}>
       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/95 p-2 shadow-lg sm:h-20 sm:w-20 sm:p-3">
         <img src={getTeamLogoUrl(teamId)} alt={name} className="h-full w-full object-contain" />
       </div>
       <div className={`min-w-0 ${align === 'right' ? 'text-right' : ''}`}>
-        <div className="text-3xl sm:text-5xl font-black italic text-white leading-none">{score || '-'}</div>
+        <div className="text-4xl sm:text-5xl font-black italic text-white leading-none tabular-nums">{score || '-'}</div>
         <div className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-gray-300 mt-1 break-words">{name}</div>
       </div>
     </div>
@@ -976,10 +976,30 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
   }, [shots, playByPlay, playerId, shotFilter]);
   
   const madeShotsCount = matchPlays.filter(p => !p.IS_MISS).length;
+  const scoringMethodCounts = useMemo(() => {
+    const impactCounts = new Map<string, number>();
+    const playCounts = new Map<string, number>();
+
+    (playerImpact?.scoring_breakdown || []).forEach(item => {
+      const type = normalizeScoringType(item.type);
+      impactCounts.set(type, (impactCounts.get(type) || 0) + 1);
+    });
+
+    matchPlays
+      .filter(play => !play.IS_MISS)
+      .forEach(play => {
+        const type = normalizeScoringType(play.TYPE);
+        playCounts.set(type, (playCounts.get(type) || 0) + 1);
+      });
+
+    return ['3PT', '2PT', 'FT']
+      .map(type => ({ type, count: Math.max(impactCounts.get(type) || 0, playCounts.get(type) || 0) }))
+      .filter(item => item.count > 0);
+  }, [matchPlays, playerImpact]);
   
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl lg:left-16 xl:left-64">
-      <div className="relative bg-slate-950/95 w-full max-w-5xl max-h-[90vh] rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden backdrop-blur-md text-slate-100 flex flex-col">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-0 backdrop-blur-xl sm:p-6 lg:left-16 xl:left-64">
+      <div className="relative flex max-h-dvh w-full max-w-5xl flex-col overflow-hidden rounded-none border border-white/10 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur-md sm:max-h-[90vh] sm:rounded-[2rem]">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute top-4 right-4 z-[110] p-2 bg-slate-900/90 hover:bg-orange-500 rounded-full transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-xl border border-white/10"
@@ -1080,17 +1100,17 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
                      <div>
                        <div className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Scoring Methods</div>
                        <div className="flex flex-wrap gap-2">
-                         {(playerImpact.scoring_breakdown || []).map((item, index) => {
-                           const type = item.type;
-                           const count = (playerImpact.scoring_breakdown || []).filter(s => s.type === type).length;
-                           if (count === 0) return null;
+                         {scoringMethodCounts.map((item) => {
                            return (
-                             <div key={index} className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
-                               <span className="text-xs font-bold text-white">{type}</span>
-                               <span className="text-[10px] font-black text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded-md">{count}</span>
+                             <div key={item.type} className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                               <span className="text-xs font-bold text-white">{item.type}</span>
+                               <span className="text-[10px] font-black text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded-md">{item.count}</span>
                              </div>
                            );
                          })}
+                         {scoringMethodCounts.length === 0 && (
+                           <div className="text-[10px] italic text-slate-600 py-2">No made scoring plays yet</div>
+                         )}
                        </div>
                      </div>
 
@@ -1528,7 +1548,15 @@ function getPlayShotType(event: PlayByPlay, description: string) {
   const desc = description.toUpperCase();
   if (Number(event.EVENTMSGTYPE) === 3 || desc.includes('FREE THROW')) return 'FT';
   if (desc.includes('3PT') || desc.includes('3-PT') || desc.includes('3 PT') || desc.includes('THREE')) return '3PT';
+  if (Number((event as unknown as { SHOT_VALUE?: number }).SHOT_VALUE) === 3) return '3PT';
   if (![1, 2, 3].includes(Number(event.EVENTMSGTYPE))) return eventTypeLabel(Number(event.EVENTMSGTYPE));
+  return '2PT';
+}
+
+function normalizeScoringType(type?: string | null) {
+  const value = String(type || '').toUpperCase();
+  if (value.includes('3')) return '3PT';
+  if (value.includes('FT') || value.includes('FREE')) return 'FT';
   return '2PT';
 }
 

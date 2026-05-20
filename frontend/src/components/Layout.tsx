@@ -197,7 +197,7 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
       </aside>
 
       {/* Main content */}
-      <div className={`flex-1 flex flex-col transition-all duration-500 z-10 ${collapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
+      <div className={`flex-1 min-w-0 max-w-full flex flex-col overflow-x-hidden transition-all duration-500 z-10 ${collapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
         {/* Top bar */}
         <header className="sticky top-0 z-10 backdrop-blur-xl border-b px-4 lg:px-6 py-3 flex items-center justify-between transition-all duration-300 bg-[var(--surface-strong)]/85 border-[var(--border-main)] shadow-slate-950/10">
           <div className="flex items-center gap-3">
@@ -231,8 +231,8 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 min-w-0 overflow-auto">
-          <div className="min-h-[calc(100vh-88px)] min-w-0 px-2 py-3 sm:px-5 sm:py-5 lg:px-8 xl:px-10 transition-all duration-500 animate-fade-in-up">
+        <main className="flex-1 min-w-0 max-w-full overflow-auto overflow-x-hidden">
+          <div className="min-h-[calc(100vh-88px)] min-w-0 max-w-full px-2 py-3 sm:px-5 sm:py-5 lg:px-8 xl:px-10 transition-all duration-500 animate-fade-in-up">
             {children}
           </div>
         </main>

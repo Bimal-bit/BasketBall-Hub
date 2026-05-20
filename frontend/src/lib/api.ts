@@ -321,6 +321,7 @@ export interface PlayByPlay {
   VISITORDESCRIPTION: string | null;
   SCORE: string | null;
   SCOREMARGIN: string | null;
+  SHOT_VALUE?: number;
   PLAYER1_ID?: number;
   PLAYER1_NAME?: string;
   PLAYER1_TEAM_ID?: number;
