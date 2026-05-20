@@ -587,9 +587,7 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
 function TeamScore({ teamId, name, score, active }: { teamId: number; name: string; score: number; active: boolean }) {
   return (
     <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-      <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-2xl border border-gray-700 bg-gray-800 p-2 transition-colors group-hover:border-orange-500/50">
-        <img src={getTeamLogoUrl(teamId)} alt={name} className="h-full w-full object-contain" />
-      </div>
+      <img src={getTeamLogoUrl(teamId)} alt={name} className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 object-contain drop-shadow-md" />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-bold text-gray-400">{name}</div>
         <div className="text-[8px] font-bold uppercase text-gray-500">Team</div>
@@ -707,12 +705,12 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
             ))}
           </div>
 
-          <div className="grid min-w-0 gap-4 sm:gap-6 grid-cols-1 md:grid-cols-[1fr_auto_1fr] md:items-center">
+          <div className="grid gap-3 grid-cols-[1fr_auto_1fr] items-center">
             <GameHeroTeam teamId={game.away_team_id} name={awayName} score={game.away_score} align="left" />
-            <div className="text-center py-2 md:py-0">
+            <div className="text-center px-2">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
-              <div className="mt-1 text-sm text-gray-400">{new Date(game.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-              <div className="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-gray-500">{game.arena || 'Arena TBD'}</div>
+              <div className="mt-1 text-xs text-gray-400 hidden sm:block">{new Date(game.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div className="mt-1 sm:mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 hidden sm:block">{game.arena || 'Arena TBD'}</div>
             </div>
             <GameHeroTeam teamId={game.home_team_id} name={homeName} score={game.home_score} align="right" />
           </div>
@@ -760,13 +758,16 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 
 function GameHeroTeam({ teamId, name, score, align }: { teamId: number; name: string; score: number; align: 'left' | 'right' }) {
   return (
-    <div className={`flex min-w-0 items-center gap-3 sm:gap-4 ${align === 'right' ? 'flex-row-reverse justify-between md:flex-row md:justify-end md:text-right' : 'justify-between md:justify-start'}`}>
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/95 p-2 shadow-lg sm:h-20 sm:w-20 sm:p-3">
-        <img src={getTeamLogoUrl(teamId)} alt={name} className="h-full w-full object-contain" />
-      </div>
-      <div className={`min-w-0 ${align === 'right' ? 'text-right' : ''}`}>
-        <div className="text-4xl sm:text-5xl font-black italic text-white leading-none tabular-nums">{score || '-'}</div>
-        <div className="text-sm sm:text-xl font-black italic uppercase tracking-tighter text-gray-300 mt-1 break-words">{name}</div>
+    <div className={`flex items-center gap-2 sm:gap-4 ${align === 'right' ? 'flex-row-reverse text-right' : 'text-left'}`}>
+      {/* Logo — transparent background, no white box */}
+      <img
+        src={getTeamLogoUrl(teamId)}
+        alt={name}
+        className="h-12 w-12 sm:h-16 sm:w-16 shrink-0 object-contain drop-shadow-lg"
+      />
+      <div className="min-w-0">
+        <div className="text-3xl sm:text-5xl font-black italic text-white leading-none tabular-nums">{score ?? '-'}</div>
+        <div className="text-xs sm:text-base font-black italic uppercase tracking-tighter text-gray-400 mt-0.5 truncate max-w-[100px] sm:max-w-none">{name}</div>
       </div>
     </div>
   );
