@@ -1824,6 +1824,69 @@ function aggregateAssists(assists: PlayerImpact['assists_tracking']) {
   return Array.from(map.values()).sort((a, b) => b.points_generated - a.points_generated);
 }
 
+function buildFallbackFeed(game: Game, boxScore: BoxScorePlayer[]): PlayByPlay[] {
+  // Build synthetic feed events from box score when no play-by-play is available
+  const events: PlayByPlay[] = [];
+
+  // Add a game status event
+  events.push({
+    GAME_ID: game.game_id,
+    EVENTNUM: 0,
+    EVENTMSGTYPE: 12,
+    PERIOD: 1,
+    WCTIMESTRING: '',
+    PCTIMESTRING: '12:00',
+    HOMEDESCRIPTION: `${game.home_team_abbreviation ?? 'Home'} vs ${game.away_team_abbreviation ?? 'Away'} — ${game.status_text || 'Game'}`,
+    NEUTRALDESCRIPTION: null,
+    VISITORDESCRIPTION: null,
+    SCORE: `${game.away_score}-${game.home_score}`,
+    SCOREMARGIN: String(game.away_score - game.home_score),
+  });
+
+  // Add top performers from box score as synthetic events
+  const sorted = [...boxScore]
+    .filter(p => (p.PTS ?? 0) > 0)
+    .sort((a, b) => (b.PTS ?? 0) - (a.PTS ?? 0))
+    .slice(0, 10);
+
+  sorted.forEach((player, i) => {
+    const isHome = player.TEAM_ID === game.home_team_id;
+    const pts = player.PTS ?? 0;
+    const reb = player.REB ?? 0;
+    const ast = player.AST ?? 0;
+    const fg3m = player.FG3M ?? 0;
+    const ftm = player.FTM ?? 0;
+    const fta = player.FTA ?? 0;
+
+    const parts: string[] = [`${pts} PTS`];
+    if (reb > 0) parts.push(`${reb} REB`);
+    if (ast > 0) parts.push(`${ast} AST`);
+    if (fg3m > 0) parts.push(`${fg3m} 3PT`);
+    if (ftm > 0) parts.push(`${ftm}/${fta} FT`);
+
+    const desc = `${player.PLAYER_NAME} — ${parts.join(', ')}`;
+
+    events.push({
+      GAME_ID: game.game_id,
+      EVENTNUM: i + 1,
+      EVENTMSGTYPE: 1,
+      PERIOD: 4,
+      WCTIMESTRING: '',
+      PCTIMESTRING: '0:00',
+      HOMEDESCRIPTION: isHome ? desc : null,
+      NEUTRALDESCRIPTION: null,
+      VISITORDESCRIPTION: isHome ? null : desc,
+      SCORE: `${game.away_score}-${game.home_score}`,
+      SCOREMARGIN: String(game.away_score - game.home_score),
+      PLAYER1_ID: player.PLAYER_ID,
+      PLAYER1_NAME: player.PLAYER_NAME,
+      PLAYER1_TEAM_ID: player.TEAM_ID,
+    });
+  });
+
+  return events;
+}
+
 function GameFeed({ playByPlay, boxScore, game }: { playByPlay: PlayByPlay[]; boxScore: BoxScorePlayer[]; game: Game }) {
   const filteredEvents = useMemo(() => {
     return playByPlay
