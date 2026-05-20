@@ -238,6 +238,10 @@ function ConferenceTable({ title, teams, onTeamClick }: any) {
 }
 
 function PlayoffBracket({ series, onTeamClick }: any) {
+  const westSeries = series.filter((s: any) => s.conference === 'West');
+  const eastSeries = series.filter((s: any) => s.conference === 'East');
+  const finalsSeries = series.find((s: any) => s.conference === 'Finals');
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-center gap-3 text-orange-500/80">
@@ -245,50 +249,97 @@ function PlayoffBracket({ series, onTeamClick }: any) {
         <Trophy size={34} className="animate-pulse" />
         <div className="h-px w-16 bg-orange-500/20" />
       </div>
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <ConferenceBracket title="Western Conference" series={series.filter((s: any) => s.conference === 'West')} onTeamClick={onTeamClick} />
-        <ConferenceBracket title="Eastern Conference" series={series.filter((s: any) => s.conference === 'East')} onTeamClick={onTeamClick} />
+
+      {/* Full bracket: West | Finals | East (mirrored) */}
+      <div className="hidden xl:grid xl:grid-cols-[1fr_auto_1fr] gap-4 items-start">
+        {/* Western Conference — left to right */}
+        <ConferenceBracket title="Western Conference" series={westSeries} onTeamClick={onTeamClick} mirrored={false} />
+
+        {/* NBA Finals center column */}
+        <div className="flex flex-col items-center gap-4 pt-10 min-w-[140px]">
+          <div className="text-[10px] font-black text-orange-500 uppercase tracking-[0.4em] text-center">NBA Finals</div>
+          {finalsSeries ? (
+            <div className="rounded-2xl border border-orange-500/30 bg-orange-500/5 overflow-hidden shadow-2xl w-full">
+              <SeriesRow id={finalsSeries.homeId} name={finalsSeries.homeName} wins={finalsSeries.homeWins} onClick={() => onTeamClick({ TeamID: finalsSeries.homeId, name: finalsSeries.homeName })} isWinner={finalsSeries.homeWins >= 4} />
+              <div className="h-px bg-white/5" />
+              <SeriesRow id={finalsSeries.visitorId} name={finalsSeries.visitorName} wins={finalsSeries.visitorWins} onClick={() => onTeamClick({ TeamID: finalsSeries.visitorId, name: finalsSeries.visitorName })} isWinner={finalsSeries.visitorWins >= 4} />
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-white/5 bg-slate-900/40 p-4 text-center text-xs text-gray-600 font-black uppercase tracking-widest w-full">
+              TBD
+            </div>
+          )}
+        </div>
+
+        {/* Eastern Conference — mirrored (right to left) */}
+        <ConferenceBracket title="Eastern Conference" series={eastSeries} onTeamClick={onTeamClick} mirrored={true} />
+      </div>
+
+      {/* Mobile / tablet stacked layout */}
+      <div className="xl:hidden grid grid-cols-1 gap-6">
+        <ConferenceBracket title="Western Conference" series={westSeries} onTeamClick={onTeamClick} mirrored={false} />
+        <ConferenceBracket title="Eastern Conference" series={eastSeries} onTeamClick={onTeamClick} mirrored={false} />
       </div>
     </div>
   );
 }
 
-function ConferenceBracket({ title, series, onTeamClick }: any) {
+function ConferenceBracket({ title, series, onTeamClick, mirrored = false }: any) {
+  const r1 = series.filter((s: any) => s.round === 1);
+  const r2 = series.filter((s: any) => s.round === 2);
+  const r3 = series.filter((s: any) => s.round === 3);
+
+  // Mirrored East: Conf. Finals → Semifinals → First Round (faces center)
+  const columns = mirrored
+    ? [
+        { title: 'Conf. Finals', data: r3 },
+        { title: 'Semifinals',   data: r2 },
+        { title: 'First Round',  data: r1 },
+      ]
+    : [
+        { title: 'First Round',  data: r1 },
+        { title: 'Semifinals',   data: r2 },
+        { title: 'Conf. Finals', data: r3 },
+      ];
+
   return (
     <section className="rounded-3xl border border-white/5 bg-slate-900/20 p-4 sm:p-6">
-      <h2 className="mb-5 text-xl sm:text-2xl font-black text-white italic uppercase tracking-tighter">{title}</h2>
+      <h2 className={`mb-5 text-xl sm:text-2xl font-black text-white italic uppercase tracking-tighter ${mirrored ? 'text-right' : ''}`}>{title}</h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <RoundColumn title="First Round" series={series.filter((s: any) => s.round === 1)} onTeamClick={onTeamClick} />
-        <RoundColumn title="Semifinals" series={series.filter((s: any) => s.round === 2)} onTeamClick={onTeamClick} />
-        <RoundColumn title="Conf. Finals" series={series.filter((s: any) => s.round === 3)} onTeamClick={onTeamClick} />
+        {columns.map(col => (
+          <RoundColumn key={col.title} title={col.title} series={col.data} onTeamClick={onTeamClick} mirrored={mirrored} />
+        ))}
       </div>
     </section>
   );
 }
 
-function RoundColumn({ title, series, onTeamClick }: any) {
+function RoundColumn({ title, series, onTeamClick, mirrored = false }: any) {
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.24em] md:text-center md:tracking-[0.35em]">{title}</h3>
+      <h3 className={`text-[10px] font-black text-gray-600 uppercase tracking-[0.24em] md:tracking-[0.35em] ${mirrored ? 'md:text-right' : 'md:text-center'}`}>{title}</h3>
       <div className="flex flex-col gap-3 justify-center flex-1">
         {series.map((s: any) => (
           <div key={s.seriesId} className="rounded-2xl border border-white/5 bg-slate-900/40 overflow-hidden shadow-2xl backdrop-blur-md">
-             <SeriesRow id={s.homeId} name={s.homeName} wins={s.homeWins} onClick={() => onTeamClick({ TeamID: s.homeId, name: s.homeName })} isWinner={s.homeWins >= 4} />
+             <SeriesRow id={s.homeId} name={s.homeName} wins={s.homeWins} onClick={() => onTeamClick({ TeamID: s.homeId, name: s.homeName })} isWinner={s.homeWins >= 4} mirrored={mirrored} />
              <div className="h-px bg-white/5" />
-             <SeriesRow id={s.visitorId} name={s.visitorName} wins={s.visitorWins} onClick={() => onTeamClick({ TeamID: s.visitorId, name: s.visitorName })} isWinner={s.visitorWins >= 4} />
+             <SeriesRow id={s.visitorId} name={s.visitorName} wins={s.visitorWins} onClick={() => onTeamClick({ TeamID: s.visitorId, name: s.visitorName })} isWinner={s.visitorWins >= 4} mirrored={mirrored} />
           </div>
         ))}
+        {series.length === 0 && (
+          <div className="rounded-2xl border border-white/5 bg-slate-900/20 p-4 text-center text-xs text-gray-700 font-black uppercase tracking-widest">TBD</div>
+        )}
       </div>
     </div>
   );
 }
 
-function SeriesRow({ id, name, wins, onClick, isWinner }: any) {
+function SeriesRow({ id, name, wins, onClick, isWinner, mirrored = false }: any) {
   return (
-    <div onClick={onClick} className={`flex items-center justify-between gap-3 p-3 sm:p-4 cursor-pointer hover:bg-white/5 transition-all ${isWinner ? 'bg-orange-500/10' : ''}`}>
-       <div className="flex min-w-0 items-center gap-3">
+    <div onClick={onClick} className={`flex items-center justify-between gap-3 p-3 sm:p-4 cursor-pointer hover:bg-white/5 transition-all ${isWinner ? 'bg-orange-500/10' : ''} ${mirrored ? 'flex-row-reverse' : ''}`}>
+       <div className={`flex min-w-0 items-center gap-3 ${mirrored ? 'flex-row-reverse' : ''}`}>
           <img src={getTeamLogoUrl(id)} className="w-9 h-9 shrink-0 object-contain" alt="" />
-          <span className={`truncate text-xs font-black uppercase tracking-tight ${isWinner ? 'text-white' : 'text-gray-500'}`}>{name}</span>
+          <span className={`truncate text-xs font-black uppercase tracking-tight ${isWinner ? 'text-white' : 'text-gray-500'} ${mirrored ? 'text-right' : ''}`}>{name}</span>
        </div>
        <span className={`shrink-0 text-2xl font-black italic ${isWinner ? 'text-orange-500' : 'text-gray-700'}`}>{wins}</span>
     </div>
