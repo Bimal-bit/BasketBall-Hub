@@ -273,7 +273,11 @@ export default function Dashboard() {
         // If no gameId, try to find if the player is currently in any live game
         const liveGame = games.find(g => g.status === 'live' && (g.home_team_id === player.TEAM_ID || g.away_team_id === player.TEAM_ID));
         if (liveGame) {
-          const box = await nbaApi.getBoxScore(liveGame.game_id).catch(() => []);
+          const [box, pbp] = await Promise.all([
+            nbaApi.getBoxScore(liveGame.game_id).catch(() => []),
+            nbaApi.getPlayByPlay(liveGame.game_id).catch(() => [])
+          ]);
+          setPlayByPlay(pbp);
           const matchStats = box.find(p => p.PLAYER_ID === playerId);
           if (matchStats) {
             setSelectedPlayer(prev => prev ? ({
@@ -284,7 +288,15 @@ export default function Dashboard() {
               STL: matchStats.STL,
               BLK: matchStats.BLK,
               MIN: matchStats.MIN,
-              FG_PCT: matchStats.FG_PCT
+              FG_PCT: matchStats.FG_PCT,
+              FG3M: matchStats.FG3M,
+              FG3A: matchStats.FG3A,
+              FTM: matchStats.FTM,
+              FTA: matchStats.FTA,
+              FGM: matchStats.FGM,
+              FGA: matchStats.FGA,
+              TOV: matchStats.TOV ?? matchStats.TO,
+              PLUS_MINUS: matchStats.PLUS_MINUS
             }) : null);
           }
         }
@@ -1547,9 +1559,20 @@ function stat(player: BoxScorePlayer, key: string) {
 
 function getPlayShotType(event: PlayByPlay, description: string) {
   const desc = description.toUpperCase();
+  // Free throws first — EVENTMSGTYPE 3 or description
   if (Number(event.EVENTMSGTYPE) === 3 || desc.includes('FREE THROW')) return 'FT';
-  if (desc.includes('3PT') || desc.includes('3-PT') || desc.includes('3 PT') || desc.includes('THREE')) return '3PT';
+  // SHOT_VALUE from CDN live data is the most reliable 3PT signal
   if (Number((event as unknown as { SHOT_VALUE?: number }).SHOT_VALUE) === 3) return '3PT';
+  // Text-based 3PT detection — covers stats API and CDN descriptions
+  if (
+    desc.includes('3PT') ||
+    desc.includes('3-PT') ||
+    desc.includes('3 PT') ||
+    desc.includes('THREE') ||
+    desc.includes('3-POINT') ||
+    desc.includes('3 POINT') ||
+    desc.includes('3POINT')
+  ) return '3PT';
   if (![1, 2, 3].includes(Number(event.EVENTMSGTYPE))) return eventTypeLabel(Number(event.EVENTMSGTYPE));
   return '2PT';
 }
@@ -1573,8 +1596,17 @@ function eventTypeLabel(type: number) {
 function getShotChartType(shot: PlayerShot) {
   const action = (shot.ACTION_TYPE || '').toUpperCase();
   const zone = ((shot as any).SHOT_ZONE_BASIC || '').toUpperCase();
+  const range = ((shot as any).SHOT_ZONE_RANGE || '').toUpperCase();
   if (action.includes('FREE THROW')) return 'FT';
-  if (Number(shot.SHOT_DISTANCE) >= 22 || action.includes('3PT') || zone.includes('3')) return '3PT';
+  if (
+    Number(shot.SHOT_DISTANCE) >= 22 ||
+    action.includes('3PT') ||
+    action.includes('3-PT') ||
+    action.includes('3-POINT') ||
+    action.includes('3 POINT') ||
+    zone.includes('3') ||
+    range.includes('3')
+  ) return '3PT';
   return '2PT';
 }
 
@@ -1805,7 +1837,6 @@ function GameFeed({ playByPlay, boxScore, game }: { playByPlay: PlayByPlay[]; bo
       })
       .sort((a, b) => {
         if (a.PERIOD !== b.PERIOD) return b.PERIOD - a.PERIOD;
-        // Times are in format "MM:SS", we need to compare them
         const parseTime = (t: string | undefined | null) => {
           if (!t) return 0;
           const parts = t.split(':').map(Number);
@@ -1815,7 +1846,7 @@ function GameFeed({ playByPlay, boxScore, game }: { playByPlay: PlayByPlay[]; bo
         };
         return parseTime(a.PCTIMESTRING) - parseTime(b.PCTIMESTRING);
       })
-      .slice(0, 50); // Show last 50 events
+      .slice(0, 60);
   }, [playByPlay]);
 
   const fallbackEvents = useMemo(() => buildFallbackFeed(game, boxScore), [game, boxScore]);
@@ -1824,163 +1855,184 @@ function GameFeed({ playByPlay, boxScore, game }: { playByPlay: PlayByPlay[]; bo
   if (eventsToShow.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="h-20 w-20 rounded-full bg-slate-900 flex items-center justify-center mb-6 border border-white/5">
-          <Activity size={32} className="text-gray-700" />
+        <div className="h-16 w-16 rounded-full bg-slate-900 flex items-center justify-center mb-4 border border-white/5">
+          <Activity size={28} className="text-gray-700" />
         </div>
-        <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Feed Warming Up</h3>
-        <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">Official play-by-play has not posted yet for this game.</p>
+        <h3 className="text-lg font-black text-white italic uppercase tracking-tighter">Feed Warming Up</h3>
+        <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">Play-by-play hasn't posted yet for this game.</p>
       </div>
     );
   }
 
+  // Win probability bar at bottom
+  const homeScore = game.home_score ?? 0;
+  const awayScore = game.away_score ?? 0;
+  const total = homeScore + awayScore;
+  const homeProb = total === 0 ? 50 : Math.min(95, Math.max(5, Math.round((homeScore / total) * 100)));
+  const awayProb = 100 - homeProb;
+
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="border-b border-white/10 py-3 text-center sm:py-4">
-        <div className="text-lg font-black text-white sm:text-2xl">End of {game.quarter ? `Q${game.quarter}` : 'Game'} - {game.away_score}-{game.home_score}</div>
-        <div className="mt-2 text-[9px] font-black uppercase tracking-[0.18em] text-orange-500 sm:text-[10px] sm:tracking-[0.22em]">
-          {filteredEvents.length > 0 ? 'Official NBA play-by-play' : 'Scoreboard feed'}
+    <div className="flex flex-col">
+      {/* Sticky score header */}
+      <div className="sticky top-0 z-10 bg-black/95 backdrop-blur border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <img src={getTeamLogoUrl(game.away_team_id)} className="h-6 w-6 object-contain" alt="" />
+          <span className="text-2xl font-black text-white tabular-nums">{awayScore}</span>
+        </div>
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-1.5">
+            {game.status === 'live' && <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />}
+            <span className="text-xs font-black text-orange-400 uppercase tracking-widest">{statusText(game)}</span>
+          </div>
+          <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+            {filteredEvents.length > 0 ? 'Official NBA PBP' : 'Scoreboard'}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-black text-white tabular-nums">{homeScore}</span>
+          <img src={getTeamLogoUrl(game.home_team_id)} className="h-6 w-6 object-contain" alt="" />
         </div>
       </div>
 
-      <div>
+      {/* Feed items */}
+      <div className="divide-y divide-white/[0.06]">
         {eventsToShow.map((event, i) => (
-          <FeedItem 
-            key={`${event.EVENTNUM}-${i}`} 
-            event={event} 
-            boxScore={boxScore} 
+          <FeedItem
+            key={`${event.EVENTNUM}-${i}`}
+            event={event}
+            boxScore={boxScore}
             game={game}
           />
         ))}
       </div>
+
+      {/* Win probability footer */}
+      {game.status !== 'scheduled' && (
+        <div className="sticky bottom-0 bg-black/95 backdrop-blur border-t border-white/10 px-4 py-3 flex items-center gap-3">
+          <button className="flex-1 rounded-full py-2.5 font-black text-sm uppercase tracking-widest text-white"
+            style={{ background: `linear-gradient(135deg, #c8102e, #860038)` }}>
+            {game.away_team_abbreviation} {awayProb}%
+          </button>
+          <button className="flex-1 rounded-full py-2.5 font-black text-sm uppercase tracking-widest text-white"
+            style={{ background: `linear-gradient(135deg, #1d428a, #006bb6)` }}>
+            {game.home_team_abbreviation} {homeProb}%
+          </button>
+        </div>
+      )}
     </div>
   );
-}
-
-function buildFallbackFeed(game: Game, boxScore: BoxScorePlayer[]): PlayByPlay[] {
-  const leaders = boxScore.length
-    ? [...boxScore].filter(player => Number(player.PTS ?? 0) > 0).sort((a, b) => Number(b.PTS ?? 0) - Number(a.PTS ?? 0)).slice(0, 8)
-    : [];
-
-  const leaderEvents = leaders.map((player, index) => ({
-    GAME_ID: game.game_id,
-    EVENTNUM: 9000 + index,
-    EVENTMSGTYPE: 1,
-    PERIOD: game.quarter || 4,
-    WCTIMESTRING: '',
-    PCTIMESTRING: game.time_remaining && !/\bET\b/i.test(game.time_remaining) ? game.time_remaining : statusText(game),
-    HOMEDESCRIPTION: player.TEAM_ID === game.home_team_id ? `${player.PLAYER_NAME} leading ${player.TEAM_ABBREVIATION} with ${player.PTS ?? 0} points` : null,
-    VISITORDESCRIPTION: player.TEAM_ID === game.away_team_id ? `${player.PLAYER_NAME} leading ${player.TEAM_ABBREVIATION} with ${player.PTS ?? 0} points` : null,
-    NEUTRALDESCRIPTION: player.TEAM_ID !== game.home_team_id && player.TEAM_ID !== game.away_team_id ? `${player.PLAYER_NAME} boxscore update` : null,
-    SCORE: `${game.away_score}-${game.home_score}`,
-    SCOREMARGIN: String(game.home_score - game.away_score),
-    PLAYER1_ID: player.PLAYER_ID,
-    PLAYER1_NAME: player.PLAYER_NAME,
-  }));
-
-  const scoreboardLeaders = [game.away_leader, game.home_leader]
-    .filter(Boolean)
-    .map((leader, index) => ({
-      GAME_ID: game.game_id,
-      EVENTNUM: 9100 + index,
-      EVENTMSGTYPE: 1,
-      PERIOD: game.quarter || 4,
-      WCTIMESTRING: '',
-      PCTIMESTRING: game.time_remaining && !/\bET\b/i.test(game.time_remaining) ? game.time_remaining : statusText(game),
-      HOMEDESCRIPTION: index === 1 ? `${leader?.name} team-high ${leader?.points ?? 0} points` : null,
-      VISITORDESCRIPTION: index === 0 ? `${leader?.name} team-high ${leader?.points ?? 0} points` : null,
-      NEUTRALDESCRIPTION: null,
-      SCORE: `${game.away_score}-${game.home_score}`,
-      SCOREMARGIN: String(game.home_score - game.away_score),
-      PLAYER1_ID: Number(leader?.personId ?? 0),
-      PLAYER1_NAME: leader?.name ?? 'Team leader',
-    }));
-
-  return leaderEvents.length ? leaderEvents : scoreboardLeaders;
 }
 
 function FeedItem({ event, boxScore, game }: { event: PlayByPlay; boxScore: BoxScorePlayer[]; game: Game }) {
   const desc = event.HOMEDESCRIPTION || event.VISITORDESCRIPTION || event.NEUTRALDESCRIPTION || '';
   const isHome = !!event.HOMEDESCRIPTION;
   const teamId = isHome ? game.home_team_id : game.away_team_id;
-  const actionLabel = getPlayShotType(event, desc);
-  
-  // Find primary player stats
+  const teamAbbr = isHome ? game.home_team_abbreviation : game.away_team_abbreviation;
+
   const player1 = boxScore.find(p => p.PLAYER_ID === event.PLAYER1_ID);
   const player2 = boxScore.find(p => p.PLAYER_ID === event.PLAYER2_ID);
 
-  const getPlayerStatsString = (p: BoxScorePlayer | undefined, type: number) => {
-    if (!p) return '';
-    if (type === 1) return `${p.PTS} pt`;
-    if (type === 3) return `${p.FT_PCT ? `${p.FT_PCT * 100}%` : ''}`.trim() || `${p.FTM || 0} FT`;
-    if (type === 2) return `${p.BLK || 0} blk`;
-    if (type === 5) return `${stat(p, 'TO')} tov`;
-    if (type === 6) return `${stat(p, 'PF')} pf`;
-    return '';
-  };
+  // Score margin display (▽ or △)
+  const margin = event.SCOREMARGIN;
+  const marginNum = margin && margin !== 'TIE' ? Number(margin) : 0;
+  const marginDisplay = margin === 'TIE' ? 'TIE'
+    : marginNum > 0 ? `▲${Math.abs(marginNum)}`
+    : `▽${Math.abs(marginNum)}`;
 
-  const cleanDescription = (d: string) => {
-    return formatPlayDescription(d, event.EVENTMSGTYPE, event.PLAYER1_NAME, event.PLAYER2_NAME);
-  };
+  // Player stat line
+  const statLine = (() => {
+    if (!player1) return '';
+    const type = event.EVENTMSGTYPE;
+    const pts = player1.PTS ?? 0;
+    const reb = player1.REB ?? 0;
+    const ast = player1.AST ?? 0;
+    const fgm = player1.FGM ?? 0;
+    const fga = player1.FGA ?? 0;
+    const fg3m = player1.FG3M ?? 0;
+    const ftm = player1.FTM ?? 0;
+    const fta = player1.FTA ?? 0;
+    if (type === 1 || type === 2) {
+      const parts = [`${pts} pt`];
+      if (fgm > 0 || fga > 0) parts.push(`${fgm}/${fga} FG`);
+      if (fg3m > 0) parts.push(`${fg3m} three${fg3m > 1 ? 's' : ''}`);
+      return parts.join(', ');
+    }
+    if (type === 3) return `${ftm}/${fta} FT, ${pts} pt`;
+    if (type === 4) return `${reb} reb`;
+    if (type === 5) return `${pts} pt`;
+    return `${pts} pt, ${reb} reb, ${ast} ast`;
+  })();
+
+  // Assister line
+  const assisterLine = player2 && event.PLAYER2_NAME
+    ? `${event.PLAYER2_NAME} · ${player2.AST ?? 0} ast`
+    : null;
+
+  const headline = formatPlayDescription(desc, event.EVENTMSGTYPE, event.PLAYER1_NAME, event.PLAYER2_NAME);
+  const isMiss = event.EVENTMSGTYPE === 2 || (event.EVENTMSGTYPE === 3 && (desc.toUpperCase().includes('MISS')));
 
   return (
-    <div className="group border-b border-white/10 px-1 py-4 transition-colors hover:bg-white/[0.03] sm:px-4 sm:py-6">
-      <div>
-        <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-             <div className={`flex items-center gap-2 ${isHome ? 'text-blue-400' : 'text-orange-400'}`}>
-                <img src={getTeamLogoUrl(teamId)} className="h-4 w-4 object-contain" alt="" />
-                <span className="text-[11px] font-black tracking-tighter">{event.SCORE || '0-0'}</span>
-             </div>
-             <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-gray-700" />
-                Q{event.PERIOD} {event.PCTIMESTRING}
-             </div>
+    <div className="px-3 py-3 hover:bg-white/[0.03] transition-colors">
+      {/* Top meta row: score · quarter clock · margin */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <img src={getTeamLogoUrl(teamId)} className="h-3.5 w-3.5 object-contain opacity-80" alt="" />
+          <span className="text-[11px] font-black text-gray-300 tabular-nums">{event.SCORE || `${game.away_score}-${game.home_score}`}</span>
+          <span className="text-gray-700">·</span>
+          <span className="text-[11px] font-bold text-gray-500">Q{event.PERIOD} {event.PCTIMESTRING}</span>
+          {player1?.MIN && (
+            <>
+              <span className="text-gray-700">·</span>
+              <span className="text-[11px] text-gray-600">{minuteValue(player1.MIN)}m</span>
+            </>
+          )}
+        </div>
+        <span className={`text-[11px] font-black tabular-nums ${marginNum === 0 ? 'text-yellow-400' : isMiss ? 'text-gray-500' : 'text-gray-400'}`}>
+          {marginDisplay}
+        </span>
+      </div>
+
+      {/* Main content row */}
+      <div className="flex items-start gap-3">
+        {/* Player headshot */}
+        <div className="relative shrink-0">
+          <div className="h-11 w-11 rounded-full overflow-hidden bg-slate-900 border border-white/10">
+            <img
+              src={getPlayerHeadshotUrl(event.PLAYER1_ID || 0)}
+              className="h-full w-full object-cover object-top scale-125 translate-y-1"
+              alt={event.PLAYER1_NAME || ''}
+              onError={(e: any) => { e.target.src = getTeamLogoUrl(teamId); e.target.className = 'h-full w-full object-contain p-1.5 opacity-60'; }}
+            />
           </div>
-          <div className="flex items-center gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
-            <span className="text-[10px] font-black text-gray-500 tracking-tighter">{actionLabel}</span>
+          {/* Team badge */}
+          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-black border border-white/10 p-0.5">
+            <img src={getTeamLogoUrl(teamId)} className="h-full w-full object-contain" alt="" />
           </div>
         </div>
 
-          <div className="flex items-start gap-3 sm:gap-4">
-          <div className="relative shrink-0">
-             <div className="h-12 w-12 rounded-full bg-slate-950 border border-white/10 overflow-hidden group-hover:border-orange-500/50 transition-colors sm:h-16 sm:w-16">
-                <img 
-                  src={getPlayerHeadshotUrl(event.PLAYER1_ID || 0)} 
-                  className="h-full w-full object-cover object-top scale-125 translate-y-2" 
-                  alt={event.PLAYER1_NAME}
-                  onError={(e:any) => e.target.src = getTeamLogoUrl(teamId)}
-                />
-             </div>
-             <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-black border border-white/10 p-1 sm:h-7 sm:w-7">
-                <img src={getTeamLogoUrl(teamId)} className="h-full w-full object-contain" alt="" />
-             </div>
-          </div>
+        {/* Text content */}
+        <div className="flex-1 min-w-0">
+          {/* Headline */}
+          <p className={`text-base font-bold leading-snug ${isMiss ? 'text-gray-400' : 'text-white'}`}>
+            {headline}
+          </p>
 
-          <div className="flex-1 min-w-0">
-            <h4 className="text-base font-semibold text-white leading-tight mb-2 group-hover:text-orange-400 transition-colors sm:text-2xl">
-              {cleanDescription(desc)}
-            </h4>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 sm:text-base">
-              <span className="text-white font-medium">{event.PLAYER1_NAME}</span>
-              <span className="text-orange-500/60">•</span>
-              <span>{getPlayerStatsString(player1, event.EVENTMSGTYPE)}</span>
-              
-              {event.PLAYER2_NAME && (
-                <>
-                  <span className="text-gray-700 mx-0.5">|</span>
-                  <span className="text-gray-300">{event.PLAYER2_NAME}</span>
-                  {player2 && <span className="text-gray-500 uppercase tracking-tighter"> · {player2.AST} ast</span>}
-                </>
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5 sm:mt-6 sm:pt-5">
-              <div className="flex items-center gap-5">
-                 <div className="flex items-center gap-2 group/reaction cursor-pointer">
-                    <span className="text-[11px] font-black text-gray-500 group-hover:text-white transition-colors">Action Confirmed</span>
-                 </div>
-              </div>
-            </div>
+          {/* Player stat line */}
+          {event.PLAYER1_NAME && (
+            <p className="text-[12px] text-gray-400 mt-0.5">
+              <span className="text-gray-300 font-medium">{event.PLAYER1_NAME}</span>
+              {statLine && <span> · {statLine}</span>}
+            </p>
+          )}
+
+          {/* Assister */}
+          {assisterLine && (
+            <p className="text-[11px] text-gray-500 mt-0.5">{assisterLine}</p>
+          )}
+
+          {/* Team abbr badge */}
+          <div className="mt-1.5 inline-flex items-center gap-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-600">{teamAbbr}</span>
           </div>
         </div>
       </div>
