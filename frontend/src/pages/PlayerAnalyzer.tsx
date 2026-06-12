@@ -290,12 +290,15 @@ export default function PlayerAnalyzer() {
       acc.FG3A += (curr.FG3A || 0);
       acc.FTM += (curr.FTM || 0);
       acc.FTA += (curr.FTA || 0);
+      acc.PF += (curr.PF || 0);
+      acc.MIN += (curr.MIN || 0);
       return acc;
-    }, { PTS: 0, REB: 0, AST: 0, STL: 0, BLK: 0, TOV: 0, FGM: 0, FGA: 0, FG3M: 0, FG3A: 0, FTM: 0, FTA: 0 });
+    }, { PTS: 0, REB: 0, AST: 0, STL: 0, BLK: 0, TOV: 0, FGM: 0, FGA: 0, FG3M: 0, FG3A: 0, FTM: 0, FTA: 0, PF: 0, MIN: 0 });
 
     const gp = stats.length;
     return {
       GP: gp,
+      MIN: Number((totals.MIN / gp).toFixed(1)),
       PTS: Number((totals.PTS / gp).toFixed(1)),
       REB: Number((totals.REB / gp).toFixed(1)),
       AST: Number((totals.AST / gp).toFixed(1)),
@@ -308,6 +311,7 @@ export default function PlayerAnalyzer() {
       FG3A: Number((totals.FG3A / gp).toFixed(1)),
       FTM: Number((totals.FTM / gp).toFixed(1)),
       FTA: Number((totals.FTA / gp).toFixed(1)),
+      PF: Number((totals.PF / gp).toFixed(1)),
       FG_PCT: totals.FGA > 0 ? totals.FGM / totals.FGA : 0,
       FG3_PCT: totals.FG3A > 0 ? totals.FG3M / totals.FG3A : 0,
       FT_PCT: totals.FTA > 0 ? totals.FTM / totals.FTA : 0,

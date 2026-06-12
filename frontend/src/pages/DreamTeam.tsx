@@ -477,7 +477,7 @@ function TeamPanel({ team, roster, score, onPick, onRemove }: {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-5 xl:grid-cols-1">
         {POSITIONS.map(position => {
           const player = roster[position];
-          return player ? (
+          return player && player.prime ? (
             <div key={position} className="group relative flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 transition hover:border-orange-500/50 dark:border-zinc-800 dark:bg-zinc-900">
               <button
                 onClick={() => onRemove(team, position)}
@@ -491,9 +491,9 @@ function TeamPanel({ team, roster, score, onPick, onRemove }: {
                 <div className="text-[10px] font-medium uppercase tracking-widest text-orange-500">{position} / {player.prime.season}</div>
                 <div className="truncate text-sm font-medium uppercase text-zinc-900 dark:text-white">{player.name}</div>
                 <div className="mt-1 grid grid-cols-3 gap-1 text-[10px] text-gray-500">
-                  <span>{player.prime.pts} PTS</span>
-                  <span>{player.prime.reb} REB</span>
-                  <span>{player.prime.ast} AST</span>
+                  <span>{player.prime.pts || 0} PTS</span>
+                  <span>{player.prime.reb || 0} REB</span>
+                  <span>{player.prime.ast || 0} AST</span>
                 </div>
               </div>
             </div>
@@ -516,8 +516,9 @@ function TeamPanel({ team, roster, score, onPick, onRemove }: {
 function Diagnostics({ rosters, scores }: { rosters: Record<TeamKey, TeamRoster>; scores: Record<TeamKey, ReturnType<typeof rateTeam>> }) {
   const teamA = Object.values(rosters.A).filter(Boolean) as DreamPlayer[];
   const teamB = Object.values(rosters.B).filter(Boolean) as DreamPlayer[];
-  const topScorer = [...teamA, ...teamB].sort((a, b) => b.prime.pts - a.prime.pts)[0];
-  const topDefender = [...teamA, ...teamB].sort((a, b) => (b.prime.stl + b.prime.blk) - (a.prime.stl + a.prime.blk))[0];
+  const allPlayers = [...teamA, ...teamB].filter(p => p && p.prime);
+  const topScorer = allPlayers.length > 0 ? allPlayers.sort((a, b) => (b.prime.pts || 0) - (a.prime.pts || 0))[0] : null;
+  const topDefender = allPlayers.length > 0 ? allPlayers.sort((a, b) => ((b.prime.stl || 0) + (b.prime.blk || 0)) - ((a.prime.stl || 0) + (a.prime.blk || 0)))[0] : null;
 
   return (
     <section className="grid grid-cols-1 gap-4 lg:grid-cols-4">
@@ -798,9 +799,9 @@ function buildNotes(teamA: PlayerLine[], teamB: PlayerLine[], ratingA: ReturnTyp
   const passer = [...all].sort((a, b) => b.ast - a.ast)[0];
   const glass = [...all].sort((a, b) => b.reb - a.reb)[0];
   return [
-    `${scorer.player.name} leads all scorers with ${scorer.pts}.`,
-    `${passer.player.name} controls creation with ${passer.ast} assists.`,
-    `${glass.player.name} owns the glass with ${glass.reb} rebounds.`,
+    scorer ? `${scorer.player.name} leads all scorers with ${scorer.pts}.` : 'Close scoring distribution.',
+    passer ? `${passer.player.name} controls creation with ${passer.ast} assists.` : 'Balanced playmaking setup.',
+    glass ? `${glass.player.name} owns the glass with ${glass.reb} rebounds.` : 'Shared rebounding effort.',
     ratingA.defense > ratingB.defense ? 'Team A has the stronger defensive profile.' : 'Team B has the stronger defensive profile.',
   ];
 }

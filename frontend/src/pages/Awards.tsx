@@ -109,12 +109,22 @@ export default function Awards() {
       
       const calculated = calculateAverages(stats);
       const cardFallback = {
-        PTS: player.pts,
-        REB: player.reb,
-        AST: player.ast,
-        MIN: null,
-        STL: null,
-        BLK: null,
+        PTS: player.pts || 0,
+        REB: player.reb || 0,
+        AST: player.ast || 0,
+        MIN: 0,
+        STL: 0,
+        BLK: 0,
+        TOV: 0,
+        FGM: 0,
+        FGA: 0,
+        FG3M: 0,
+        FG3A: 0,
+        FTM: 0,
+        FTA: 0,
+        FG_PCT: 0,
+        FG3_PCT: 0,
+        FT_PCT: 0,
       };
 
       if (hasUsableAverages(averages)) {
@@ -155,19 +165,19 @@ export default function Awards() {
     const gp = stats.length;
     return {
       GP: gp,
-      MIN: (totals.MIN / gp).toFixed(1),
-      PTS: (totals.PTS / gp).toFixed(1),
-      REB: (totals.REB / gp).toFixed(1),
-      AST: (totals.AST / gp).toFixed(1),
-      STL: (totals.STL / gp).toFixed(1),
-      BLK: (totals.BLK / gp).toFixed(1),
-      TOV: (totals.TOV / gp).toFixed(1),
-      FGM: (totals.FGM / gp).toFixed(1),
-      FGA: (totals.FGA / gp).toFixed(1),
-      FG3M: (totals.FG3M / gp).toFixed(1),
-      FG3A: (totals.FG3A / gp).toFixed(1),
-      FTM: (totals.FTM / gp).toFixed(1),
-      FTA: (totals.FTA / gp).toFixed(1),
+      MIN: Number((totals.MIN / gp).toFixed(1)),
+      PTS: Number((totals.PTS / gp).toFixed(1)),
+      REB: Number((totals.REB / gp).toFixed(1)),
+      AST: Number((totals.AST / gp).toFixed(1)),
+      STL: Number((totals.STL / gp).toFixed(1)),
+      BLK: Number((totals.BLK / gp).toFixed(1)),
+      TOV: Number((totals.TOV / gp).toFixed(1)),
+      FGM: Number((totals.FGM / gp).toFixed(1)),
+      FGA: Number((totals.FGA / gp).toFixed(1)),
+      FG3M: Number((totals.FG3M / gp).toFixed(1)),
+      FG3A: Number((totals.FG3A / gp).toFixed(1)),
+      FTM: Number((totals.FTM / gp).toFixed(1)),
+      FTA: Number((totals.FTA / gp).toFixed(1)),
       FG_PCT: totals.FGA > 0 ? totals.FGM / totals.FGA : 0,
       FG3_PCT: totals.FG3A > 0 ? totals.FG3M / totals.FG3A : 0,
       FT_PCT: totals.FTA > 0 ? totals.FTM / totals.FTA : 0,
@@ -405,10 +415,13 @@ function AwardCard({ label, player, onClick, isCoach }: any) {
 }
 
 function StatBox({ label, value }: any) {
+  const displayValue = value !== undefined && value !== null 
+    ? (typeof value === 'string' ? value : Number(value).toFixed(1)) 
+    : '0.0';
   return (
     <div className="p-2 sm:p-8 rounded-xl sm:rounded-[2.5rem] bg-white/[0.02] border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center group hover:bg-white/[0.04] transition-colors shadow-none min-w-0">
       <div className="text-base sm:text-4xl font-medium text-white  group-hover:text-orange-500 transition-colors tabular-nums truncate">
-        {value !== undefined && value !== null ? value : '0'}
+        {displayValue}
       </div>
       <div className="text-[8px] sm:text-[10px] font-medium text-gray-700 uppercase tracking-widest mt-1 sm:mt-3">{label}</div>
     </div>

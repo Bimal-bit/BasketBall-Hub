@@ -32,11 +32,9 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
   const mainRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
   
-  const [standings, setStandings] = useState<any[]>([]);
-  const [awards, setAwards] = useState<any[]>([]);
   const [liveCount, setLiveCount] = useState<number>(0);
 
-  // Fetch standings and awards for right panel, and count live games
+  // Fetch live game count
   useEffect(() => {
     nbaApi.getScoreboard()
       .then(games => {
@@ -44,21 +42,6 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
         setLiveCount(live || 2);
       })
       .catch(() => setLiveCount(2));
-
-    nbaApi.getStandings('2025-26', 'Regular Season')
-      .then(data => {
-        const sorted = [...data].sort((a, b) => (b.WinPCT || 0) - (a.WinPCT || 0)).slice(0, 5);
-        setStandings(sorted);
-      })
-      .catch(err => console.error('Layout standings load error:', err));
-
-    nbaApi.getAwards()
-      .then(data => {
-        if (Array.isArray(data)) {
-          setAwards(data.slice(0, 3));
-        }
-      })
-      .catch(err => console.error('Layout awards load error:', err));
   }, []);
 
   const getHeatDotColor = (winPct: number) => {
@@ -66,22 +49,6 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
     if (winPct >= 0.45) return '#EF9F27'; // warm
     return '#378ADD'; // cold
   };
-
-  const awardItems = useMemo(() => {
-    if (awards.length > 0) {
-      const latest = awards[0];
-      const list = [];
-      if (latest.mvp) list.push({ name: 'MVP', player: latest.mvp.name || latest.mvp.PLAYER_NAME || 'Nikola Jokic' });
-      if (latest.dpoy) list.push({ name: 'DPOY', player: latest.dpoy.name || latest.dpoy.PLAYER_NAME || 'Rudy Gobert' });
-      if (latest.roy) list.push({ name: 'ROY', player: latest.roy.name || latest.roy.PLAYER_NAME || 'Victor Wembanyama' });
-      return list.slice(0, 3);
-    }
-    return [
-      { name: 'MVP', player: 'Nikola Jokic' },
-      { name: 'DPOY', player: 'Rudy Gobert' },
-      { name: 'ROY', player: 'Victor Wembanyama' }
-    ];
-  }, [awards]);
 
   const navItems: NavItem[] = useMemo(() => [
     { id: 'dashboard', label: 'Scoreboard', icon: <LayoutGrid size={18} />, badge: 'LIVE', description: 'Scores and live leaders', group: 'Live' },
@@ -219,7 +186,7 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
 
         {/* Main Content Area */}
         <div className={`flex-1 min-w-0 flex flex-col pt-[52px] transition-all duration-300 z-10 
-          ${collapsed ? 'md:pl-16' : 'md:pl-[240px]'} lg:pr-[200px] bg-white dark:bg-zinc-900`}>
+          ${collapsed ? 'md:pl-16' : 'md:pl-[240px]'} bg-white dark:bg-zinc-900`}>
           <main
             ref={mainRef}
             onScroll={(e) => setShowTop((e.target as HTMLElement).scrollTop > 300)}
@@ -231,55 +198,12 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
           </main>
         </div>
 
-        {/* Right Panel (standings + awards) */}
-        <aside className="fixed top-[52px] right-0 bottom-0 w-[200px] border-l border-zinc-200 dark:border-zinc-800 border-[0.5px] p-4 bg-white dark:bg-zinc-900 hidden lg:flex flex-col z-20 overflow-y-auto">
-          {/* Panel title */}
-          <div className="text-[11px] uppercase tracking-[0.6px] text-zinc-400 font-medium mb-3">Standings</div>
-          
-          {/* Standings rows */}
-          <div className="flex flex-col mb-6">
-            {standings.length > 0 ? (
-              standings.map((team, idx) => (
-                <div key={team.TeamID} className="flex items-center justify-between gap-1.5 py-[5px] border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] last:border-0 text-xs">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-[10px] text-zinc-400 w-3.5 shrink-0">#{idx + 1}</span>
-                    <div 
-                      className="w-1.5 h-1.5 rounded-full shrink-0" 
-                      style={{ backgroundColor: getHeatDotColor(team.WinPCT) }} 
-                    />
-                    <span className="text-zinc-800 dark:text-zinc-200 font-medium truncate">{team.TeamName}</span>
-                  </div>
-                  <span className="text-[#C9540A] font-medium text-[11px] text-right w-8 shrink-0">
-                    {((team.WinPCT || 0) * 100).toFixed(0)}%
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div className="text-[10px] text-zinc-400 py-2">No standings data.</div>
-            )}
-          </div>
-          
-          {/* Awards Section */}
-          <div className="text-[11px] uppercase tracking-[0.6px] text-zinc-400 font-medium mb-3">Awards</div>
-          <div className="flex flex-col gap-1">
-            {awardItems.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 py-2 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] last:border-0">
-                <div className="w-[30px] h-[30px] rounded-lg bg-[#FEF0E8] flex items-center justify-center text-[#C9540A] shrink-0">
-                  <Trophy size={14} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{item.name}</div>
-                  <div className="text-[11px] text-zinc-500 truncate">{item.player}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </aside>
+
 
         {showTop && (
           <button
             onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-6 right-[220px] z-50 w-10 h-10 rounded-full bg-[#C9540A] text-white flex items-center justify-center shadow hover:bg-orange-600 transition-all active:scale-95 min-w-0 min-h-0"
+            className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-[#C9540A] text-white flex items-center justify-center shadow hover:bg-orange-600 transition-all active:scale-95 min-w-0 min-h-0"
             aria-label="Back to top"
           >
             ↑
