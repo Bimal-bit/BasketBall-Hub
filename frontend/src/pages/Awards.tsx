@@ -128,11 +128,11 @@ export default function Awards() {
       };
 
       if (hasUsableAverages(averages)) {
-        setPlayerAverages(averages);
+        setPlayerAverages({ ...averages, estimated: false });
       } else if (calculated) {
-        setPlayerAverages(calculated);
+        setPlayerAverages({ ...calculated, estimated: true });
       } else {
-        setPlayerAverages(cardFallback);
+        setPlayerAverages({ ...cardFallback, estimated: true });
       }
       
       setPlayerStats(stats);
@@ -288,7 +288,12 @@ export default function Awards() {
                ) : (
                   <>
                      <section className="space-y-4 sm:space-y-8">
-                        <div className="flex items-center gap-3 sm:gap-6"><div className="text-[9px] sm:text-[10px] font-medium text-orange-500 uppercase tracking-[0.18em] sm:tracking-[0.6em]">Official Season Averages</div><div className="h-px flex-1 bg-white/5" /></div>
+                        <div className="flex items-center gap-3 sm:gap-6">
+                          <div className="text-[9px] sm:text-[10px] font-medium text-orange-500 uppercase tracking-[0.18em] sm:tracking-[0.6em]">
+                            {playerAverages?.estimated ? 'Official Season Averages (estimated)' : 'Official Season Averages'}
+                          </div>
+                          <div className="h-px flex-1 bg-white/5" />
+                        </div>
                         <div className="grid grid-cols-2 min-[420px]:grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4">
                            <StatBox label="MIN" value={playerAverages?.MIN} />
                            <StatBox label="PTS" value={playerAverages?.PTS} />

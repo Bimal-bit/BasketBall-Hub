@@ -261,34 +261,57 @@ export default function DreamTeam() {
       // Prefer creating two lineups sourced from two different real team rosters
       const allRosters = await nbaApi.getAllTeamRosters().catch(() => ({}));
       const teamIds = Object.keys(allRosters || {});
-      if (teamIds.length < 2) return;
+      if (teamIds.length < 2) {
+        // fallback: if rosters unavailable, try to fill from topPlayers
+        const fallbackNext = { A: emptyRoster(), B: emptyRoster() };
+        const used = new Set<number>();
+        for (const teamKey of (['A', 'B'] as TeamKey[])) {
+          for (const position of POSITIONS) {
+            const candidate = pickRandomPlayer(topPlayers, used);
+            if (candidate) {
+              used.add(getPlayerId(candidate));
+              try { fallbackNext[teamKey][position] = await buildDreamPlayer(candidate, position); } catch { /* ignore */ }
+            }
+          }
+        }
+        setRosters(fallbackNext);
+        setSimResult(null);
+        return;
+      }
 
       // pick two distinct random teams
-      const pickTwo = () => {
-        const a = teamIds[Math.floor(Math.random() * teamIds.length)];
-        let b = teamIds[Math.floor(Math.random() * teamIds.length)];
-        let attempts = 0;
-        while (b === a && attempts++ < 8) b = teamIds[Math.floor(Math.random() * teamIds.length)];
-        return [a, b];
-      };
+      let idxA = Math.floor(Math.random() * teamIds.length);
+      let idxB = Math.floor(Math.random() * teamIds.length);
+      let attempts = 0;
+      while (idxB === idxA && attempts++ < 12) idxB = Math.floor(Math.random() * teamIds.length);
+      const teamAId = teamIds[idxA];
+      const teamBId = teamIds[idxB];
 
-      const [teamAId, teamBId] = pickTwo();
       const next = { A: emptyRoster(), B: emptyRoster() };
 
-      for (const [idx, teamId] of [teamAId, teamBId].entries()) {
-        const teamKey: TeamKey = idx === 0 ? 'A' : 'B';
+      // Helper: build roster for a single team id
+      const buildForTeam = async (teamId: string, teamKey: TeamKey) => {
         const roster = Array.isArray(allRosters[teamId]) ? allRosters[teamId] : [];
         const used = new Set<number>();
 
         for (const position of POSITIONS) {
-          // Prefer players from the same team who match the position
-          let candidate = roster.find((p: any) => {
-            const id = getPlayerId(p);
-            const pos = (p.POSITION || p.position || '').toString().toUpperCase();
-            return id > 0 && !used.has(id) && (pos.includes(position) || (position === 'PG' || position === 'SG' ? pos.includes('G') : position === 'PF' || position === 'C' ? pos.includes('F') || pos.includes('C') : false));
-          });
+          let candidate: any = null;
+          try {
+            candidate = roster.find((p: any) => {
+              const id = getPlayerId(p);
+              const pos = (p.POSITION || p.position || '').toString().toUpperCase();
+              if (id <= 0 || used.has(id)) return false;
+              if (pos.includes(position)) return true;
+              // guard for generic guards/forwards
+              if ((position === 'PG' || position === 'SG') && pos.includes('G')) return true;
+              if ((position === 'SF' || position === 'PF') && (pos.includes('F') || pos.includes('SF') || pos.includes('PF'))) return true;
+              if (position === 'C' && pos.includes('C')) return true;
+              return false;
+            });
+          } catch (e) {
+            candidate = null;
+          }
 
-          // fallback: highest scoring available player from the roster
           if (!candidate) {
             const sorted = roster
               .filter((p: any) => !used.has(getPlayerId(p)) && getPlayerId(p) > 0)
@@ -296,12 +319,28 @@ export default function DreamTeam() {
             candidate = sorted[0];
           }
 
+          // Ultimate fallback: pick from topPlayers across league
+          if (!candidate) {
+            const fallback = pickRandomPlayer(topPlayers, used) || pickRandomPlayer(allPlayers, used);
+            candidate = fallback;
+          }
+
           if (candidate) {
-            used.add(getPlayerId(candidate));
-            next[teamKey][position] = await buildDreamPlayer(candidate, position);
+            const id = getPlayerId(candidate);
+            used.add(id);
+            try {
+              next[teamKey][position] = await buildDreamPlayer(candidate, position);
+            } catch (e) {
+              // continue on error for robustness
+            }
           }
         }
-      }
+      };
+
+      await Promise.all([
+        buildForTeam(teamAId, 'A'),
+        buildForTeam(teamBId, 'B'),
+      ]);
 
       setRosters(next);
       setSimResult(null);
@@ -681,6 +720,17 @@ function numberFrom(...values: any[]) {
     if (Number.isFinite(n) && n > 0) return n;
   }
   return 0;
+}
+
+function positionMatches(posRaw: string | undefined | null, target: Position) {
+  const pos = (posRaw || '').toString().toUpperCase();
+  if (!pos) return false;
+  if (pos.includes(target)) return true;
+  // treat guards and wings
+  if ((target === 'PG' || target === 'SG') && pos.includes('G')) return true;
+  if ((target === 'SF' || target === 'PF') && (pos.includes('F') || pos.includes('SF') || pos.includes('PF'))) return true;
+  if (target === 'C' && pos.includes('C')) return true;
+  return false;
 }
 
 function normalizePrime(avg: any, season: string): PrimeStats | null {
