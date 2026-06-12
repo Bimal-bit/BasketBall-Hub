@@ -267,18 +267,18 @@ export default function Leaderboard() {
                    placeholder="Search players..."
                    value={searchQuery}
                    onChange={(e) => setSearchQuery(e.target.value)}
-                   className="bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-2.5 text-sm font-bold text-white outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all min-w-[240px]"
+                   className="w-full rounded-2xl border border-white/10 bg-white/5 py-2.5 pl-12 pr-4 text-sm font-bold text-white outline-none transition-all focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 sm:min-w-[240px]"
                  />
                </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-x-auto rounded-xl">
               {loading ? (
                 <div className="h-[400px] flex items-center justify-center">
                   <BasketballLoader />
                 </div>
               ) : filteredLeaders.length > 0 ? (
-                <table className="w-full text-left min-w-[480px]">
+                <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
                   <thead>
                     <tr className="bg-white/[0.02] text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-white/10">
                       <th className="py-5 px-4 sm:px-8">Rank</th>

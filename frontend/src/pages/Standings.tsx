@@ -9,6 +9,7 @@ import {
   type BoxScorePlayer
 } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
+import { SkeletonGrid } from '../components/SkeletonCard';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface PlayoffSeries {
@@ -155,7 +156,7 @@ export default function Standings() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-8 animate-fade-in pb-20">
+    <div className="w-full space-y-8 pb-20 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-slate-900/40 p-4 sm:p-8 rounded-3xl sm:rounded-[3rem] border border-white/5 backdrop-blur-xl">
         <div>
           <h1 className="text-2xl sm:text-4xl font-black text-white italic uppercase tracking-tighter">League Standings</h1>
@@ -179,15 +180,13 @@ export default function Standings() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <BasketballLoader />
-        </div>
+        <SkeletonGrid count={8} />
       ) : seasonType === 'Playoffs' ? (
         <PlayoffBracket series={playoffSeries} onTeamClick={handleTeamClick} />
       ) : seasonType === 'Finals' ? (
         <FinalsView series={playoffSeries.find(s => s.round === 4)} onTeamClick={handleTeamClick} onGameClick={handleGameClick} />
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 gap-8 xl:grid-cols-2 xl:gap-12">
           <ConferenceTable title="Eastern Conference" teams={eastStandings} onTeamClick={handleTeamClick} />
           <ConferenceTable title="Western Conference" teams={westStandings} onTeamClick={handleTeamClick} />
         </div>
@@ -205,29 +204,29 @@ export default function Standings() {
 function ConferenceTable({ title, teams, onTeamClick }: any) {
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter px-2">{title}</h2>
-      <div className="bg-slate-900/20 border border-white/5 rounded-[2.5rem] overflow-x-auto backdrop-blur-md">
-        <table className="w-full text-left min-w-[480px]">
+      <h2 className="px-2 text-lg font-semibold text-white sm:text-xl">{title}</h2>
+      <div className="w-full overflow-x-auto rounded-xl border border-white/5 bg-slate-900/20 backdrop-blur-md">
+        <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
           <thead>
             <tr className="bg-white/5 border-b border-white/5">
-              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500">Rank</th>
-              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500">Team</th>
-              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500 text-center">W-L</th>
-              <th className="px-4 sm:px-8 py-5 text-[10px] font-black uppercase text-gray-500 text-center">PCT</th>
+              <th className="sticky left-0 z-10 bg-gray-900 px-2 py-2 text-[10px] font-black uppercase text-gray-500 sm:px-4">Team</th>
+              <th className="px-2 py-2 text-[10px] font-black uppercase text-gray-500 sm:px-4">Rank</th>
+              <th className="px-2 py-2 text-center text-[10px] font-black uppercase text-gray-500 sm:px-4">W-L</th>
+              <th className="px-2 py-2 text-center text-[10px] font-black uppercase text-gray-500 sm:px-4">PCT</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.02]">
             {teams.map((team: any, i: number) => (
               <tr key={team.TeamID} onClick={() => onTeamClick(team)} className="group hover:bg-white/5 transition-all cursor-pointer">
-                <td className="px-4 sm:px-8 py-4 font-black text-gray-600">{i + 1}</td>
-                <td className="px-4 sm:px-8 py-4">
+                <td className="sticky left-0 z-10 bg-gray-900 px-2 py-2 sm:px-4">
                   <div className="flex items-center gap-3 sm:gap-6">
                     <img src={getTeamLogoUrl(team.TeamID)} className="w-8 h-8 sm:w-12 sm:h-12 object-contain group-hover:scale-110 transition-transform shrink-0" alt="" />
-                    <div className="text-sm sm:text-base font-black text-white uppercase group-hover:text-orange-400 truncate">{team.TeamCity} {team.TeamName}</div>
+                    <div className="max-w-[120px] truncate text-sm font-black uppercase text-white group-hover:text-orange-400 sm:max-w-none sm:text-base">{team.TeamCity} {team.TeamName}</div>
                   </div>
                 </td>
-                <td className="px-4 sm:px-8 py-4 text-center font-black text-white italic">{team.Wins}-{team.Losses}</td>
-                <td className="px-4 sm:px-8 py-4 text-center font-black text-orange-400 italic">{((team.WinPCT || 0) * 100).toFixed(1)}%</td>
+                <td className="px-2 py-2 font-black text-gray-600 sm:px-4">{i + 1}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-center font-black italic text-white tabular-nums sm:px-4">{team.Wins}-{team.Losses}</td>
+                <td className="px-2 py-2 text-center font-black italic text-orange-400 tabular-nums sm:px-4">{((team.WinPCT || 0) * 100).toFixed(1)}%</td>
               </tr>
             ))}
           </tbody>

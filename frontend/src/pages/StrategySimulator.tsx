@@ -908,8 +908,8 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
            <Zap className="text-yellow-500" size={18} />
            <h3 className="text-lg font-black text-white uppercase tracking-tighter italic">Projected Full Box Score</h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="w-full overflow-x-auto rounded-xl">
+          <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
             <thead>
               <tr className="text-[9px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5">
                 <th className="py-3 px-2">Player</th>

@@ -306,7 +306,7 @@ export default function ClutchMoments() {
           ))}
         </div>
         <div className="hidden overflow-x-auto sm:block">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[600px] text-xs sm:text-sm">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-800">
                 <th className="text-left pb-2 font-medium">Player</th>

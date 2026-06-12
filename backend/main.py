@@ -3,7 +3,7 @@ import json
 import os
 from functools import wraps
 from datetime import datetime
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from nba_api.stats.endpoints import scoreboardv2, leaguestandingsv3, commonplayerinfo, commonteamroster, boxscoretraditionalv2, shotchartdetail, playergamelogs, leaguedashplayerstats, playbyplayv2, playerawards, leaguedashteamstats, leaguegamelog
@@ -38,6 +38,26 @@ app.add_middleware(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+@app.middleware("http")
+async def add_cache_control_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.method != "GET" or response.status_code >= 400:
+        return response
+
+    path = request.url.path
+    max_age = 60
+    if path == "/api/scoreboard":
+        max_age = 30
+    elif path == "/api/standings" or path == "/api/fatigue":
+        max_age = 300
+    elif path.startswith("/api/player/") or path.startswith("/api/players") or path in {"/api/awards", "/api/leaders"}:
+        max_age = 600
+    elif path.startswith("/api/game/"):
+        max_age = 60
+
+    response.headers["Cache-Control"] = f"public, max-age={max_age}"
+    return response
 
 CACHE_FILE = "api_cache.json"
 

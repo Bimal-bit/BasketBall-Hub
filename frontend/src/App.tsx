@@ -1,7 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import Layout from './components/Layout';
 import BasketballLoader from './components/BasketballLoader';
-import { getScoreboard } from './api';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const PlayerAnalyzer = lazy(() => import('./pages/PlayerAnalyzer'));
@@ -37,33 +36,72 @@ const pages: Record<string, React.ComponentType> = {
   insights: InsightsLab,
 };
 
+const pageTitles: Record<string, string> = {
+  dashboard: 'Live Dashboard',
+  players: 'Player Analyzer',
+  fatigue: 'Fatigue Detection',
+  shots: 'Shot Predictor',
+  simulator: 'Strategy Simulator',
+  commentary: 'AI Commentary',
+  clutch: 'Clutch Moments',
+  awards: 'Awards History',
+  standings: 'League Standings',
+  leaderboard: 'Leaderboard',
+  vault: 'Season Vault',
+  trades: 'Trade Machine',
+  salary: 'Salary Cap Hub',
+  archive: 'Game Archive',
+  insights: 'Insights Lab',
+};
+
 export default function App() {
   const [activePage, setActivePage] = useState('dashboard');
 
   useEffect(() => {
-    const handleNavigate = (e: any) => {
-      if (e.detail && pages[e.detail]) {
-        setActivePage(e.detail);
+    const handleNavigate = (event: Event) => {
+      const page = (event as CustomEvent<string>).detail;
+      if (page && pages[page]) {
+        setActivePage(page);
       }
     };
     window.addEventListener('navigate', handleNavigate);
-    
-    getScoreboard()
-      .then(data => {
-        console.log('API Response (Scoreboard):', data);
-      })
-      .catch(err => {
-        console.error('API Error:', err);
-      });
-
     return () => window.removeEventListener('navigate', handleNavigate);
+  }, []);
+
+  useEffect(() => {
+    document.title = `${pageTitles[activePage] || 'NBA Live Intelligence'} | NBA Live Intelligence`;
+  }, [activePage]);
+
+  useEffect(() => {
+    const prepareImages = (root: ParentNode) => {
+      root.querySelectorAll('img').forEach(image => {
+        image.loading = 'lazy';
+        image.decoding = 'async';
+      });
+    };
+
+    prepareImages(document);
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node instanceof HTMLImageElement) {
+            node.loading = 'lazy';
+            node.decoding = 'async';
+          } else if (node instanceof HTMLElement) {
+            prepareImages(node);
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, []);
 
   const PageComponent = pages[activePage] || Dashboard;
 
   return (
     <Layout activePage={activePage} onNavigate={setActivePage}>
-      <Suspense fallback={<div className="h-[80vh] flex items-center justify-center"><BasketballLoader /></div>}>
+      <Suspense fallback={<div className="flex min-h-[70vh] items-center justify-center"><BasketballLoader /></div>}>
         <PageComponent />
       </Suspense>
     </Layout>

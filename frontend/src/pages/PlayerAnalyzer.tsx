@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Search, User, Calendar, Trophy, Star, TrendingUp, DollarSign, Activity } from 'lucide-react';
 import { nbaApi, getPlayerHeadshotUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
+import { SkeletonGrid } from '../components/SkeletonCard';
 
 const sanitizeNumberValue = (value: any, fallback = 0) => {
   if (typeof value === 'string') {
@@ -296,7 +297,7 @@ export default function PlayerAnalyzer() {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-8 space-y-6 lg:space-y-12 pb-20 max-w-[1600px] mx-auto animate-fade-in">
+    <div className="mx-auto w-full max-w-7xl space-y-6 pb-20 animate-fade-in lg:space-y-12">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center bg-slate-900/50 p-5 sm:p-10 rounded-2xl sm:rounded-[3rem] border border-white/5 backdrop-blur-2xl shadow-2xl">
          <div>
@@ -445,7 +446,7 @@ export default function PlayerAnalyzer() {
                <p className="text-xs uppercase tracking-widest mt-2 opacity-50">To view comprehensive analytics</p>
             </div>
           ) : isComparing ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-700">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 animate-in fade-in duration-700">
                <PlayerColumn 
                   player={selectedPlayer} 
                   profile={profile} 
@@ -485,9 +486,7 @@ export default function PlayerAnalyzer() {
                />
             </div>
           ) : !profile && !playerError ? (
-            <div className="h-full flex items-center justify-center">
-              <BasketballLoader />
-            </div>
+            <SkeletonGrid count={4} />
           ) : profile ? (
             <div className="space-y-10 animate-in slide-in-from-right-8 duration-500">
                {playerError && (

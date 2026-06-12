@@ -3,6 +3,7 @@ import { Search, Sliders, Target } from 'lucide-react';
 import { nbaApi, type PlayerGameLog, type PlayerShot } from '../lib/api';
 import ShotChart from '../components/ShotChart';
 import BasketballLoader from '../components/BasketballLoader';
+import { SkeletonGrid } from '../components/SkeletonCard';
 
 const SHOT_ZONES = [
   'Restricted Area',
@@ -114,14 +115,12 @@ export default function ShotPredictor() {
 
   if (loading) {
     return (
-      <div className="h-[80vh] flex items-center justify-center">
-        <BasketballLoader />
-      </div>
+      <div className="w-full py-4"><SkeletonGrid count={6} /></div>
     );
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h2 className="text-lg font-bold text-white mb-1">Shot Predictor</h2>
         <p className="text-sm text-gray-400">Official NBA API player logs and shot charts, with contest-adjusted probability from real shooting history.</p>

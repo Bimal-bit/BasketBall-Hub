@@ -23,13 +23,15 @@ export default function TradeMachine() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    nbaApi.getTeams().then(items => {
+    Promise.all([
+      nbaApi.getTeams().catch(() => []),
+      nbaApi.getStandings().catch(() => []),
+    ]).then(([items, standingItems]) => {
       setTeams(items);
+      setStandings(standingItems);
       if (items[0] && !items.some(team => team.id === leftTeamId)) setLeftTeamId(items[0].id);
       if (items[1] && !items.some(team => team.id === rightTeamId)) setRightTeamId(items[1].id);
-    }).catch(() => setTeams([]));
-
-    nbaApi.getStandings().then(setStandings).catch(() => setStandings([]));
+    });
   }, []);
 
   const teamOptions = useMemo(() => {
@@ -80,7 +82,7 @@ export default function TradeMachine() {
   const filteredRight = useMemo(() => filterRoster(rightRoster, query), [rightRoster, query]);
 
   return (
-    <div className="p-3 sm:p-4 lg:p-6 space-y-5 sm:space-y-6">
+    <div className="w-full space-y-5 sm:space-y-6">
       <div className="rounded-3xl border border-white/5 bg-slate-900/40 p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
         <div>
@@ -137,7 +139,7 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
         <div className="h-12 w-12 rounded-2xl border border-gray-800 bg-black/30 p-1.5 shrink-0">
           <img src={getTeamLogoUrl(team.id)} alt={team.abbr} className="h-full w-full object-contain" />
         </div>
-        <select value={selectedTeamId} onChange={event => onTeamChange(Number(event.target.value))} className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500">
+        <select value={selectedTeamId} onChange={event => onTeamChange(Number(event.target.value))} className="w-full min-w-0 flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white outline-none focus:border-orange-500">
           {teams.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
         </select>
       </div>

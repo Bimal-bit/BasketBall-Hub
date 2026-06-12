@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle, Clock, Search, SlidersHorizontal, Zap } from 'lucide-react';
 import { getPlayerHeadshotUrl, getTeamLogoUrl, nbaApi, type NbaTeam, type Player, type PlayerFatigueScore, type PlayerGameLog } from '../lib/api';
 import MiniLineChart from '../components/MiniLineChart';
+import { SkeletonGrid } from '../components/SkeletonCard';
 
 type PlayerFatigue = Player & { fatigue?: PlayerFatigueScore; recent_games?: PlayerGameLog[] };
 type RiskFilter = 'all' | 'high' | 'medium' | 'low';
@@ -109,14 +110,12 @@ export default function FatigueDetection() {
 
   if (loading) {
     return (
-      <div className="p-6 animate-pulse space-y-4">
-        {[...Array(4)].map((_, index) => <div key={index} className="h-24 bg-gray-800 rounded-xl" />)}
-      </div>
+      <div className="w-full py-4"><SkeletonGrid count={8} /></div>
     );
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-white mb-1">Fatigue Detection</h2>

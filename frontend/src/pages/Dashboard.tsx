@@ -15,7 +15,7 @@ import {
   type PlayerImpact,
   type Standing
 } from '../lib/api';
-import BasketballLoader from '../components/BasketballLoader';
+import { SkeletonGrid } from '../components/SkeletonCard';
 import { formatIndianTime, gameStatusInIndia } from '../lib/time';
 
 function parseDateKey(dateKey: string) {
@@ -368,9 +368,7 @@ export default function Dashboard() {
 
 
   if (loading) return (
-    <div className="h-[80vh] flex items-center justify-center">
-      <BasketballLoader />
-    </div>
+    <div className="w-full py-6"><SkeletonGrid count={8} /></div>
   );
 
   return (
@@ -417,7 +415,7 @@ export default function Dashboard() {
 
 
         <SectionTitle title="Games" action="Standings" onAction={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'standings' }))} />
-        <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featuredGames.length === 0 && (
             <div className="rounded-3xl border border-gray-800 bg-gray-900/40 p-8 text-center text-gray-500">
               No NBA games returned for {scoreboardLabel}.
@@ -443,7 +441,7 @@ export default function Dashboard() {
 
       <section className="space-y-6">
         <SectionTitle title="Daily Match Leaders" />
-        <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {gameLeaders.length === 0 && (
             <div className="col-span-full rounded-3xl border border-gray-800 bg-gray-900/40 p-8 text-center text-gray-500">
               No player boxscore leaders are available yet for {scoreboardLabel}.
@@ -492,7 +490,7 @@ export default function Dashboard() {
 function SectionTitle({ title, action, onAction }: { title: string; action?: string, onAction?: () => void }) {
   return (
     <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-      <h2 className="min-w-0 shrink text-2xl sm:text-4xl font-black text-gray-800 italic uppercase tracking-tighter leading-none">{title}</h2>
+      <h2 className="min-w-0 shrink text-lg font-semibold text-gray-300 sm:text-xl">{title}</h2>
       <div className="h-px flex-1 bg-gray-900" />
       {action && (
         <button 
@@ -598,13 +596,13 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
 
 function TeamScore({ teamId, name, score, active }: { teamId: number; name: string; score: number; active: boolean }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+    <div className="flex min-w-0 items-center justify-between gap-2 text-lg font-bold tabular-nums sm:gap-4 sm:text-2xl">
       <img src={getTeamLogoUrl(teamId)} alt={name} className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 object-contain drop-shadow-md" />
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-bold text-gray-400">{name}</div>
+        <div className="max-w-[120px] truncate text-sm font-bold text-gray-400 sm:max-w-none sm:text-base">{name}</div>
         <div className="text-[8px] font-bold uppercase text-gray-500">Team</div>
       </div>
-      <div className={`shrink-0 text-3xl sm:text-4xl font-black italic leading-none tabular-nums ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
+      <div className={`shrink-0 font-black italic leading-none ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
     </div>
   );
 }
@@ -1305,7 +1303,7 @@ function QuarterBox({ game, awayName, homeName, awayPeriods, homePeriods }: {
         </div>
         <div className="text-right text-xs font-bold uppercase tracking-[0.18em] text-gray-500">{game.arena || 'Arena TBD'}</div>
       </div>
-      <div className="grid gap-2 overflow-x-auto text-center text-sm font-bold text-gray-400" style={{ gridTemplateColumns: `80px repeat(${labels.length}, minmax(44px, 1fr))` }}>
+      <div className="grid gap-1 overflow-x-auto text-center text-xs font-bold text-gray-400" style={{ gridTemplateColumns: `80px repeat(${labels.length}, minmax(44px, 1fr))` }}>
         <div className="text-left">Box</div>
         {labels.map(label => <div key={label}>{label}</div>)}
         <div className="text-left">

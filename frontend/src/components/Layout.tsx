@@ -94,7 +94,7 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
       `}>
         <div className={`flex items-center gap-4 px-4 py-6 border-b border-[var(--border-main)] ${collapsed ? 'justify-center' : ''}`}>
           <div className="w-10 h-12 rounded-lg bg-[var(--surface-muted)] p-1.5 flex items-center justify-center flex-shrink-0 border border-[var(--border-main)] group shadow-inner">
-            <img src="/assets/images/ideJVe-SgJ_logos.svg" className="h-full w-auto object-contain filter group-hover:brightness-125 transition-all" alt="Logo" />
+            <img src="/assets/images/ideJVe-SgJ_logos.svg" loading="lazy" className="h-full w-auto max-w-full object-contain filter group-hover:brightness-125 transition-all" alt="NBA Live Intelligence logo" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
@@ -199,8 +199,8 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
       {/* Main content */}
       <div className={`flex-1 min-w-0 max-w-full flex flex-col overflow-x-hidden transition-all duration-500 z-10 ${collapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
         {/* Top bar */}
-        <header className="sticky top-0 z-10 backdrop-blur-xl border-b px-4 lg:px-6 py-3 flex items-center justify-between transition-all duration-300 bg-[var(--surface-strong)]/85 border-[var(--border-main)] shadow-slate-950/10">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-[var(--surface-strong)]/85 px-3 backdrop-blur-xl transition-all duration-300 border-[var(--border-main)] shadow-slate-950/10 sm:px-4 lg:h-auto lg:px-6 lg:py-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               onClick={() => setMobileOpen(true)}
               className="rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)] lg:hidden"
@@ -212,10 +212,10 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
               <h1 className="text-sm font-semibold text-[var(--text-main)]">
                 {activeItem.label}
               </h1>
-              <p className="truncate text-xs text-gray-400">{activeItem.description}</p>
+              <p className="hidden truncate text-xs text-gray-400 min-[360px]:block">{activeItem.description}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
             <div className="hidden items-center gap-2 rounded-full border border-[var(--border-main)] bg-[var(--surface-muted)] px-3 py-1.5 text-xs text-[var(--text-muted)] sm:flex">
               <span className="font-medium text-[var(--text-main)]">2025-2026</span>
               <span>Playoffs</span>
@@ -232,7 +232,7 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
 
         {/* Page content */}
         <main className="flex-1 min-w-0 max-w-full overflow-auto overflow-x-hidden">
-          <div className="min-h-[calc(100vh-88px)] min-w-0 max-w-full px-2 py-3 sm:px-5 sm:py-5 lg:px-8 xl:px-10 transition-all duration-500 animate-fade-in-up">
+          <div className="mx-auto min-h-[calc(100vh-56px)] w-full max-w-7xl min-w-0 px-4 py-4 transition-all duration-500 animate-fade-in-up sm:px-6 sm:py-5 lg:px-8">
             {children}
           </div>
         </main>
