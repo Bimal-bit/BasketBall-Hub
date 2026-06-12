@@ -2,8 +2,8 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutContext } from '../lib/layoutContext';
 import {
   Activity, BarChart2, Zap, Trophy, History,
-  ChevronLeft, ChevronRight, Menu, Sun, Moon, Search, X,
-  LayoutGrid, User, ListOrdered, Rocket, Crosshair, ArrowLeftRight, Bell
+  ChevronLeft, ChevronRight, Menu, Sun, Moon,
+  LayoutGrid, ListOrdered, Rocket, Crosshair, ArrowLeftRight
 } from 'lucide-react';
 import { useTheme } from '../lib/theme';
 import { nbaApi } from '../lib/api';
@@ -28,7 +28,6 @@ type Props = {
 export default function Layout({ children, activePage, onNavigate }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [navQuery, setNavQuery] = useState('');
   const [showTop, setShowTop] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
@@ -101,16 +100,6 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
     { id: 'archive', label: 'Game Archive', icon: <History size={18} />, description: 'Past game lookup', group: 'League' },
   ], []);
 
-  const filteredNav = useMemo(() => {
-    const query = navQuery.trim().toLowerCase();
-    if (!query) return navItems;
-
-    return navItems.filter(item => {
-      const searchable = `${item.label} ${item.description} ${item.group}`.toLowerCase();
-      return searchable.includes(query);
-    });
-  }, [navQuery, navItems]);
-
   useEffect(() => {
     if (!mobileOpen) return;
 
@@ -125,7 +114,6 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
   function handleNavigate(page: string) {
     onNavigate(page);
     setMobileOpen(false);
-    setNavQuery('');
   }
 
   return (
@@ -146,36 +134,10 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
             <span className="text-white text-sm font-medium tracking-wide">NBA Live Intelligence</span>
           </div>
 
-          {/* Desktop Nav links */}
-          <div className="hidden lg:flex items-center gap-2">
-            {navItems.filter(item => ['dashboard', 'players', 'fatigue', 'standings', 'awards', 'leaderboard', 'trades'].includes(item.id)).map(item => (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`rounded-md px-2.5 py-1.5 text-xs transition-colors min-h-0 min-w-0 font-medium ${
-                  activePage === item.id 
-                    ? 'bg-[#C9540A] text-white' 
-                    : 'text-white/55 hover:text-white'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-orange-900/40 text-orange-400 border border-orange-700/50 tracking-wider">
-              ● LIVE
+              LIVE
             </div>
-            <button className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Search">
-              <Search size={16} />
-            </button>
-            <button className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Notifications">
-              <Bell size={16} />
-            </button>
-            <button className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Profile">
-              <User size={16} />
-            </button>
             <button onClick={toggleTheme} className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Toggle Theme">
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -197,34 +159,9 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
           ${collapsed ? 'w-16' : 'w-[240px]'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}>
-          {!collapsed && (
-            <div className="px-4 pt-4">
-              <label className="relative block">
-                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-                <input
-                  value={navQuery}
-                  onChange={(event) => setNavQuery(event.target.value)}
-                  className="h-9 w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-8 pr-8 text-xs text-zinc-800 dark:text-zinc-200 outline-none placeholder:text-zinc-400 focus:border-[#C9540A]"
-                  placeholder="Search sections"
-                  type="search"
-                />
-                {navQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setNavQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 min-h-0 min-w-0"
-                    aria-label="Clear search"
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-              </label>
-            </div>
-          )}
-
           <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-4">
             {navGroups.map(group => {
-              const groupItems = filteredNav.filter(item => item.group === group);
+              const groupItems = navItems.filter(item => item.group === group);
               if (groupItems.length === 0) return null;
 
               return (

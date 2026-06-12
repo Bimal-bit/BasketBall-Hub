@@ -107,11 +107,22 @@ export default function Awards() {
         nbaApi.getPlayerDetailedStats(player.id, season).catch(() => [])
       ]);
       
-      // Fallback calculation if averages API fails or returns empty
-      if (!averages || Object.keys(averages).length === 0) {
-        setPlayerAverages(calculateAverages(stats));
-      } else {
+      const calculated = calculateAverages(stats);
+      const cardFallback = {
+        PTS: player.pts,
+        REB: player.reb,
+        AST: player.ast,
+        MIN: null,
+        STL: null,
+        BLK: null,
+      };
+
+      if (hasUsableAverages(averages)) {
         setPlayerAverages(averages);
+      } else if (calculated) {
+        setPlayerAverages(calculated);
+      } else {
+        setPlayerAverages(cardFallback);
       }
       
       setPlayerStats(stats);
@@ -161,6 +172,11 @@ export default function Awards() {
       FG3_PCT: totals.FG3A > 0 ? totals.FG3M / totals.FG3A : 0,
       FT_PCT: totals.FTA > 0 ? totals.FTM / totals.FTA : 0,
     };
+  }
+
+  function hasUsableAverages(averages: any) {
+    if (!averages || Object.keys(averages).length === 0) return false;
+    return ['PTS', 'REB', 'AST', 'MIN'].some(key => Number(averages[key] ?? 0) > 0);
   }
 
   async function handleGameClick(game: any) {
