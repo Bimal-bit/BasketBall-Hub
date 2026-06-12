@@ -170,7 +170,8 @@ def cached(duration=60, ttl=None):
                     data = await func(*args, **kwargs)
                 else:
                     import asyncio
-                    data = await asyncio.to_thread.run(func, *args, **kwargs)
+                    # Use asyncio.to_thread to run sync functions in a thread
+                    data = await asyncio.to_thread(func, *args, **kwargs)
                 
                 cache[key] = {
                     "data": data,
