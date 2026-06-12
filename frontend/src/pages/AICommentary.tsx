@@ -107,7 +107,7 @@ export default function AICommentary() {
     <div className="p-4 lg:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-white mb-1">AI Commentary Generator</h2>
+          <h2 className="text-lg font-medium text-white mb-1">AI Commentary Generator</h2>
           <p className="text-sm text-gray-400">Automatically generates professional-grade match summaries using NLP analysis of game stats and player performance patterns.</p>
         </div>
         <button
@@ -122,10 +122,10 @@ export default function AICommentary() {
       {/* Existing commentaries */}
       {commentaries.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-white mb-3">Generated Summaries</h3>
+          <h3 className="text-sm font-medium text-white mb-3">Generated Summaries</h3>
           <div className="space-y-3">
             {commentaries.map(c => (
-              <div key={c.gameId} className="bg-gray-900 border border-orange-500/20 rounded-xl p-4 hover:scale-[1.01] transition-all duration-200 shadow-md hover:shadow-lg">
+              <div key={c.gameId} className="bg-white dark:bg-zinc-900 border border-orange-500/20 rounded-xl p-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-md bg-orange-500/10 flex items-center justify-center">
@@ -151,7 +151,7 @@ export default function AICommentary() {
                     </button>
                   </div>
                 </div>
-                <blockquote className="text-sm text-gray-200 leading-relaxed italic border-l-2 border-orange-500/40 pl-3">
+                <blockquote className="text-sm text-gray-200 leading-relaxed  border-l-2 border-orange-500/40 pl-3">
                   "{c.text}"
                 </blockquote>
                 <div className="text-xs text-gray-500 mt-2">
@@ -165,7 +165,7 @@ export default function AICommentary() {
 
       {/* Game list to generate from */}
       <div>
-        <h3 className="text-sm font-semibold text-white mb-3">Recent Games</h3>
+        <h3 className="text-sm font-medium text-white mb-3">Recent Games</h3>
         <div className="space-y-2">
           {games.map(game => {
             const home = teams.get(game.home_team_id);
@@ -177,11 +177,11 @@ export default function AICommentary() {
             const topName = topStat ? players.get(topStat.player_id)?.name : undefined;
 
             return (
-              <div key={game.game_id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:scale-[1.01] transition-all duration-200 shadow-md hover:shadow-lg">
+              <div key={game.game_id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <TeamBadge team={away} />
-                    <span className="text-sm font-bold text-white">{game.away_score} - {game.home_score}</span>
+                    <span className="text-sm font-medium text-white">{game.away_score} - {game.home_score}</span>
                     <TeamBadge team={home} />
                   </div>
                   <div className="text-xs text-gray-400">
@@ -212,17 +212,17 @@ export default function AICommentary() {
       </div>
 
       {/* Example templates */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">Commentary Templates</h3>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+        <h3 className="text-sm font-medium text-white mb-3">Commentary Templates</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
             { type: 'Dominant Win', example: 'In a commanding performance, the [Team] showcased their depth and firepower, pulling away in the third quarter to claim a decisive victory...', color: 'text-green-400' },
             { type: 'Clutch Thriller', example: 'It came down to the final possession. With the crowd on their feet and the clock ticking, [Player] stepped up to deliver the moment...', color: 'text-orange-400' },
             { type: 'Comeback Story', example: 'Down by 18 entering the fourth quarter, few believed a comeback was possible. Then [Player] caught fire from deep...', color: 'text-blue-400' },
           ].map(({ type, example, color }) => (
-            <div key={type} className="bg-gray-800/50 rounded-lg p-3 hover:scale-[1.02] transition-all duration-200 shadow-sm hover:shadow">
+            <div key={type} className="bg-gray-800/50 rounded-lg p-3 hover:scale-[1.02] transition-all duration-200 shadow-none hover:shadow">
               <div className={`text-xs font-medium mb-1 ${color}`}>{type}</div>
-              <p className="text-xs text-gray-400 leading-relaxed italic">"{example}"</p>
+              <p className="text-xs text-gray-400 leading-relaxed ">"{example}"</p>
             </div>
           ))}
         </div>
@@ -234,7 +234,7 @@ export default function AICommentary() {
 function TeamBadge({ team }: { team?: Team }) {
   return (
     <div className="flex items-center gap-1.5">
-      <div className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold text-white"
+      <div className="w-5 h-5 rounded flex items-center justify-center text-xs font-medium text-white"
         style={{ backgroundColor: team?.logo_color ?? '#374151', fontSize: '9px' }}>
         {team?.abbreviation?.[0] ?? '?'}
       </div>

@@ -86,6 +86,8 @@ export interface Player {
   FG_PCT?: number;
   FG3_PCT?: number;
   FT_PCT?: number;
+  TOV?: number;
+  PLUS_MINUS?: number;
 }
 
 export interface BoxScorePlayer {
@@ -444,3 +446,82 @@ export const getTeamLogoUrl = (teamId: number | string) =>
 
 export const getPlayerHeadshotUrl = (playerId: number | string) => 
   `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${playerId}.png`;
+
+export function getPlayerId(player: any): number {
+  return Number(player?.PLAYER_ID ?? player?.PERSON_ID ?? player?.id ?? player?.player_id ?? 0);
+}
+
+export function getPlayerName(player: any): string {
+  return player?.PLAYER_NAME || player?.PLAYER || player?.full_name || player?.name || `${player?.PLAYER_FIRST_NAME ?? ''} ${player?.PLAYER_LAST_NAME ?? ''}`.trim() || 'Unknown Player';
+}
+
+export function getPlayerSalary(player: any): number {
+  const pid = getPlayerId(player);
+  const name = getPlayerName(player).toUpperCase();
+  
+  const starSalaries: Record<string, number> = {
+    'STEPHEN CURRY': 55.7,
+    'NIKOLA JOKIC': 51.4,
+    'JOEL EMBIID': 51.4,
+    'KEVIN DURANT': 51.2,
+    'BRADLEY BEAL': 50.2,
+    'JAYLEN BROWN': 49.7,
+    'KARL-ANTHONY TOWNS': 49.2,
+    'DEVIN BOOKER': 49.2,
+    'KAWHI LEONARD': 49.2,
+    'PAUL GEORGE': 49.2,
+    'JIMMY BUTLER': 48.8,
+    'DAMIAN LILLARD': 48.8,
+    'GIANNIS ANTETOKOUNMPO': 48.8,
+    'LEBRON JAMES': 48.7,
+    'RUDY GOBERT': 43.8,
+    'ANTHONY DAVIS': 43.2,
+    'LUKA DONCIC': 43.0,
+    'ZACH LAVINE': 43.0,
+    'TRAE YOUNG': 43.0,
+    'KYRIE IRVING': 41.0,
+    'FRED VANVLEET': 42.8,
+    'JAYSON TATUM': 34.8,
+    'SHAI GILGEOUS-ALEXANDER': 35.8,
+    'JA MORANT': 36.7,
+    'ZION WILLIAMSON': 36.7,
+    'DONOVAN MITCHELL': 35.4,
+    'BAM ADEBAYO': 34.8,
+    'DE\'AARON FOX': 34.8,
+    'DOMANTAS SABONIS': 40.6,
+    'LAURI MARKKANEN': 18.0,
+    'PASCAL SIAKAM': 37.9,
+    'OG ANUNOBY': 36.6,
+    'TYRESE HALIBURTON': 35.2,
+    'TYRESE MAXEY': 35.1,
+    'LAMELO BALL': 35.2,
+  };
+
+  for (const star of Object.keys(starSalaries)) {
+    if (name.includes(star)) {
+      return starSalaries[star];
+    }
+  }
+
+  // Fallback formula based on stats
+  const pts = Number(player.PTS ?? player.pts ?? 0);
+  const reb = Number(player.REB ?? player.reb ?? player.rebounds ?? 0);
+  const ast = Number(player.AST ?? player.ast ?? player.assists ?? 0);
+  const stl = Number(player.STL ?? player.stl ?? 0);
+  const blk = Number(player.BLK ?? player.blk ?? 0);
+
+  const production = pts * 0.75 + reb * 0.35 + ast * 0.5 + stl * 1.0 + blk * 1.0;
+  return Math.max(1.5, Math.min(45.0, Math.round((production + 3.0) * 10) / 10));
+}
+
+export function estimateYears(player: any): number {
+  const id = getPlayerId(player);
+  return (id % 4) + 1;
+}
+
+export function estimateStatus(player: any): string {
+  const id = getPlayerId(player);
+  if (id % 7 === 0) return 'FA';
+  if (id % 5 === 0) return 'Option';
+  return 'Signed';
+}

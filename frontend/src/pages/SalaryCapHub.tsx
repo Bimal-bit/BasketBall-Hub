@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Banknote, CalendarClock, FileSignature, Landmark, TrendingDown, TrendingUp } from 'lucide-react';
-import { nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl, type NbaTeam, type Player, type Standing } from '../lib/api';
+import { nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl, getPlayerId, getPlayerName, getPlayerSalary, estimateYears, estimateStatus, type NbaTeam, type Player, type Standing } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 
 type CapTeam = {
@@ -46,7 +46,7 @@ export default function SalaryCapHub() {
 
   const rosterContracts = useMemo(() => roster.slice(0, 12).map(player => ({
     player,
-    salary: estimateSalary(player),
+    salary: getPlayerSalary(player),
     years: estimateYears(player),
     status: estimateStatus(player),
   })).sort((a, b) => b.salary - a.salary), [roster]);
@@ -71,10 +71,10 @@ export default function SalaryCapHub() {
     <div className="p-4 lg:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-white mb-1">Contract & Salary Cap Hub</h2>
+          <h2 className="text-lg font-medium text-white mb-1">Contract & Salary Cap Hub</h2>
           <p className="text-sm text-gray-400">All NBA teams from `nba_api`, with roster-driven cap estimates and contract pressure.</p>
         </div>
-        <select value={teamId} onChange={event => setTeamId(Number(event.target.value))} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 w-full sm:w-auto">
+        <select value={teamId} onChange={event => setTeamId(Number(event.target.value))} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 w-full sm:w-auto">
           {teams.map(option => <option key={option.id} value={option.id}>{option.full_name}</option>)}
         </select>
       </div>
@@ -95,27 +95,27 @@ export default function SalaryCapHub() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="xl:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
           <div className="flex items-center gap-3 mb-4">
             <img src={getTeamLogoUrl(team.id)} alt={team.abbr} className="h-10 w-10 object-contain" />
             <div>
-              <h3 className="text-sm font-semibold text-white">{team.name} Payroll Sheet</h3>
+              <h3 className="text-sm font-medium text-white">{team.name} Payroll Sheet</h3>
               <p className="text-xs text-gray-500">Estimated contracts layered on live roster data.</p>
             </div>
           </div>
           <div className="space-y-2">
             {rosterContracts.map(({ player, salary, years, status }) => (
-              <div key={getPlayerId(player)} className="flex flex-wrap sm:grid sm:grid-cols-[1fr_80px_70px_92px] items-center gap-2 sm:gap-3 rounded-lg bg-gray-800/40 p-3 hover:scale-[1.01] hover:bg-gray-800/60 transition-all duration-200 shadow-sm hover:shadow-md">
+              <div key={getPlayerId(player)} className="flex flex-wrap sm:grid sm:grid-cols-[1fr_80px_70px_92px] items-center gap-2 sm:gap-3 rounded-lg bg-gray-800/40 p-3 hover:scale-[1.01] hover:bg-gray-800/60 transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
-                  <img src={getPlayerHeadshotUrl(getPlayerId(player))} alt="" className="h-9 w-9 rounded-full object-cover object-top bg-gray-950 shrink-0" />
+                  <img src={getPlayerHeadshotUrl(getPlayerId(player))} alt="" className="h-9 w-9 rounded-full object-cover object-top bg-white dark:bg-zinc-900 shrink-0" />
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-white truncate">{getPlayerName(player)}</div>
                     <div className="text-xs text-gray-500">{player.POSITION || 'G/F'} / {player.TEAM_ABBREVIATION}</div>
                   </div>
                 </div>
-                <div className="text-right text-sm font-bold text-white">${salary.toFixed(1)}M</div>
+                <div className="text-right text-sm font-medium text-white">${salary.toFixed(1)}M</div>
                 <div className="text-center text-xs text-gray-300">{years} yrs</div>
-                <div className={`text-center text-[10px] font-bold uppercase ${status === 'FA' ? 'text-orange-300' : status === 'Option' ? 'text-yellow-300' : 'text-green-300'}`}>{status}</div>
+                <div className={`text-center text-[10px] font-medium uppercase ${status === 'FA' ? 'text-orange-300' : status === 'Option' ? 'text-yellow-300' : 'text-green-300'}`}>{status}</div>
               </div>
             ))}
             {!loading && rosterContracts.length === 0 && <div className="text-center py-10 text-xs text-gray-500">No roster contracts available</div>}
@@ -149,8 +149,8 @@ function CapGauge({ team }: { team: CapTeam }) {
   ];
   const pct = Math.min(100, (team.payroll / SECOND_APRON) * 100);
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-      <h3 className="text-sm font-semibold text-white mb-4">Apron Tracker</h3>
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+      <h3 className="text-sm font-medium text-white mb-4">Apron Tracker</h3>
       <div className="h-3 bg-gray-800 rounded-full overflow-hidden mb-3">
         <div className={`h-full ${team.apron === 'second' ? 'bg-red-500' : team.apron === 'first' ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${pct}%` }} />
       </div>
@@ -158,7 +158,7 @@ function CapGauge({ team }: { team: CapTeam }) {
         {markers.map(marker => (
           <div key={marker.label} className="rounded bg-gray-800/50 p-2 text-center">
             <div className="text-[10px] text-gray-500">{marker.label}</div>
-            <div className="text-xs font-bold text-white">${marker.value.toFixed(0)}M</div>
+            <div className="text-xs font-medium text-white">${marker.value.toFixed(0)}M</div>
           </div>
         ))}
       </div>
@@ -171,15 +171,15 @@ function CapGauge({ team }: { team: CapTeam }) {
 }
 
 function Metric({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-md hover:shadow-lg">{icon}<div className="text-2xl font-bold text-white truncate">{value}</div><div className="text-xs text-gray-400">{label}</div></div>;
+  return <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-none hover:shadow-none">{icon}<div className="text-2xl font-medium text-white truncate">{value}</div><div className="text-xs text-gray-400">{label}</div></div>;
 }
 
 function ListPanel({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
-  return <div className="bg-gray-900 border border-gray-800 rounded-xl p-4"><h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">{icon}{title}</h3><div className="space-y-2">{children}</div></div>;
+  return <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4"><h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">{icon}{title}</h3><div className="space-y-2">{children}</div></div>;
 }
 
 function ListRow({ primary, secondary, value }: { primary: string; secondary: string; value: string }) {
-  return <div className="flex items-center justify-between gap-3 rounded-lg bg-gray-800/40 p-3 hover:scale-[1.02] hover:bg-gray-800/60 transition-all duration-200 shadow-sm hover:shadow-md"><div className="min-w-0"><div className="text-xs font-medium text-white truncate">{primary}</div><div className="text-[10px] text-gray-500 truncate">{secondary}</div></div><div className="text-xs font-bold text-orange-300 flex-shrink-0">{value}</div></div>;
+  return <div className="flex items-center justify-between gap-3 rounded-lg bg-gray-800/40 p-3 hover:scale-[1.02] hover:bg-gray-800/60 transition-all duration-200 shadow-none hover:shadow-none"><div className="min-w-0"><div className="text-xs font-medium text-white truncate">{primary}</div><div className="text-[10px] text-gray-500 truncate">{secondary}</div></div><div className="text-xs font-medium text-orange-300 flex-shrink-0">{value}</div></div>;
 }
 
 function buildCapTeam(team: NbaTeam | undefined, payroll: number, wins: number): CapTeam {
@@ -204,27 +204,4 @@ function getApronLabel(team: CapTeam) {
   return team.payroll > LUXURY_TAX ? 'Tax' : 'Clear';
 }
 
-function getPlayerId(player: Player) {
-  return Number(player.PLAYER_ID ?? player.PERSON_ID);
-}
 
-function getPlayerName(player: Player) {
-  return player.PLAYER_NAME || player.PLAYER || `${player.PLAYER_FIRST_NAME ?? ''} ${player.PLAYER_LAST_NAME ?? ''}`.trim() || 'Unknown Player';
-}
-
-function estimateSalary(player: Player) {
-  const score = Number(player.PTS ?? 0) * 0.85 + Number(player.REB ?? 0) * 0.35 + Number(player.AST ?? 0) * 0.5 + Number(player.STL ?? 0) * 1.2 + Number(player.BLK ?? 0) * 1.1;
-  return Math.max(1.2, Math.min(55, Math.round((score + 3.5) * 10) / 10));
-}
-
-function estimateYears(player: Player) {
-  const id = getPlayerId(player);
-  return (id % 4) + 1;
-}
-
-function estimateStatus(player: Player) {
-  const id = getPlayerId(player);
-  if (id % 7 === 0) return 'FA';
-  if (id % 5 === 0) return 'Option';
-  return 'Signed';
-}

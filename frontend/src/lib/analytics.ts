@@ -68,10 +68,12 @@ export function predictShotSuccess(
 // Generate synthetic performance trend for a player
 export function generatePerformanceTrend(player: Player, games = 10): Array<{ game: number; points: number; efficiency: number }> {
   return Array.from({ length: games }, (_, i) => {
-    const variance = (Math.random() - 0.5) * player.ppg * 0.4;
-    const pts = Math.max(0, Math.round(player.ppg + variance));
+    const ppg = (player as any).ppg ?? player.PTS ?? 15;
+    const per = (player as any).per ?? 15;
+    const variance = (Math.random() - 0.5) * ppg * 0.4;
+    const pts = Math.max(0, Math.round(ppg + variance));
     const effVariance = (Math.random() - 0.5) * 8;
-    const eff = Math.max(5, Math.round((player.per + effVariance) * 10) / 10);
+    const eff = Math.max(5, Math.round((per + effVariance) * 10) / 10);
     return { game: i + 1, points: pts, efficiency: eff };
   });
 }

@@ -163,13 +163,13 @@ export default function SeasonVault() {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center">
         <BasketballLoader />
-        <p className="mt-10 text-sm font-black text-orange-500 uppercase tracking-[0.5em] animate-pulse">Unlocking Historical Vault...</p>
+        <p className="mt-10 text-sm font-medium text-orange-500 uppercase tracking-[0.5em] animate-pulse">Unlocking Historical Vault...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="space-y-8 pb-20 animate-in fade-in slide-in- duration-1000">
       <style>{`
         .jersey-3d { perspective: 1200px; }
         .jersey-inner {
@@ -200,41 +200,41 @@ export default function SeasonVault() {
       `}</style>
 
       {/* Filters Panel */}
-      <div className="bg-gradient-to-br from-[#0f172a] to-[#020617] border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-8 shadow-2xl backdrop-blur-xl sticky top-0 z-40">
+      <div className="bg-zinc-100 dark:bg-zinc-800 from-[#0f172a] to-[#020617] border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-8 shadow-none backdrop-blur-xl sticky top-0 z-40">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-orange-500/20 flex items-center justify-center border border-orange-500/20 shadow-lg shadow-orange-500/10 flex-shrink-0">
+             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-orange-500/20 flex items-center justify-center border border-orange-500/20 shadow-none shadow-none flex-shrink-0">
                 <Layers className="text-orange-500" size={32} />
              </div>
              <div className="min-w-0">
-                <h1 className="text-2xl sm:text-4xl font-black text-white italic tracking-tighter uppercase leading-none mb-1 break-words">Season Vault</h1>
+                <h1 className="text-2xl sm:text-4xl font-medium text-white  tracking-tighter uppercase leading-none mb-1 break-words">Season Vault</h1>
                 <div className="flex items-center gap-2">
                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                   <p className="text-[9px] sm:text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical Data Sync Active</p>
+                   <p className="text-[9px] sm:text-[10px] font-medium text-gray-500 uppercase tracking-widest">Historical Data Sync Active</p>
                 </div>
              </div>
           </div>
           
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-2 rounded-2xl group hover:border-orange-500/30 transition-all">
+            <div className="flex items-center gap-2 bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-2 rounded-2xl group hover:border-orange-500/30 transition-all">
                <Calendar className="ml-3 text-orange-500" size={18} />
                <select 
                  value={season}
                  onChange={(e) => setSeason(e.target.value)}
-                 className="bg-transparent text-sm font-black text-white px-3 py-2 outline-none cursor-pointer appearance-none min-w-0 flex-1 sm:min-w-[140px]"
+                 className="bg-transparent text-sm font-medium text-white px-3 py-2 outline-none cursor-pointer appearance-none min-w-0 flex-1 sm:min-w-[140px]"
                >
-                 {SEASONS.map(s => <option key={s} value={s} className="bg-gray-900">{s}</option>)}
+                 {SEASONS.map(s => <option key={s} value={s} className="bg-white dark:bg-zinc-900">{s}</option>)}
                </select>
             </div>
 
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-2 rounded-2xl group hover:border-orange-500/30 transition-all">
+            <div className="flex items-center gap-2 bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-2 rounded-2xl group hover:border-orange-500/30 transition-all">
                <img src={getTeamLogoUrl(teamId)} className="w-8 h-8 ml-3 object-contain" alt="Team" />
                <select 
                  value={teamId}
                  onChange={(e) => setTeamId(e.target.value)}
-                 className="bg-transparent text-sm font-black text-white px-3 py-2 outline-none cursor-pointer appearance-none min-w-0 flex-1 sm:min-w-[200px]"
+                 className="bg-transparent text-sm font-medium text-white px-3 py-2 outline-none cursor-pointer appearance-none min-w-0 flex-1 sm:min-w-[200px]"
                >
-                 {TEAMS.map(t => <option key={t.id} value={t.id} className="bg-gray-900">{t.name}</option>)}
+                 {TEAMS.map(t => <option key={t.id} value={t.id} className="bg-white dark:bg-zinc-900">{t.name}</option>)}
                </select>
             </div>
           </div>
@@ -245,20 +245,20 @@ export default function SeasonVault() {
         {/* Left Column */}
         <div className="lg:col-span-4 space-y-8">
            {/* Team Overview Card */}
-           <div className="bg-gradient-to-br from-gray-900 to-black border border-white/10 rounded-[2rem] sm:rounded-[3.5rem] p-4 sm:p-8 relative overflow-hidden group min-h-[520px] sm:min-h-[550px] flex flex-col shadow-2xl">
+           <div className="bg-zinc-100 dark:bg-zinc-800  to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[2rem] sm:rounded-[3.5rem] p-4 sm:p-8 relative overflow-hidden group min-h-[520px] sm:min-h-[550px] flex flex-col shadow-none">
               <div className="absolute inset-0 z-0">
                  <ArenaVisual image={arenaImage} teamId={teamId} teamColor={team?.color || '#f97316'} arenaName={arenaName} subtle />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                 <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800 from-black via-black/40 to-transparent" />
               </div>
               
               <div className="relative z-10 flex flex-col items-center text-center flex-1">
                  <div className="relative mb-8 mt-6">
                     <div className="absolute inset-0 bg-white/10 rounded-full blur-3xl scale-150 animate-pulse" />
-                    <img src={getTeamLogoUrl(teamId)} className="w-44 h-44 object-contain relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.4)] group-hover:scale-110 transition-transform duration-700" alt="Team Logo" />
+                    <img src={getTeamLogoUrl(teamId)} className="w-44 h-44 object-contain relative z-10 drop-shadow-none group-hover:scale-110 transition-transform duration-700" alt="Team Logo" />
                  </div>
                  
-                 <h2 className="text-3xl sm:text-5xl font-black text-white italic tracking-tighter uppercase mb-2 group-hover:tracking-normal transition-all duration-500 break-words max-w-full">{team?.name}</h2>
-                 <p className="text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-[0.28em] sm:tracking-[0.5em] mb-8 sm:mb-12 italic">{season} Anthology</p>
+                 <h2 className="text-3xl sm:text-5xl font-medium text-white  tracking-tighter uppercase mb-2 group-hover:tracking-normal transition-all duration-500 break-words max-w-full">{team?.name}</h2>
+                 <p className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-[0.28em] sm:tracking-[0.5em] mb-8 sm:mb-12 ">{season} Anthology</p>
                  
                  <div className="grid grid-cols-2 gap-4 w-full mt-auto">
                     <OverviewCard label="Season Record" value={`${recordW}-${recordL}`} icon={<Activity size={18} />} />
@@ -270,8 +270,8 @@ export default function SeasonVault() {
            </div>
 
            {/* Victory Hardware (Ring) */}
-           <div className="bg-gradient-to-b from-black to-gray-950 border border-white/10 rounded-[2rem] sm:rounded-[3.5rem] p-5 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden h-[360px] sm:h-[450px] shadow-2xl group">
-              <div className={`absolute inset-0 bg-gradient-to-b from-yellow-500/20 via-transparent to-transparent transition-opacity duration-1000 ${isChampion ? 'opacity-100' : 'opacity-0'}`} />
+           <div className="bg-zinc-100 dark:bg-zinc-800 from-black  border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[2rem] sm:rounded-[3.5rem] p-5 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden h-[360px] sm:h-[450px] shadow-none group">
+              <div className={`absolute inset-0 bg-zinc-100 dark:bg-zinc-800  via-transparent to-transparent transition-opacity duration-1000 ${isChampion ? 'opacity-100' : 'opacity-0'}`} />
               
               <div className="w-full h-full relative">
                 {isChampion ? (
@@ -283,8 +283,8 @@ export default function SeasonVault() {
                     
                     {ringImage ? (
                       <div className="w-full h-full flex flex-col items-center justify-center animate-in zoom-in-75 duration-700">
-                         <img src={ringImage} className="w-64 h-64 object-contain drop-shadow-[0_0_30px_rgba(234,179,8,0.4)] group-hover:scale-110 transition-transform duration-500" alt="Victory Ring" />
-                         <h4 className="text-3xl font-black text-white italic uppercase tracking-tighter glow-text animate-pulse mt-6">Authentic Ring</h4>
+                         <img src={ringImage} className="w-64 h-64 object-contain drop-shadow-none group-hover:scale-110 transition-transform duration-500" alt="Victory Ring" />
+                         <h4 className="text-3xl font-medium text-white  uppercase tracking-tighter glow-text animate-pulse mt-6">Authentic Ring</h4>
                       </div>
                     ) : (
                       <Canvas className="cursor-grab active:cursor-grabbing">
@@ -298,8 +298,8 @@ export default function SeasonVault() {
 
                     {!ringImage && (
                       <div className="absolute bottom-4 left-0 right-0 text-center z-10 pointer-events-none">
-                         <h4 className="text-3xl font-black text-white italic uppercase tracking-tighter glow-text animate-pulse">Championship Hardware</h4>
-                         <p className="text-[10px] font-black text-yellow-500/80 uppercase tracking-[0.3em] mt-2 italic">Victory Achieved • {season}</p>
+                         <h4 className="text-3xl font-medium text-white  uppercase tracking-tighter glow-text animate-pulse">Championship Hardware</h4>
+                         <p className="text-[10px] font-medium text-yellow-500/80 uppercase tracking-[0.3em] mt-2 ">Victory Achieved • {season}</p>
                       </div>
                     )}
                   </>
@@ -309,12 +309,12 @@ export default function SeasonVault() {
                        <Shield size={120} className="text-gray-800" />
                        <Clock className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-700" size={40} />
                     </div>
-                    <h4 className="text-xl font-black text-gray-800 italic mt-8 uppercase tracking-[0.2em] text-center">Archives Sealed</h4>
+                    <h4 className="text-xl font-medium text-gray-800  mt-8 uppercase tracking-[0.2em] text-center">Archives Sealed</h4>
                     <a 
                       href="https://sports.yahoo.com/article/check-nba-championship-rings-years-231301268.html" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="mt-4 text-[10px] font-black text-gray-600 hover:text-orange-500 uppercase tracking-widest transition-colors flex items-center gap-2"
+                      className="mt-4 text-[10px] font-medium text-gray-600 hover:text-orange-500 uppercase tracking-widest transition-colors flex items-center gap-2"
                     >
                       Browse Ring Wiki <ArrowRight size={12} />
                     </a>
@@ -327,7 +327,7 @@ export default function SeasonVault() {
         {/* Right Column */}
         <div className="lg:col-span-8 space-y-8">
             {/* Stadium & Atmosphere Section */}
-           <div className="bg-gradient-to-br from-[#0f172a] to-black border border-white/10 rounded-[2rem] sm:rounded-[3.5rem] p-4 sm:p-10 shadow-2xl relative overflow-hidden group">
+           <div className="bg-zinc-100 dark:bg-zinc-800 from-[#0f172a] to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[2rem] sm:rounded-[3.5rem] p-4 sm:p-10 shadow-none relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-500/5 blur-[120px] pointer-events-none" />
               
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10 relative z-10">
@@ -335,47 +335,47 @@ export default function SeasonVault() {
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/20 flex-shrink-0">
                        <Home className="text-blue-400" size={24} />
                     </div>
-                    <h3 className="text-xl sm:text-3xl font-black text-white italic uppercase tracking-tight break-words">Home Base: {arenaName}</h3>
+                    <h3 className="text-xl sm:text-3xl font-medium text-white  uppercase tracking-tight break-words">Home Base: {arenaName}</h3>
                  </div>
-                 <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10 self-start sm:self-auto">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] italic">Era Validated</span>
+                 <div className="px-4 py-2 bg-white/5 rounded-full border border-zinc-200 dark:border-zinc-800 border-[0.5px] self-start sm:self-auto">
+                    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-[0.2em] ">Era Validated</span>
                  </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-                 <div className="relative group/stadium overflow-hidden rounded-3xl border border-white/10 aspect-video">
+                 <div className="relative group/stadium overflow-hidden rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] aspect-video">
                     <ArenaVisual image={arenaImage} teamId={teamId} teamColor={team?.color || '#f97316'} arenaName={arenaName} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800 from-black/80 via-transparent to-transparent" />
                     <div className="absolute bottom-6 left-6">
-                       <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Official Venue</p>
-                       <h4 className="text-2xl font-black text-white italic uppercase tracking-tighter">{arenaName}</h4>
-                       {vaultTeamInfo && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{vaultTeamInfo.arenaLocation} / Opened {vaultTeamInfo.opened} / Capacity {vaultTeamInfo.capacity}</p>}
+                       <p className="text-[10px] font-medium text-blue-400 uppercase tracking-widest mb-1">Official Venue</p>
+                       <h4 className="text-2xl font-medium text-white  uppercase tracking-tighter">{arenaName}</h4>
+                       {vaultTeamInfo && <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1">{vaultTeamInfo.arenaLocation} / Opened {vaultTeamInfo.opened} / Capacity {vaultTeamInfo.capacity}</p>}
                     </div>
                  </div>
                  
                  <div className="flex flex-col gap-4">
                     {mascot ? (
-                       <div className="flex-1 bg-white/5 rounded-3xl border border-white/5 p-6 flex items-center gap-6 group/mascot hover:bg-white/10 transition-all">
+                       <div className="flex-1 bg-white/5 rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-6 flex items-center gap-6 group/mascot hover:bg-white/10 transition-all">
                           <img src={mascot.image} className="w-24 h-24 object-contain group-hover/mascot:scale-110 transition-transform" alt="Mascot" onError={(e) => e.currentTarget.style.display = 'none'} />
                           <div>
-                             <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Team Atmosphere</p>
-                             <h4 className="text-xl font-black text-white italic uppercase tracking-tight">{mascot.name}</h4>
-                             <p className="text-[10px] font-bold text-blue-400/60 uppercase tracking-widest mt-2">Active Mascot</p>
+                             <p className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mb-1">Team Atmosphere</p>
+                             <h4 className="text-xl font-medium text-white  uppercase tracking-tight">{mascot.name}</h4>
+                             <p className="text-[10px] font-medium text-blue-400/60 uppercase tracking-widest mt-2">Active Mascot</p>
                           </div>
                        </div>
                     ) : (
-                       <div className="flex-1 bg-white/5 rounded-3xl border border-white/5 p-6 flex flex-col items-center justify-center opacity-40">
+                       <div className="flex-1 bg-white/5 rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-6 flex flex-col items-center justify-center opacity-40">
                           <Users className="text-gray-600 mb-2" size={32} />
-                          <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Mascot Data Pending</p>
+                          <p className="text-[10px] font-medium text-gray-600 uppercase tracking-widest">Mascot Data Pending</p>
                        </div>
                     )}
-                    <div className="bg-white/5 rounded-3xl border border-white/5 p-6 flex items-center gap-6">
+                    <div className="bg-white/5 rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-6 flex items-center gap-6">
                        <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
                           <Info className="text-orange-400" size={24} />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">City Context</p>
-                          <h4 className="text-lg font-black text-white italic uppercase tracking-tight">{teamCity}</h4>
+                          <p className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mb-1">City Context</p>
+                          <h4 className="text-lg font-medium text-white  uppercase tracking-tight">{teamCity}</h4>
                        </div>
                     </div>
                  </div>
@@ -383,7 +383,7 @@ export default function SeasonVault() {
            </div>
 
            {/* Team Stats Snapshot */}
-           <div className="bg-gradient-to-br from-gray-900 via-gray-950 to-black border border-white/10 rounded-[2rem] sm:rounded-[3.5rem] p-4 sm:p-10 shadow-2xl relative overflow-hidden">
+           <div className="bg-zinc-100 dark:bg-zinc-800   to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[2rem] sm:rounded-[3.5rem] p-4 sm:p-10 shadow-none relative overflow-hidden">
               <div className="absolute inset-0 z-0">
                  <div className="w-full h-full opacity-20" style={{ background: `radial-gradient(circle at 20% 20%, ${team?.color || '#f97316'} 0%, transparent 30%), linear-gradient(135deg, #020617 0%, #111827 100%)` }} />
               </div>
@@ -393,8 +393,8 @@ export default function SeasonVault() {
                        <BarChart3 className="text-blue-400" size={24} />
                     </div>
                     <div>
-                      <h3 className="text-2xl sm:text-3xl font-black text-white italic uppercase tracking-tight">Season Stats Snapshot</h3>
-                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] sm:tracking-[0.25em] mt-1">Roster production and team context</p>
+                      <h3 className="text-2xl sm:text-3xl font-medium text-white  uppercase tracking-tight">Season Stats Snapshot</h3>
+                      <p className="text-[10px] font-medium text-gray-500 uppercase tracking-[0.2em] sm:tracking-[0.25em] mt-1">Roster production and team context</p>
                     </div>
                  </div>
               </div>
@@ -412,8 +412,8 @@ export default function SeasonVault() {
             </div>
  
             {/* Full Roster Grid */}
-            <div className="bg-gradient-to-br from-slate-900 to-black border border-white/10 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
+            <div className="bg-zinc-100 dark:bg-zinc-800  to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[3.5rem] p-10 shadow-none relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-1 bg-zinc-100 dark:bg-zinc-800 from-transparent /50 to-transparent" />
                
                <div className="flex items-center justify-between mb-12 relative z-10">
                   <div className="flex items-center gap-4">
@@ -421,22 +421,22 @@ export default function SeasonVault() {
                         <Users className="text-orange-500" size={24} />
                      </div>
                      <div>
-                        <h3 className="text-3xl font-black text-white italic uppercase tracking-tight">Full Squad Archive</h3>
-                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mt-1 italic">Total Registry: {history.roster.length} Personnel</p>
+                        <h3 className="text-3xl font-medium text-white  uppercase tracking-tight">Full Squad Archive</h3>
+                        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-[0.3em] mt-1 ">Total Registry: {history.roster.length} Personnel</p>
                      </div>
                   </div>
                   <div className="flex items-center gap-3">
                      <button 
                         onClick={() => setShowAll(!showAll)}
-                        className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-orange-500/10 hover:border-orange-500/50 transition-all flex items-center gap-2"
+                        className="px-6 py-2 bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl text-[10px] font-medium text-white uppercase tracking-widest hover:bg-orange-500/10 hover:border-orange-500/50 transition-all flex items-center gap-2"
                      >
                         <Layers size={14} className={showAll ? 'text-orange-500' : 'text-gray-500'} />
                         {showAll ? 'View Starters' : 'View All Squad'}
                      </button>
                      <div className="hidden sm:flex items-center gap-3 ml-4">
-                        <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10 flex items-center gap-2">
+                        <div className="px-4 py-2 bg-white/5 rounded-full border border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center gap-2">
                            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                           <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest italic">Era Verified</span>
+                           <span className="text-[10px] font-medium text-gray-300 uppercase tracking-widest ">Era Verified</span>
                         </div>
                      </div>
                   </div>
@@ -447,31 +447,31 @@ export default function SeasonVault() {
                     <div 
                       key={player.PLAYER_ID}
                       onClick={() => setSelectedPlayer(player)}
-                      className="group/player bg-white/5 border border-white/5 rounded-3xl p-5 hover:bg-white/10 hover:border-orange-500/30 transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
+                      className="group/player bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-3xl p-5 hover:bg-white/10 hover:border-orange-500/30 transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none cursor-pointer"
                     >
                       <div className="relative mb-4">
-                        <div className="absolute inset-0 bg-white/5 rounded-2xl blur-md opacity-0 group-hover/player:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-white/5 rounded-2xl  opacity-0 group-hover/player:opacity-100 transition-opacity" />
                         <img 
                           src={getPlayerHeadshotUrl(player.PLAYER_ID)} 
                           alt={player.PLAYER_NAME}
-                          className="w-full aspect-[4/5] object-cover rounded-2xl border border-white/5 group-hover/player:scale-105 transition-transform duration-500"
+                          className="w-full aspect-[4/5] object-cover rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] group-hover/player:scale-105 transition-transform duration-500"
                           onError={(e) => {
                             e.currentTarget.src = `https://www.nba.com/assets/logos/teams/primary/web/${TEAMS.find(t => t.id === teamId)?.abbr}.svg`;
                             e.currentTarget.classList.add('p-4', 'opacity-20');
                           }}
                         />
-                        <div className="absolute -top-2 -right-6 bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/5 z-20 shadow-2xl transform group-hover/player:rotate-12 transition-transform">
-                           <span className="text-[11px] font-black text-white/60 italic">#{player.NUM || '--'}</span>
+                        <div className="absolute -top-2 -right-6 bg-white dark:bg-zinc-900 backdrop- px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] z-20 shadow-none transform group-hover/player:rotate-12 transition-transform">
+                           <span className="text-[11px] font-medium text-white/60 ">#{player.NUM || '--'}</span>
                         </div>
                       </div>
                       
                       <div className="space-y-1">
-                        <h4 className="text-sm font-black text-white uppercase tracking-tighter line-clamp-1 group-hover/player:text-orange-400 transition-colors">{player.PLAYER_NAME}</h4>
+                        <h4 className="text-sm font-medium text-white uppercase tracking-tighter line-clamp-1 group-hover/player:text-orange-400 transition-colors">{player.PLAYER_NAME}</h4>
                         <div className="flex items-center justify-between">
-                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{player.POSITION}</span>
+                           <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">{player.POSITION}</span>
                            <div className="flex items-center gap-1">
                               <Zap size={10} className="text-orange-500" />
-                              <span className="text-[10px] font-black text-orange-500 italic">{player.PTS || '0'} PPG</span>
+                              <span className="text-[10px] font-medium text-orange-500 ">{player.PTS || '0'} PPG</span>
                            </div>
                         </div>
                       </div>
@@ -481,29 +481,29 @@ export default function SeasonVault() {
 
                {/* Coaching & Support Staff Section */}
                {showAll && (
-                  <div className="mt-20 border-t border-white/5 pt-12 relative z-10">
+                  <div className="mt-20 border-t border-zinc-200 dark:border-zinc-800 border-[0.5px] pt-12 relative z-10">
                      <div className="flex items-center gap-4 mb-10">
                         <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
                            <UserCheck className="text-blue-400" size={20} />
                         </div>
-                        <h3 className="text-2xl font-black text-white italic uppercase tracking-tight">Coaching Staff & Management</h3>
+                        <h3 className="text-2xl font-medium text-white  uppercase tracking-tight">Coaching Staff & Management</h3>
                      </div>
                      
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {history.coaches && history.coaches.length > 0 ? history.coaches.map((coach: any, idx: number) => (
-                           <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex items-center gap-6 group hover:bg-white/5 transition-all">
-                              <div className="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center border border-white/10 group-hover:border-blue-500/50 transition-colors">
+                           <div key={idx} className="bg-white/[0.02] border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl p-6 flex items-center gap-6 group hover:bg-white/5 transition-all">
+                              <div className="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 border-[0.5px] group-hover:border-blue-500/50 transition-colors">
                                  <User className="text-gray-600 group-hover:text-blue-400 transition-colors" size={28} />
                               </div>
                               <div>
-                                 <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{coach.COACH_TYPE || 'Staff'}</p>
-                                 <h4 className="text-lg font-black text-white uppercase italic tracking-tighter">{coach.COACH_NAME}</h4>
-                                 <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mt-1">{coach.COACH_NAME === history.coaches[0].COACH_NAME ? 'Strategic Lead' : 'Tactical Assistant'}</p>
+                                 <p className="text-[10px] font-medium text-blue-500 uppercase tracking-widest mb-1">{coach.COACH_TYPE || 'Staff'}</p>
+                                 <h4 className="text-lg font-medium text-white uppercase  tracking-tighter">{coach.COACH_NAME}</h4>
+                                 <p className="text-[9px] font-medium text-gray-600 uppercase tracking-widest mt-1">{coach.COACH_NAME === history.coaches[0].COACH_NAME ? 'Strategic Lead' : 'Tactical Assistant'}</p>
                               </div>
                            </div>
                         )) : (
                            <div className="col-span-full p-10 bg-white/5 rounded-3xl text-center">
-                              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Historical Staff Data Restricted</p>
+                              <p className="text-[10px] font-medium text-gray-500 uppercase tracking-[0.2em]">Historical Staff Data Restricted</p>
                            </div>
                         )}
                      </div>
@@ -529,12 +529,12 @@ export default function SeasonVault() {
 
 function OverviewCard({ label, value, icon }: any) {
   return (
-    <div className="bg-black/40 border border-white/5 rounded-3xl p-6 text-left group hover:bg-black/70 transition-all border-b-2 border-transparent hover:border-b-orange-500 backdrop-blur-md shadow-lg">
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-3xl p-6 text-left group hover:bg-white dark:bg-zinc-900 transition-all border-b-2 border-transparent hover:border-b-orange-500 backdrop- shadow-none">
        <div className="flex items-center justify-between mb-4">
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">{label}</p>
+          <p className="text-[10px] font-medium text-gray-500 uppercase tracking-[0.3em]">{label}</p>
           <div className="text-orange-500/40 group-hover:text-orange-500 group-hover:scale-125 transition-all duration-500">{icon}</div>
        </div>
-       <p className="text-xl font-black text-white italic uppercase tracking-tighter">{value}</p>
+       <p className="text-xl font-medium text-white  uppercase tracking-tighter">{value}</p>
     </div>
   );
 }
@@ -588,19 +588,19 @@ function ArenaVisual({ image, teamId, teamColor, arenaName, subtle = false }: an
     <div className="w-full h-full relative overflow-hidden" style={{ background: `linear-gradient(135deg, #020617 0%, ${teamColor} 48%, #020617 100%)` }}>
       <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px)', backgroundSize: '42px 42px' }} />
       <div className="absolute inset-0 flex items-center justify-center">
-        <img src={getTeamLogoUrl(teamId)} className="h-1/2 w-1/2 object-contain opacity-30 drop-shadow-[0_24px_60px_rgba(0,0,0,0.8)]" alt={arenaName} />
+        <img src={getTeamLogoUrl(teamId)} className="h-1/2 w-1/2 object-contain opacity-30 drop-shadow-none" alt={arenaName} />
       </div>
-      <div className="absolute top-5 left-5 text-[9px] font-black uppercase tracking-[0.35em] text-white/50">Verified Venue Data</div>
+      <div className="absolute top-5 left-5 text-[9px] font-medium uppercase tracking-[0.35em] text-white/50">Verified Venue Data</div>
     </div>
   );
 }
 
 function ModalStat({ label, value, trend }: any) {
   return (
-    <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] text-center hover:bg-white/10 transition-all group relative overflow-hidden">
-       <div className="absolute top-4 right-6 text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">{trend}</div>
-       <div className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mb-2">{label}</div>
-       <div className="text-4xl font-black text-white italic tracking-tighter drop-shadow-md leading-none">{value}</div>
+    <div className="bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-6 rounded-[2rem] text-center hover:bg-white/10 transition-all group relative overflow-hidden">
+       <div className="absolute top-4 right-6 text-[8px] font-medium text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">{trend}</div>
+       <div className="text-[10px] font-medium text-orange-500 uppercase tracking-[0.2em] mb-2">{label}</div>
+       <div className="text-4xl font-medium text-white  tracking-tighter drop-shadow-none leading-none">{value}</div>
     </div>
   );
 }
@@ -608,16 +608,16 @@ function ModalStat({ label, value, trend }: any) {
 function MetricItem({ label, value }: any) {
   return (
     <div className="text-center group">
-        <div className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1 group-hover:text-orange-500 transition-colors">{label}</div>
-        <div className="text-xl font-black text-white uppercase italic tracking-tighter drop-shadow-sm">{value}</div>
+        <div className="text-[9px] font-medium text-gray-500 uppercase tracking-widest mb-1 group-hover:text-orange-500 transition-colors">{label}</div>
+        <div className="text-xl font-medium text-white uppercase  tracking-tighter drop-shadow-none">{value}</div>
      </div>
   );
 }
 
 function PlayerVaultModal({ player, onClose }: any) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl">
-      <div className="bg-gradient-to-br from-[#0f172a] to-black border border-white/10 rounded-[3rem] w-full max-w-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 relative">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white dark:bg-zinc-900 backdrop-blur-2xl">
+      <div className="bg-zinc-100 dark:bg-zinc-800 from-[#0f172a] to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[3rem] w-full max-w-4xl overflow-hidden shadow-none animate-in zoom-in-95 duration-300 relative">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-orange-500/5 blur-[120px] pointer-events-none" />
         
         <button 
@@ -628,33 +628,33 @@ function PlayerVaultModal({ player, onClose }: any) {
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-12">
-          <div className="md:col-span-5 p-12 bg-white/[0.02] flex flex-col items-center border-r border-white/5">
+          <div className="md:col-span-5 p-12 bg-white/[0.02] flex flex-col items-center border-r border-zinc-200 dark:border-zinc-800 border-[0.5px]">
              <div className="relative mb-8">
                 <div className="absolute -inset-4 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
                 <img 
                   src={getPlayerHeadshotUrl(player.PLAYER_ID)} 
                   alt={player.PLAYER_NAME}
-                  className="w-56 h-72 object-cover rounded-[2rem] border-4 border-white/10 relative z-10 shadow-2xl"
+                  className="w-56 h-72 object-cover rounded-[2rem] border-4 border-zinc-200 dark:border-zinc-800 border-[0.5px] relative z-10 shadow-none"
                 />
-                <div className="absolute -bottom-4 -right-4 bg-orange-600 px-6 py-3 rounded-2xl border-2 border-white/20 z-20 shadow-xl">
-                   <span className="text-4xl font-black text-white italic">#{player.NUM || '--'}</span>
+                <div className="absolute -bottom-4 -right-4 bg-orange-600 px-6 py-3 rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 border-[0.5px] z-20 shadow-none">
+                   <span className="text-4xl font-medium text-white ">#{player.NUM || '--'}</span>
                 </div>
              </div>
              
-             <h3 className="text-3xl md:text-4xl font-black text-white italic tracking-tighter uppercase mb-2 text-center leading-tight break-words max-w-full px-2">{player.PLAYER_NAME}</h3>
+             <h3 className="text-3xl md:text-4xl font-medium text-white  tracking-tighter uppercase mb-2 text-center leading-tight break-words max-w-full px-2">{player.PLAYER_NAME}</h3>
              <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-                <span className="px-4 py-1.5 bg-white/5 rounded-full border border-white/10 text-[10px] font-black text-gray-400 uppercase tracking-widest">{player.POSITION}</span>
-                <span className="px-4 py-1.5 bg-orange-500/10 rounded-full border border-orange-500/20 text-[10px] font-black text-orange-500 uppercase tracking-widest">ACTIVE ROSTER</span>
+                <span className="px-4 py-1.5 bg-white/5 rounded-full border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-[10px] font-medium text-gray-400 uppercase tracking-widest">{player.POSITION}</span>
+                <span className="px-4 py-1.5 bg-orange-500/10 rounded-full border border-orange-500/20 text-[10px] font-medium text-orange-500 uppercase tracking-widest">ACTIVE ROSTER</span>
              </div>
 
              <div className="grid grid-cols-2 gap-4 w-full">
-                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
-                   <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Games Played</p>
-                   <p className="text-xl font-black text-white">{player.GP || '0'}</p>
+                <div className="bg-white/5 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center">
+                   <p className="text-[8px] font-medium text-gray-500 uppercase tracking-widest mb-1">Games Played</p>
+                   <p className="text-xl font-medium text-white">{player.GP || '0'}</p>
                 </div>
-                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
-                   <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Avg Minutes</p>
-                   <p className="text-xl font-black text-white">{player.MIN || '0.0'}</p>
+                <div className="bg-white/5 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center">
+                   <p className="text-[8px] font-medium text-gray-500 uppercase tracking-widest mb-1">Avg Minutes</p>
+                   <p className="text-xl font-medium text-white">{player.MIN || '0.0'}</p>
                 </div>
              </div>
           </div>
@@ -664,7 +664,7 @@ function PlayerVaultModal({ player, onClose }: any) {
                 <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center border border-orange-500/20">
                    <Activity className="text-orange-500" size={20} />
                 </div>
-                <h4 className="text-xl font-black text-white italic uppercase tracking-tight">Historical Performance Profile</h4>
+                <h4 className="text-xl font-medium text-white  uppercase tracking-tight">Historical Performance Profile</h4>
              </div>
 
              <div className="grid grid-cols-3 gap-8 mb-12">
@@ -674,12 +674,12 @@ function PlayerVaultModal({ player, onClose }: any) {
              </div>
 
              <div className="space-y-6">
-                <div className="bg-white/5 p-8 rounded-3xl border border-white/5">
+                <div className="bg-white/5 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px]">
                    <div className="flex items-center justify-between mb-8">
-                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Efficiency Metrics</p>
+                      <p className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">Efficiency Metrics</p>
                       <div className="flex items-center gap-2">
                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                         <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Calculated Real-Time</span>
+                         <span className="text-[9px] font-medium text-emerald-500 uppercase tracking-widest">Calculated Real-Time</span>
                       </div>
                    </div>
                    <div className="grid grid-cols-3 gap-6">
@@ -690,22 +690,22 @@ function PlayerVaultModal({ player, onClose }: any) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
-                   <div className="bg-white/5 p-6 rounded-3xl border border-white/5 flex items-center gap-4">
+                   <div className="bg-white/5 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
                          <Shield className="text-blue-400" size={18} />
                       </div>
                       <div>
-                         <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Defensive Impact</p>
-                         <p className="text-sm font-black text-white italic uppercase">{player.STL || '0.0'} STL / {player.BLK || '0.0'} BLK</p>
+                         <p className="text-[9px] font-medium text-gray-500 uppercase tracking-widest mb-1">Defensive Impact</p>
+                         <p className="text-sm font-medium text-white  uppercase">{player.STL || '0.0'} STL / {player.BLK || '0.0'} BLK</p>
                       </div>
                    </div>
-                   <div className="bg-white/5 p-6 rounded-3xl border border-white/5 flex items-center gap-4">
+                   <div className="bg-white/5 p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
                          <TrendingDown className="text-red-400" size={18} />
                       </div>
                       <div>
-                         <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Turnover Ratio</p>
-                         <p className="text-sm font-black text-white italic uppercase">{player.TOV || '0.0'} TO Per Game</p>
+                         <p className="text-[9px] font-medium text-gray-500 uppercase tracking-widest mb-1">Turnover Ratio</p>
+                         <p className="text-sm font-medium text-white  uppercase">{player.TOV || '0.0'} TO Per Game</p>
                       </div>
                    </div>
                 </div>

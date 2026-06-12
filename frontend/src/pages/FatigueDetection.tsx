@@ -8,6 +8,14 @@ type PlayerFatigue = Player & { fatigue?: PlayerFatigueScore; recent_games?: Pla
 type RiskFilter = 'all' | 'high' | 'medium' | 'low';
 type SortMode = 'risk' | 'minutes' | 'drop' | 'name' | 'points' | 'age' | 'position';
 
+
+const getInitials = (name: string) => {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 export default function FatigueDetection() {
   const [players, setPlayers] = useState<PlayerFatigue[]>([]);
   const [teams, setTeams] = useState<NbaTeam[]>([]);
@@ -124,9 +132,9 @@ export default function FatigueDetection() {
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-white mb-1">Fatigue Detection</h2>
-          <p className="text-sm text-gray-400">Official NBA workload model using recent player game logs, minutes, rest, back-to-backs, and shooting trend changes.</p>
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px]">
+          <h1 className="text-base font-medium text-zinc-900 dark:text-white">Fatigue detection</h1>
+          <p className="text-xs text-zinc-500">Official NBA workload model using recent player stats, rest, and back-to-backs</p>
         </div>
         <div className="text-xs text-gray-500">
           {season && <span>{season}</span>}
@@ -149,7 +157,7 @@ export default function FatigueDetection() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search player, position, or team"
-            className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50 placeholder:text-gray-600"
+            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50 placeholder:text-gray-600"
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -158,7 +166,7 @@ export default function FatigueDetection() {
             onChange={(event) => {
               setTeamFilter(event.target.value === 'all' ? 'all' : Number(event.target.value));
             }}
-            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
           >
             <option value="all">All NBA teams</option>
             {teamOptions.map(team => <option key={team.id} value={team.id}>{team.abbreviation} - {team.full_name}</option>)}
@@ -166,7 +174,7 @@ export default function FatigueDetection() {
           <select
             value={selected ? getPlayerId(selected) : ''}
             onChange={(event) => setSelected(players.find(player => getPlayerId(player) === Number(event.target.value)) ?? null)}
-            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
           >
             {filtered.map(player => <option key={getPlayerId(player)} value={getPlayerId(player)}>{getPlayerName(player)}</option>)}
             {filtered.length === 0 && <option value="">No players</option>}
@@ -176,7 +184,7 @@ export default function FatigueDetection() {
             <select
               value={sortMode}
               onChange={(event) => setSortMode(event.target.value as SortMode)}
-              className="flex-1 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+              className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
             >
               <option value="risk">Sort by risk</option>
               <option value="minutes">Sort by minutes</option>
@@ -192,7 +200,7 @@ export default function FatigueDetection() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-2">
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="text-sm font-medium text-white">
             {filter === 'all' ? 'All Players' : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Risk Players`}
             <span className="text-gray-400 font-normal ml-2">({filtered.length})</span>
           </h3>
@@ -206,7 +214,7 @@ export default function FatigueDetection() {
             />
           ))}
           {filtered.length === 0 && (
-            <div className="text-center py-12 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">
+            <div className="text-center py-12 text-xs text-gray-500 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl">
               No players match this fatigue view
             </div>
           )}
@@ -214,11 +222,11 @@ export default function FatigueDetection() {
 
         {selected && (
           <div ref={detailRef} className="space-y-4">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
               <div className="flex items-center gap-3 mb-4">
                 <PlayerFace player={selected} teamId={selectedTeam?.id ?? Number(selected.TEAM_ID)} sizeClass="w-10 h-10" />
                 <div>
-                  <div className="text-sm font-semibold text-white">{getPlayerName(selected)}</div>
+                  <div className="text-sm font-medium text-white">{getPlayerName(selected)}</div>
                   <div className="text-xs text-gray-400">{selectedTeam?.abbreviation} / {selected.POSITION || 'N/A'}</div>
                 </div>
               </div>
@@ -245,8 +253,8 @@ export default function FatigueDetection() {
               <MicroMetric label="Trend" value={(selected.fatigue?.performance_drop ?? 0) > 8 ? 'Down' : 'Stable'} />
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-              <h4 className="text-sm font-semibold text-white mb-3">Workload Factors</h4>
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+              <h4 className="text-sm font-medium text-white mb-3">Workload Factors</h4>
               <FactorBar label="Minutes Load" value={Math.min(100, Math.round(((selected.fatigue?.minutes_last_3 ?? 0) / 110) * 100))} />
               <FactorBar label="Schedule Stress" value={Math.min(100, Math.round(((selected.fatigue?.games_last_7 ?? 0) / 5) * 100))} />
               <FactorBar label="Efficiency Dip" value={Math.min(100, Math.round((selected.fatigue?.performance_drop ?? 0) * 7))} />
@@ -257,8 +265,8 @@ export default function FatigueDetection() {
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-              <h4 className="text-sm font-semibold text-white mb-3">Fatigue History (7 days)</h4>
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+              <h4 className="text-sm font-medium text-white mb-3">Fatigue History (7 days)</h4>
               <MiniLineChart
                 data={generateFatigueTrend(selected.fatigue?.fatigue_score ?? 40)}
                 color={selected.fatigue?.risk_level === 'high' ? '#ef4444' : selected.fatigue?.risk_level === 'medium' ? '#eab308' : '#22c55e'}
@@ -271,8 +279,8 @@ export default function FatigueDetection() {
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-              <h4 className="text-sm font-semibold text-white mb-2">AI Recommendation</h4>
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+              <h4 className="text-sm font-medium text-white mb-2">AI Recommendation</h4>
               <p className="text-xs text-gray-300 leading-relaxed">
                 {getRecommendation(selected.fatigue?.risk_level ?? 'low', getPlayerName(selected), getMinutesCap(selected))}
               </p>
@@ -294,8 +302,8 @@ function FatigueRow({ player, teams, selected, onClick }: {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-transform duration-200 hover:scale-[1.02] text-left shadow-md hover:shadow-lg ${
-        selected ? 'bg-gray-800 border-orange-500/40' : 'bg-gray-900 border-gray-800 hover:border-gray-700'
+      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-transform duration-200 hover:scale-[1.02] text-left shadow-none hover:shadow-none ${
+        selected ? 'bg-gray-800 border-orange-500/40' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'
       }`}
     >
       <PlayerFace player={player} teamId={team?.id ?? Number(player.TEAM_ID)} sizeClass="w-9 h-9" />
@@ -313,33 +321,30 @@ function FatigueRow({ player, teams, selected, onClick }: {
   );
 }
 
-function FatigueBar({ score, risk }: { score: number; risk: string }) {
-  const color = risk === 'high' ? '#ef4444' : risk === 'medium' ? '#eab308' : '#22c55e';
+
+function FatigueBar({ score }: { score: number }) {
+  const getFillColor = (s: number) => {
+    if (s < 40) return 'bg-green-600';
+    if (s < 70) return 'bg-amber-500';
+    return 'bg-red-500';
+  };
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-2 bg-gray-800 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${score}%`, backgroundColor: color }} />
+      <div className="h-[5px] w-[60px] bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden shrink-0">
+        <div className={`h-full rounded-full transition-all duration-700 ${getFillColor(score)}`} style={{ width: `${score}%` }} />
       </div>
-      <span className="text-xs font-bold w-8 text-right" style={{ color }}>{Math.round(score)}</span>
+      <span className="text-[11px] font-medium w-8 text-right text-zinc-500">{Math.round(score)}</span>
     </div>
   );
 }
 
-function PlayerFace({ player, teamId, sizeClass }: { player: Player; teamId?: number; sizeClass: string }) {
-  const playerId = getPlayerId(player);
-  const name = getPlayerName(player);
+
+
+function PlayerFace({ player }: { player: any }) {
+  const name = player.PLAYER_NAME || player.PLAYER || player.full_name || 'Player';
   return (
-    <div className={`${sizeClass} overflow-hidden rounded-full border border-gray-700 bg-gray-800 flex-shrink-0`}>
-      <img
-        src={getPlayerHeadshotUrl(playerId)}
-        alt={name}
-        className="h-full w-full object-cover object-top scale-125 translate-y-1"
-        onError={(event) => {
-          const img = event.currentTarget;
-          img.src = teamId ? getTeamLogoUrl(teamId) : '/assets/images/nba-6.svg';
-          img.className = 'h-full w-full object-contain p-1.5';
-        }}
-      />
+    <div className="w-7 h-7 rounded-full bg-[#FEF0E8] text-[#C9540A] text-[10px] font-medium flex items-center justify-center shrink-0">
+      {getInitials(name)}
     </div>
   );
 }
@@ -370,7 +375,7 @@ function FatigueGauge({ score }: { score: number }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-2xl font-bold text-white">{Math.round(score)}</div>
+          <div className="text-2xl font-medium text-white">{Math.round(score)}</div>
           <div className="text-xs text-gray-400">Fatigue</div>
         </div>
       </div>
@@ -394,10 +399,10 @@ function RiskButton({ active, icon, value, label, color, onClick }: {
   return (
     <button
       onClick={onClick}
-      className={`bg-gray-900 border rounded-xl p-4 text-center transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg ${active ? border : 'border-gray-800 hover:border-gray-700'}`}
+      className={`bg-white dark:bg-zinc-900 border rounded-xl p-4 text-center transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${active ? border : 'border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}
     >
       {icon}
-      <div className={`text-2xl font-bold ${text}`}>{value}</div>
+      <div className={`text-2xl font-medium ${text}`}>{value}</div>
       <div className="text-xs text-gray-400">{label}</div>
     </button>
   );
@@ -405,9 +410,9 @@ function RiskButton({ active, icon, value, label, color, onClick }: {
 
 function MetricCard({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 text-center">
       {icon}
-      <div className="text-2xl font-bold text-white">{value}</div>
+      <div className="text-2xl font-medium text-white">{value}</div>
       <div className="text-xs text-gray-400">{label}</div>
     </div>
   );
@@ -459,8 +464,8 @@ function getQuarterRisk(score: number): string {
 
 function MicroMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
-      <div className="text-sm font-bold text-white">{value}</div>
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-3 text-center">
+      <div className="text-sm font-medium text-white">{value}</div>
       <div className="text-[10px] text-gray-500">{label}</div>
     </div>
   );

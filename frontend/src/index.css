@@ -4,35 +4,42 @@
 
 @layer base {
   :root {
-    --bg-main: #000000;
-    --bg-side: #050505;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-main: #232323;
-    --surface: rgba(12, 12, 12, 0.86);
-    --surface-strong: rgba(8, 8, 8, 0.96);
-    --surface-muted: rgba(255, 255, 255, 0.06);
-    --accent: #f97316;
-    --accent-strong: #fdba74;
-    --accent-soft: rgba(249, 115, 22, 0.16);
-    --shadow: 0 20px 70px rgba(0, 0, 0, 0.38);
-    color-scheme: dark;
+    --bg-main: #ffffff;
+    --bg-side: #f9fafb; /* zinc-50 */
+    --text-main: #18181b; /* zinc-900 */
+    --text-muted: #71717a; /* zinc-500 */
+    --border-main: #e4e4e7; /* zinc-200 */
+    --surface: #ffffff;
+    --surface-strong: #ffffff;
+    --surface-muted: #f4f4f5; /* zinc-100 */
+    
+    --nba-navy: #0A1628;
+    --nba-navy-mid: #1A2E4A;
+    --nba-orange: #C9540A;
+    --nba-orange-light: #FEF0E8;
+    
+    --accent: var(--nba-orange);
+    --accent-strong: var(--nba-orange);
+    --accent-soft: var(--nba-orange-light);
+    --shadow: none;
+    color-scheme: light;
   }
 
-  [data-theme="light"] {
-    --bg-main: #ffffff;
-    --bg-side: #ffffff;
-    --text-main: #111827;
-    --text-muted: #64748b;
-    --border-main: #e5e7eb;
-    --surface: rgba(255, 255, 255, 0.94);
-    --surface-strong: rgba(255, 255, 255, 1);
-    --surface-muted: rgba(15, 23, 42, 0.05);
-    --accent: #ea580c;
-    --accent-strong: #c2410c;
-    --accent-soft: rgba(234, 88, 12, 0.1);
-    --shadow: 0 25px 80px rgba(15, 23, 42, 0.08);
-    color-scheme: light;
+  [data-theme="dark"] {
+    --bg-main: #18181b; /* zinc-900 */
+    --bg-side: #18181b; /* zinc-900 */
+    --text-main: #f4f4f5; /* zinc-100 */
+    --text-muted: #a1a1aa; /* zinc-400 */
+    --border-main: #27272a; /* zinc-800 */
+    --surface: #18181b;
+    --surface-strong: #18181b;
+    --surface-muted: #27272a;
+    
+    --accent: var(--nba-orange);
+    --accent-strong: var(--nba-orange);
+    --accent-soft: rgba(201, 84, 10, 0.15);
+    --shadow: none;
+    color-scheme: dark;
   }
 
   html {
@@ -44,7 +51,6 @@
     min-height: 100vh;
     overflow-x: hidden;
     background-color: var(--bg-main);
-    background-image: none;
     color: var(--text-main);
     font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -69,171 +75,30 @@
     height: auto;
   }
 
-  [data-theme="light"] body {
-    background-image: none;
-  }
-
   #root {
     min-width: 0;
     overflow-x: clip;
   }
 
-  [class*="bg-gray-950"],
-  [class*="bg-gray-900"],
-  [class*="bg-slate-950"],
-  [class*="bg-slate-900"] {
-    background-color: rgba(7, 13, 29, 0.86);
+  /* Flat Premium Styles */
+  .surface-card {
+    background: var(--bg-main);
+    border: 0.5px solid var(--border-main);
+    border-radius: 0.75rem;
   }
 
-  [class*="bg-gray-900/"],
-  [class*="bg-gray-800/"],
-  [class*="bg-slate-950/"],
-  [class*="bg-slate-900/"] {
-    background-color: rgba(7, 13, 29, 0.72);
+  .glass-panel {
+    background: var(--bg-main);
+    border: 0.5px solid var(--border-main);
+    border-radius: 0.75rem;
   }
 
-  [class*="bg-gray-800"] {
-    background-color: rgba(15, 23, 42, 0.92);
-  }
-
-  [class*="border-gray-900"],
-  [class*="border-gray-800"],
-  [class*="border-slate-900"],
-  [class*="border-slate-800"],
-  [class*="border-white/10"] {
-    border-color: rgba(55, 65, 89, 0.72);
-  }
-
-  [class*="rounded-xl"],
-  [class*="rounded-2xl"],
-  [class*="rounded-3xl"] {
-    border-radius: 1.5rem;
-  }
-
-  .light [class*="bg-gray-950"],
-  .light [class*="bg-gray-900"],
-  .light [class*="bg-gray-800"],
-  .light [class*="bg-slate-950"],
-  .light [class*="bg-slate-900"],
-  .light [class*="bg-black"] {
-    background-color: #f8fafc !important;
-    background-image: none !important;
-  }
-
-  .light [class*="bg-gray-900/"],
-  .light [class*="bg-gray-800/"],
-  .light [class*="bg-slate-950/"],
-  .light [class*="bg-slate-900/"] {
-    background-color: rgba(241, 245, 249, 0.84) !important;
-    background-image: none !important;
-  }
-
-  .light [class*="border-gray-900"],
-  .light [class*="border-gray-800"],
-  .light [class*="border-slate-900"],
-  .light [class*="border-slate-800"] {
-    border-color: #e2e8f0 !important;
-  }
-
-  .light [class*="text-white"],
-  .light [class*="text-gray-100"],
-  .light [class*="text-gray-200"],
-  .light [class*="text-gray-300"] {
-    color: #0f172a !important;
-  }
-
-  .light [class*="text-gray-400"] {
-    color: #475569 !important;
-  }
-
-  .light [class*="shadow-black"],
-  .light [class*="shadow-slate-950"],
-  .light [class*="shadow-slate-900"] {
-    box-shadow: 0 18px 65px rgba(15, 23, 42, 0.08) !important;
-  }
-
-  .light [class*="hover:bg-gray-900"],
-  .light [class*="hover:bg-gray-800"],
-  .light [class*="hover:bg-slate-950"],
-  .light [class*="hover:bg-slate-900"] {
-    background-color: #e2e8f0 !important;
-  }
-
-  .light [class*="hover:text-white"] {
-    color: #0f172a !important;
-  }
-
-  [data-theme="dark"] [class*="bg-gray-950"],
-  [data-theme="dark"] [class*="bg-gray-900"],
-  [data-theme="dark"] [class*="bg-gray-800"],
-  [data-theme="dark"] [class*="bg-slate-950"],
-  [data-theme="dark"] [class*="bg-slate-900"],
-  [data-theme="dark"] [class*="bg-black"] {
-    background-color: var(--surface) !important;
-    background-image: none !important;
-  }
-
-  [data-theme="dark"] [class*="border-white/5"],
-  [data-theme="dark"] [class*="border-white/10"],
-  [data-theme="dark"] [class*="border-gray-800"],
-  [data-theme="dark"] [class*="border-slate-800"] {
+  input,
+  select,
+  textarea {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
     border-color: var(--border-main) !important;
-  }
-
-  [data-theme="light"] [class*="bg-gray-950"],
-  [data-theme="light"] [class*="bg-gray-900"],
-  [data-theme="light"] [class*="bg-gray-800"],
-  [data-theme="light"] [class*="bg-slate-950"],
-  [data-theme="light"] [class*="bg-slate-900"],
-  [data-theme="light"] [class*="bg-black"] {
-    background-color: #ffffff !important;
-    background-image: none !important;
-  }
-
-  [data-theme="light"] [class*="bg-gray-900/"],
-  [data-theme="light"] [class*="bg-gray-800/"],
-  [data-theme="light"] [class*="bg-slate-950/"],
-  [data-theme="light"] [class*="bg-slate-900/"],
-  [data-theme="light"] [class*="bg-black/"] {
-    background-color: #ffffff !important;
-    background-image: none !important;
-  }
-
-  [data-theme="light"] [class*="border-white/5"],
-  [data-theme="light"] [class*="border-white/10"],
-  [data-theme="light"] [class*="border-white/20"],
-  [data-theme="light"] [class*="border-gray-800"],
-  [data-theme="light"] [class*="border-slate-800"] {
-    border-color: #e5e7eb !important;
-  }
-
-  [data-theme="light"] [class*="text-white"],
-  [data-theme="light"] [class*="text-gray-100"],
-  [data-theme="light"] [class*="text-gray-200"],
-  [data-theme="light"] [class*="text-gray-300"] {
-    color: #111827 !important;
-  }
-
-  [data-theme="light"] [class*="text-gray-400"],
-  [data-theme="light"] [class*="text-gray-500"],
-  [data-theme="light"] [class*="text-gray-600"] {
-    color: #64748b !important;
-  }
-
-  [data-theme="light"] input,
-  [data-theme="light"] select,
-  [data-theme="light"] textarea {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-    border-color: #e5e7eb !important;
-  }
-
-  [data-theme="dark"] input,
-  [data-theme="dark"] select,
-  [data-theme="dark"] textarea {
-    background-color: #050505 !important;
-    color: #f8fafc !important;
-    border-color: #232323 !important;
   }
 
   ::-webkit-scrollbar {

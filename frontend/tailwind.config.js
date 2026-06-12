@@ -3,7 +3,14 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'nba-navy': '#0A1628',
+        'nba-navy-mid': '#1A2E4A',
+        'nba-orange': '#C9540A',
+        'nba-orange-light': '#FEF0E8',
+      },
+    },
   },
   plugins: [],
   safelist: [

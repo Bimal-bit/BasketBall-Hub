@@ -70,36 +70,36 @@ export default function HistoricalGameArchive() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-white mb-1">Historical Game Archive</h2>
-          <p className="text-sm text-gray-400">Official NBA game logs, searchable by season, team, and season type from `nba_api`.</p>
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] mb-4">
+          <h1 className="text-base font-medium text-zinc-900 dark:text-white">Season archive</h1>
+          <p className="text-xs text-zinc-500">Official NBA game logs, searchable by season, team, and season type</p>
         </div>
         <div className="relative w-full lg:w-80">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search games or teams" className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50" />
+          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search games or teams" className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <select value={season} onChange={event => setSeason(event.target.value)} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
+        <select value={season} onChange={event => setSeason(event.target.value)} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
           {SEASONS.map(item => <option key={item} value={item}>{item}</option>)}
         </select>
-        <select value={seasonType} onChange={event => setSeasonType(event.target.value)} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
+        <select value={seasonType} onChange={event => setSeasonType(event.target.value)} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
           <option value="Regular Season">Regular Season</option>
           <option value="Playoffs">Playoffs</option>
           <option value="Pre Season">Preseason</option>
         </select>
-        <select value={teamId} onChange={event => setTeamId(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
+        <select value={teamId} onChange={event => setTeamId(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
           <option value="all">All teams</option>
           {teams.map(team => <option key={team.id} value={team.id}>{team.abbreviation} - {team.full_name}</option>)}
         </select>
-        <select value={limit} onChange={event => setLimit(Number(event.target.value))} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
+        <select value={limit} onChange={event => setLimit(Number(event.target.value))} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
           <option value={100}>Latest 100 games</option>
           <option value={500}>Latest 500 games</option>
           <option value={1230}>All season games</option>
           <option value={2000}>Full archive</option>
         </select>
-        <select value={sortMode} onChange={event => setSortMode(event.target.value as SortMode)} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 sm:col-span-2 lg:col-span-1">
+        <select value={sortMode} onChange={event => setSortMode(event.target.value as SortMode)} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 sm:col-span-2 lg:col-span-1">
           <option value="date">Sort by newest</option>
           <option value="score">Sort by total score</option>
           <option value="margin">Sort by closest</option>
@@ -110,37 +110,37 @@ export default function HistoricalGameArchive() {
       <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-5">
         <div className="space-y-2">
           <div className="text-xs text-gray-400">Loaded {games.length} records{limit >= 1230 ? ' (full season archive)' : ''}</div>
-          {loading && <div className="text-center py-10 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">Loading official games...</div>}
+          {loading && <div className="text-center py-10 text-xs text-gray-500 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl">Loading official games...</div>}
           {!loading && filtered.map(game => (
-            <button key={game.GAME_ID} onClick={() => setSelectedId(game.GAME_ID)} className={`w-full text-left rounded-xl border p-4 transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg ${selected?.GAME_ID === game.GAME_ID ? 'bg-gray-800 border-orange-500/40 shadow-orange-500/5' : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}>
+            <button key={game.GAME_ID} onClick={() => setSelectedId(game.GAME_ID)} className={`w-full text-left rounded-xl border p-4 transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${selected?.GAME_ID === game.GAME_ID ? 'bg-gray-800 border-orange-500/40 shadow-none' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}>
               <div className="flex items-center justify-between gap-3 mb-2">
-                <div className="text-sm font-semibold text-white truncate">{getMatchup(game)}</div>
+                <div className="text-sm font-medium text-white truncate">{getMatchup(game)}</div>
                 {getMargin(game) <= 5 && <Clock size={13} className="text-orange-400 flex-shrink-0" />}
               </div>
               <div className="text-xs text-gray-400">{game.STAGE ?? seasonType}</div>
               <div className="mt-2 flex items-center justify-between text-xs">
                 <span className="text-gray-500">{formatDate(game.GAME_DATE)}</span>
-                <span className="font-bold text-white">{formatScore(game)}</span>
+                <span className="font-medium text-white">{formatScore(game)}</span>
               </div>
             </button>
           ))}
-          {!loading && filtered.length === 0 && <div className="text-center py-10 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">No official games match this archive view</div>}
+          {!loading && filtered.length === 0 && <div className="text-center py-10 text-xs text-gray-500 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl">No official games match this archive view</div>}
         </div>
 
         <div className="space-y-4">
           {selected ? (
             <>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-5">
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-5">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <History size={16} className="text-orange-400" />
-                      <h3 className="text-xl font-black text-white">{getMatchup(selected)}</h3>
+                      <h3 className="text-xl font-medium text-white">{getMatchup(selected)}</h3>
                     </div>
                     <p className="text-sm text-gray-400">{selected.STAGE ?? seasonType} / Game ID {selected.GAME_ID}</p>
                   </div>
                   <div className="text-left lg:text-right">
-                    <div className="text-2xl font-black text-white">{formatScore(selected)}</div>
+                    <div className="text-2xl font-medium text-white">{formatScore(selected)}</div>
                     <div className="text-xs text-gray-500">{season}</div>
                   </div>
                 </div>
@@ -153,8 +153,8 @@ export default function HistoricalGameArchive() {
                 </div>
               </div>
 
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2"><Award size={14} className="text-yellow-400" />Official Boxscore Leaders</h4>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+                <h4 className="text-sm font-medium text-white mb-3 flex items-center gap-2"><Award size={14} className="text-yellow-400" />Official Boxscore Leaders</h4>
                 <div className="space-y-2">
                   {topPerformers.map(player => (
                     <div key={player.PLAYER_ID} className="grid grid-cols-[1fr_44px_44px_44px] gap-2 rounded-lg bg-gray-800/40 p-3 items-center">
@@ -172,7 +172,7 @@ export default function HistoricalGameArchive() {
               </div>
             </>
           ) : (
-            <div className="text-center py-12 text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">Select a game to inspect the official archive entry</div>
+            <div className="text-center py-12 text-gray-500 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl">Select a game to inspect the official archive entry</div>
           )}
         </div>
       </div>
@@ -181,11 +181,11 @@ export default function HistoricalGameArchive() {
 }
 
 function ArchiveMetric({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return <div className="bg-gray-800/50 rounded-lg p-3 text-center">{icon}<div className="text-xs font-bold text-white truncate">{value}</div><div className="text-[10px] text-gray-500">{label}</div></div>;
+  return <div className="bg-gray-800/50 rounded-lg p-3 text-center">{icon}<div className="text-xs font-medium text-white truncate">{value}</div><div className="text-[10px] text-gray-500">{label}</div></div>;
 }
 
 function StatBox({ value, label }: { value: number; label: string }) {
-  return <div className="text-center"><div className="text-sm font-bold text-white">{value}</div><div className="text-[9px] text-gray-500">{label}</div></div>;
+  return <div className="text-center"><div className="text-sm font-medium text-white">{value}</div><div className="text-[9px] text-gray-500">{label}</div></div>;
 }
 
 function getMatchup(game: ArchiveGame) {

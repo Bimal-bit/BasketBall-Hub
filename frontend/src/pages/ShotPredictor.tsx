@@ -121,14 +121,14 @@ export default function ShotPredictor() {
 
   return (
     <div className="w-full space-y-6">
-      <div>
-        <h2 className="text-lg font-bold text-white mb-1">Shot Predictor</h2>
-        <p className="text-sm text-gray-400">Official NBA API player logs and shot charts, with contest-adjusted probability from real shooting history.</p>
+      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] mb-4">
+        <h1 className="text-base font-medium text-zinc-900 dark:text-white">Shot tools</h1>
+        <p className="text-xs text-zinc-500">Official NBA API player logs and shot charts, with probability estimation</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 shadow-none">
             <label className="text-xs font-medium text-gray-400 block mb-2">Find Player</label>
             <div className="relative mb-3">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -136,13 +136,13 @@ export default function ShotPredictor() {
                 value={search}
                 onChange={event => setSearch(event.target.value)}
                 placeholder="Search active NBA players"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full bg-gray-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500"
               />
             </div>
             <select
               value={selectedPlayer?.id ?? ''}
               onChange={event => setSelectedPlayer(players.find(player => player.id === Number(event.target.value)) ?? null)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
+              className="w-full bg-gray-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
             >
               {!selectedPlayer && <option value="">Select player</option>}
               {filteredPlayers.map(player => (
@@ -151,13 +151,13 @@ export default function ShotPredictor() {
             </select>
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4 shadow-md">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 space-y-4 shadow-none">
             <div>
               <label className="text-xs font-medium text-gray-400 block mb-2">Season</label>
               <select
                 value={season}
                 onChange={event => setSeason(event.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
+                className="w-full bg-gray-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
               >
                 {buildRecentSeasons().map(value => <option key={value} value={value}>{value}</option>)}
               </select>
@@ -167,7 +167,7 @@ export default function ShotPredictor() {
               <select
                 value={selectedGameId}
                 onChange={event => setSelectedGameId(event.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
+                className="w-full bg-gray-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
               >
                 {games.map(game => (
                   <option key={game.GAME_ID} value={game.GAME_ID}>{game.GAME_DATE} - {game.MATCHUP}</option>
@@ -177,10 +177,10 @@ export default function ShotPredictor() {
             </div>
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4 shadow-md">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 space-y-4 shadow-none">
             <div className="flex items-center gap-2">
               <Sliders size={14} className="text-orange-400" />
-              <span className="text-sm font-semibold text-white">Shot Context</span>
+              <span className="text-sm font-medium text-white">Shot Context</span>
             </div>
             <div>
               <div className="flex justify-between text-xs mb-2">
@@ -194,7 +194,7 @@ export default function ShotPredictor() {
               <select
                 value={selectedZone}
                 onChange={event => setSelectedZone(event.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
+                className="w-full bg-gray-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
               >
                 {SHOT_ZONES.map(zone => <option key={zone} value={zone}>{zone}</option>)}
               </select>
@@ -204,7 +204,7 @@ export default function ShotPredictor() {
               <select
                 value={shotType}
                 onChange={event => setShotType(event.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
+                className="w-full bg-gray-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-500"
               >
                 {SHOT_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
               </select>
@@ -229,13 +229,13 @@ export default function ShotPredictor() {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 text-center shadow-md hover:scale-[1.02] transition-all duration-200 hover:shadow-lg">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-5 text-center shadow-none hover:scale-[1.02] transition-all duration-200 hover:shadow-none">
             {loadingPlayer ? (
               <div className="py-16 flex justify-center"><BasketballLoader /></div>
             ) : (
               <>
                 <div className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Contest-Adjusted Probability</div>
-                <div className={`text-6xl font-black mb-2 ${prediction >= 60 ? 'text-green-400' : prediction >= 45 ? 'text-yellow-400' : 'text-red-400'}`}>{prediction.toFixed(1)}%</div>
+                <div className={`text-6xl font-medium mb-2 ${prediction >= 60 ? 'text-green-400' : prediction >= 45 ? 'text-yellow-400' : 'text-red-400'}`}>{prediction.toFixed(1)}%</div>
                 <div className="text-sm text-gray-400">{selectedZone} baseline: {baselinePct.toFixed(1)}%</div>
                 <div className="mt-4 h-3 bg-gray-800 rounded-full overflow-hidden">
                   <div className={`h-full rounded-full transition-all duration-500 ${prediction >= 60 ? 'bg-green-500' : prediction >= 45 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${prediction}%` }} />
@@ -244,8 +244,8 @@ export default function ShotPredictor() {
             )}
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
-            <h3 className="text-sm font-semibold text-white mb-3">Official Context</h3>
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 shadow-none">
+            <h3 className="text-sm font-medium text-white mb-3">Official Context</h3>
             <div className="space-y-2 text-sm">
               <ContextRow label="Player" value={selectedPlayer?.full_name ?? '--'} />
               <ContextRow label="Season FG%" value={`${normalizePct(averages?.FG_PCT).toFixed(1)}%`} />
@@ -259,8 +259,8 @@ export default function ShotPredictor() {
         </div>
 
         <div className="space-y-4 md:col-span-2 lg:col-span-1">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
-            <h3 className="text-sm font-semibold text-white mb-3">Official Shot Chart</h3>
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 shadow-none">
+            <h3 className="text-sm font-medium text-white mb-3">Official Shot Chart</h3>
             {shots.length > 0 ? (
               <ShotChart shots={chartShots} compact />
             ) : (
@@ -268,12 +268,12 @@ export default function ShotPredictor() {
             )}
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
-            <h3 className="text-sm font-semibold text-white mb-3">Zone Results</h3>
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 shadow-none">
+            <h3 className="text-sm font-medium text-white mb-3">Zone Results</h3>
             <div className="space-y-2">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 gap-2 mb-3">
                 {SHOT_ZONES.map(zone => (
-                  <button key={zone} onClick={() => setSelectedZone(zone)} className={`rounded-lg border px-2 py-1.5 text-[10px] text-left transition-all duration-200 hover:scale-[1.02] ${selectedZone === zone ? 'border-orange-500/50 bg-orange-500/10 text-orange-200' : 'border-gray-800 bg-gray-800/30 text-gray-400 hover:border-gray-700'}`}>
+                  <button key={zone} onClick={() => setSelectedZone(zone)} className={`rounded-lg border px-2 py-1.5 text-[10px] text-left transition-all duration-200 hover:scale-[1.02] ${selectedZone === zone ? 'border-orange-500/50 bg-orange-500/10 text-orange-200' : 'border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-gray-800/30 text-gray-400 hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}>
                     {zone}
                   </button>
                 ))}
@@ -295,8 +295,8 @@ export default function ShotPredictor() {
         </div>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2"><Target size={14} className="text-orange-400" />Data Source</h3>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+        <h3 className="text-sm font-medium text-white mb-4 flex items-center gap-2"><Target size={14} className="text-orange-400" />Data Source</h3>
         <p className="text-xs text-gray-400 leading-relaxed">
           Player lists, game logs, season averages, and shot locations are pulled through the local backend from `nba_api` / stats.nba.com. The only modeled value is the displayed contest adjustment, which starts from the official zone or season shooting percentage.
         </p>
@@ -412,7 +412,7 @@ function buildRecentSeasons() {
 
 function ContextRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between items-center py-1 border-b border-gray-800/50">
+    <div className="flex justify-between items-center py-1 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px]/50">
       <span className="text-xs text-gray-400">{label}</span>
       <span className="text-xs font-medium text-white">{value}</span>
     </div>

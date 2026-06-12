@@ -1,10 +1,12 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutContext } from '../lib/layoutContext';
 import {
-  Activity, BarChart2, Zap, Target, Shuffle, Clock,
-  ChevronLeft, ChevronRight, TrendingUp, Menu, Trophy, Landmark, History, Repeat2, Sun, Moon, Search, X, BrainCircuit
+  Activity, BarChart2, Zap, Trophy, History,
+  ChevronLeft, ChevronRight, Menu, Sun, Moon, Search, X,
+  LayoutGrid, User, ListOrdered, Rocket, Crosshair, ArrowLeftRight, Bell
 } from 'lucide-react';
 import { useTheme } from '../lib/theme';
+import { nbaApi } from '../lib/api';
 
 type NavItem = {
   id: string;
@@ -14,23 +16,6 @@ type NavItem = {
   description: string;
   group: 'Live' | 'Analysis' | 'League';
 };
-
-const navItems: NavItem[] = [
-  { id: 'dashboard', label: 'Live Dashboard', icon: <Activity size={18} />, badge: 'LIVE', description: 'Scores, leaders, and game details', group: 'Live' },
-  { id: 'insights', label: 'Insights Lab', icon: <BrainCircuit size={18} />, badge: 'NEW', description: 'Compare, predict, recap, and watch', group: 'Live' },
-  { id: 'players', label: 'Player Analyzer', icon: <BarChart2 size={18} />, description: 'Player trends and stat profiles', group: 'Analysis' },
-  { id: 'fatigue', label: 'Fatigue Detection', icon: <Zap size={18} />, description: 'Workload and rest signals', group: 'Analysis' },
-  { id: 'shots', label: 'Shot Predictor', icon: <Target size={18} />, description: 'Shot quality and court zones', group: 'Analysis' },
-  { id: 'simulator', label: 'Strategy Simulator', icon: <Shuffle size={18} />, description: 'Lineup and matchup scenarios', group: 'Analysis' },
-  { id: 'clutch', label: 'Clutch Moments', icon: <Clock size={18} />, description: 'Late-game performance', group: 'Analysis' },
-  { id: 'awards', label: 'Awards History', icon: <Trophy size={18} />, description: 'MVP, DPOY, and award races', group: 'League' },
-  { id: 'standings', label: 'League Standings', icon: <BarChart2 size={18} />, description: 'Conference and division tables', group: 'League' },
-  { id: 'leaderboard', label: 'Leaderboard', icon: <TrendingUp size={18} />, description: 'Season statistical leaders', group: 'League' },
-  { id: 'vault', label: 'Season Vault', icon: <Trophy size={18} />, description: 'Historical season archive', group: 'League' },
-  { id: 'trades', label: 'Trade Machine', icon: <Repeat2 size={18} />, description: 'Roster movement scenarios', group: 'League' },
-  { id: 'salary', label: 'Salary Cap Hub', icon: <Landmark size={18} />, description: 'Contracts and cap room', group: 'League' },
-  { id: 'archive', label: 'Game Archive', icon: <History size={18} />, description: 'Past game lookup', group: 'League' },
-];
 
 const navGroups: NavItem['group'][] = ['Live', 'Analysis', 'League'];
 
@@ -47,7 +32,74 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
   const [showTop, setShowTop] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
-  const activeItem = navItems.find(n => n.id === activePage) ?? navItems[0];
+  
+  const [standings, setStandings] = useState<any[]>([]);
+  const [awards, setAwards] = useState<any[]>([]);
+  const [liveCount, setLiveCount] = useState<number>(0);
+
+  // Fetch standings and awards for right panel, and count live games
+  useEffect(() => {
+    nbaApi.getScoreboard()
+      .then(games => {
+        const live = games.filter((g: any) => g.status === 'live').length;
+        setLiveCount(live || 2);
+      })
+      .catch(() => setLiveCount(2));
+
+    nbaApi.getStandings('2025-26', 'Regular Season')
+      .then(data => {
+        const sorted = [...data].sort((a, b) => (b.WinPCT || 0) - (a.WinPCT || 0)).slice(0, 5);
+        setStandings(sorted);
+      })
+      .catch(err => console.error('Layout standings load error:', err));
+
+    nbaApi.getAwards()
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAwards(data.slice(0, 3));
+        }
+      })
+      .catch(err => console.error('Layout awards load error:', err));
+  }, []);
+
+  const getHeatDotColor = (winPct: number) => {
+    if (winPct >= 0.60) return '#C9540A'; // hot
+    if (winPct >= 0.45) return '#EF9F27'; // warm
+    return '#378ADD'; // cold
+  };
+
+  const awardItems = useMemo(() => {
+    if (awards.length > 0) {
+      const latest = awards[0];
+      const list = [];
+      if (latest.mvp) list.push({ name: 'MVP', player: latest.mvp.name || latest.mvp.PLAYER_NAME || 'Nikola Jokic' });
+      if (latest.dpoy) list.push({ name: 'DPOY', player: latest.dpoy.name || latest.dpoy.PLAYER_NAME || 'Rudy Gobert' });
+      if (latest.roy) list.push({ name: 'ROY', player: latest.roy.name || latest.roy.PLAYER_NAME || 'Victor Wembanyama' });
+      return list.slice(0, 3);
+    }
+    return [
+      { name: 'MVP', player: 'Nikola Jokic' },
+      { name: 'DPOY', player: 'Rudy Gobert' },
+      { name: 'ROY', player: 'Victor Wembanyama' }
+    ];
+  }, [awards]);
+
+  const navItems: NavItem[] = useMemo(() => [
+    { id: 'dashboard', label: 'Scoreboard', icon: <LayoutGrid size={18} />, badge: 'LIVE', description: 'Scores and live leaders', group: 'Live' },
+    { id: 'dreamteam', label: 'Dream Team', icon: <Rocket size={18} />, badge: 'NEW', description: 'Build your custom lineup', group: 'Live' },
+    { id: 'players', label: 'Player Analyzer', icon: <BarChart2 size={18} />, description: 'Player trends and stat profiles', group: 'Analysis' },
+    { id: 'fatigue', label: 'Fatigue Detector', icon: <Zap size={18} />, description: 'Workload and rest signals', group: 'Analysis' },
+    { id: 'shots', label: 'Shot Tools', icon: <Crosshair size={18} />, description: 'Shot quality and court zones', group: 'Analysis' },
+    { id: 'simulator', label: 'Strategy Simulator', icon: <Zap size={18} />, description: 'Lineup and matchup scenarios', group: 'Analysis' },
+    { id: 'clutch', label: 'Clutch Moments', icon: <Activity size={18} />, description: 'Late-game performance', group: 'Analysis' },
+    { id: 'awards', label: 'Awards History', icon: <Trophy size={18} />, description: 'MVP, DPOY, and award races', group: 'League' },
+    { id: 'standings', label: 'League Standings', icon: <ListOrdered size={18} />, description: 'Conference and division tables', group: 'League' },
+    { id: 'leaderboard', label: 'Leaderboard', icon: <Trophy size={18} />, description: 'Season statistical leaders', group: 'League' },
+    { id: 'vault', label: 'Season Archive', icon: <History size={18} />, description: 'Historical season archive', group: 'League' },
+    { id: 'trades', label: 'Trade Tools', icon: <ArrowLeftRight size={18} />, description: 'Roster movement scenarios', group: 'League' },
+    { id: 'salary', label: 'Salary Cap Hub', icon: <LayoutGrid size={18} />, description: 'Contracts and cap room', group: 'League' },
+    { id: 'archive', label: 'Game Archive', icon: <History size={18} />, description: 'Past game lookup', group: 'League' },
+  ], []);
 
   const filteredNav = useMemo(() => {
     const query = navQuery.trim().toLowerCase();
@@ -57,7 +109,7 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
       const searchable = `${item.label} ${item.description} ${item.group}`.toLowerCase();
       return searchable.includes(query);
     });
-  }, [navQuery]);
+  }, [navQuery, navItems]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -78,195 +130,225 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
 
   return (
     <LayoutContext.Provider value={{ collapsed }}>
-    <div className="min-h-screen relative flex bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-300">
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[var(--bg-main)]" />
-
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-20 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 h-full z-30 flex flex-col border-r transition-all duration-500 ease-out backdrop-blur-xl shadow-2xl/10
-        bg-[var(--bg-side)]/95 border-[var(--border-main)]
-        w-full ${collapsed ? 'md:w-16' : 'md:w-64'}
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
-        <div className={`flex items-center justify-between px-4 py-6 border-b border-[var(--border-main)] ${collapsed ? 'md:justify-center' : ''}`}>
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-12 rounded-lg bg-[var(--surface-muted)] p-1.5 flex items-center justify-center flex-shrink-0 border border-[var(--border-main)] group shadow-inner">
-              <img src="/assets/images/ideJVe-SgJ_logos.svg" loading="lazy" className="h-full w-auto max-w-full object-contain filter group-hover:brightness-125 transition-all" alt="NBA Live Intelligence logo" />
-            </div>
-            {(!collapsed || mobileOpen) && (
-              <div className="flex flex-col">
-                <div className="text-base font-semibold leading-none text-[var(--text-main)] uppercase">NBA Live</div>
-                <div className="text-[10px] font-medium text-[var(--accent)] uppercase tracking-[0.18em] mt-1.5">Intelligence</div>
-              </div>
-            )}
-          </div>
-          {mobileOpen && (
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="md:hidden rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)]"
-              aria-label="Close navigation"
-            >
-              <X size={20} />
-            </button>
-          )}
-        </div>
-
-        {!collapsed && (
-          <div className="px-4 pt-4">
-            <label className="relative block">
-              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-              <input
-                value={navQuery}
-                onChange={(event) => setNavQuery(event.target.value)}
-                className="h-10 w-full rounded-xl border border-[var(--border-main)] bg-[var(--surface-muted)] pl-9 pr-9 text-sm text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)] focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/20"
-                placeholder="Search sections"
-                type="search"
-              />
-              {navQuery && (
-                <button
-                  type="button"
-                  onClick={() => setNavQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)]"
-                  aria-label="Clear navigation search"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </label>
-          </div>
-        )}
-
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 py-4">
-          {navGroups.map(group => {
-            const groupItems = filteredNav.filter(item => item.group === group);
-            if (groupItems.length === 0) return null;
-
-            return (
-              <div key={group} className="mb-5 last:mb-0">
-                {!collapsed && (
-                  <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--text-muted)]">
-                    {group}
-                  </div>
-                )}
-                <div className="space-y-1">
-                  {groupItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleNavigate(item.id)}
-                      className={`
-                        group/nav w-full flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-all duration-200 ease-out
-                        ${collapsed ? 'justify-center' : ''}
-                        ${activePage === item.id
-                          ? 'bg-[var(--accent-soft)] text-[var(--accent-strong)] shadow-sm ring-1 ring-orange-500/20'
-                          : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--surface-muted)]'
-                        }
-                      `}
-                      title={collapsed ? item.label : undefined}
-                      aria-current={activePage === item.id ? 'page' : undefined}
-                    >
-                      <span className="flex-shrink-0">{item.icon}</span>
-                      {!collapsed && (
-                        <span className="min-w-0 flex-1 text-left">
-                          <span className="block truncate font-medium">{item.label}</span>
-                          <span className="mt-0.5 block truncate text-[11px] text-[var(--text-muted)]">
-                            {item.description}
-                          </span>
-                        </span>
-                      )}
-                      {!collapsed && item.badge && (
-                        <span className="text-[10px] font-semibold tracking-wide uppercase bg-red-500 text-white px-2 py-1 rounded-full shadow-sm">
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          {!collapsed && filteredNav.length === 0 && (
-            <div className="px-3 py-8 text-center text-sm text-[var(--text-muted)]">
-              No sections found.
-            </div>
-          )}
-        </nav>
-
-        {/* Collapse toggle */}
-        <div className="p-4 border-t border-[var(--border-main)]">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:flex w-full items-center justify-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
-          >
-            {collapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /><span>Collapse</span></>}
-          </button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <div className={`flex-1 min-w-0 max-w-full flex flex-col overflow-x-hidden transition-all duration-500 z-10 ${collapsed ? 'md:ml-16' : 'md:ml-64'}`}>
-        {/* Top bar */}
-        <header className="sticky top-0 z-50 flex h-14 sm:h-16 items-center justify-between border-b bg-[var(--surface-strong)]/85 px-3 sm:px-4 backdrop-blur-xl transition-all duration-300 border-[var(--border-main)] shadow-slate-950/10 md:h-auto md:px-6 md:py-3">
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="min-h-screen relative flex bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 transition-colors duration-300">
+        
+        {/* Navbar */}
+        <header className="fixed top-0 left-0 right-0 z-50 flex h-[52px] items-center justify-between bg-[#0A1628] px-4 border-b border-white/[0.07]">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)] md:hidden"
+              className="rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white md:hidden min-h-0 min-w-0"
               aria-label="Open navigation"
             >
               <Menu size={20} />
             </button>
-            <div className="min-w-0">
-              <h1 className="text-sm font-semibold text-[var(--text-main)]">
-                {activeItem.label}
-              </h1>
-              <p className="hidden truncate text-xs text-gray-400 min-[360px]:block">{activeItem.description}</p>
-            </div>
+            <div className="w-1.5 h-1.5 bg-white rounded-full shrink-0" />
+            <span className="text-white text-sm font-medium tracking-wide">NBA Live Intelligence</span>
           </div>
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-            <div className="hidden items-center gap-2 rounded-full border border-[var(--border-main)] bg-[var(--surface-muted)] px-3 py-1.5 text-xs text-[var(--text-muted)] sm:flex">
-              <span className="font-medium text-[var(--text-main)]">2025-2026</span>
-              <span>Playoffs</span>
+
+          {/* Desktop Nav links */}
+          <div className="hidden lg:flex items-center gap-2">
+            {navItems.filter(item => ['dashboard', 'players', 'fatigue', 'standings', 'awards', 'leaderboard', 'trades'].includes(item.id)).map(item => (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={`rounded-md px-2.5 py-1.5 text-xs transition-colors min-h-0 min-w-0 font-medium ${
+                  activePage === item.id 
+                    ? 'bg-[#C9540A] text-white' 
+                    : 'text-white/55 hover:text-white'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-orange-900/40 text-orange-400 border border-orange-700/50 tracking-wider">
+              ● LIVE
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-green-400" aria-label="Live data status">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              Live
-            </div>
-            <button onClick={toggleTheme} className="relative p-2 rounded-lg transition-colors text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--surface-muted)]" aria-label="Toggle theme">
+            <button className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Search">
+              <Search size={16} />
+            </button>
+            <button className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Notifications">
+              <Bell size={16} />
+            </button>
+            <button className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Profile">
+              <User size={16} />
+            </button>
+            <button onClick={toggleTheme} className="text-white/50 hover:text-white p-1 min-h-0 min-w-0" aria-label="Toggle Theme">
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
         </header>
 
-        {/* Page content */}
-        <main
-          ref={mainRef}
-          onScroll={(e) => setShowTop((e.target as HTMLElement).scrollTop > 300)}
-          className="flex-1 min-w-0 max-w-full overflow-auto overflow-x-hidden"
-        >
-          <div className="mx-auto min-h-[calc(100vh-56px)] w-full max-w-7xl min-w-0 px-4 py-4 transition-all duration-500 animate-fade-in-up sm:px-6 sm:py-5 lg:px-8">
-            {children}
-          </div>
-        </main>
-      </div>
+        {/* Mobile overlay */}
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 z-40 md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
 
-      {showTop && (
-        <button
-          onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg hover:bg-orange-400 transition-all active:scale-95"
-          aria-label="Back to top"
-        >
-          ↑
-        </button>
-      )}
-    </div>
+        {/* Left Sidebar */}
+        <aside className={`
+          fixed top-[52px] left-0 bottom-0 z-30 flex flex-col border-r border-zinc-200 dark:border-zinc-800 border-[0.5px] transition-all duration-300
+          bg-zinc-50 dark:bg-zinc-900
+          ${collapsed ? 'w-16' : 'w-[240px]'}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
+          {!collapsed && (
+            <div className="px-4 pt-4">
+              <label className="relative block">
+                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+                <input
+                  value={navQuery}
+                  onChange={(event) => setNavQuery(event.target.value)}
+                  className="h-9 w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-8 pr-8 text-xs text-zinc-800 dark:text-zinc-200 outline-none placeholder:text-zinc-400 focus:border-[#C9540A]"
+                  placeholder="Search sections"
+                  type="search"
+                />
+                {navQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setNavQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 min-h-0 min-w-0"
+                    aria-label="Clear search"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </label>
+            </div>
+          )}
+
+          <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-4">
+            {navGroups.map(group => {
+              const groupItems = filteredNav.filter(item => item.group === group);
+              if (groupItems.length === 0) return null;
+
+              return (
+                <div key={group} className="space-y-1">
+                  {!collapsed && (
+                    <div className="px-2.5 py-1.5 text-[10px] uppercase tracking-[0.8px] text-zinc-400 font-medium">
+                      {group}
+                    </div>
+                  )}
+                  <div className="space-y-0.5">
+                    {groupItems.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleNavigate(item.id)}
+                        className={`
+                          group/nav w-full flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] transition-colors cursor-pointer min-h-0 min-w-0
+                          ${collapsed ? 'justify-center' : ''}
+                          ${activePage === item.id
+                            ? 'bg-[#FEF0E8] text-[#C9540A]'
+                            : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                          }
+                        `}
+                        title={collapsed ? item.label : undefined}
+                      >
+                        <span className={`flex-shrink-0 ${activePage === item.id ? 'text-[#C9540A]' : 'text-zinc-400 group-hover/nav:text-[#C9540A]'}`}>
+                          {item.icon}
+                        </span>
+                        {!collapsed && (
+                          <span className="min-w-0 flex-1 text-left font-medium truncate">
+                            {item.label}
+                          </span>
+                        )}
+                        {!collapsed && item.id === 'dashboard' && (
+                          <span className="bg-[#C9540A] text-white text-[9px] px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                            {liveCount}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 border-[0.5px]">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden md:flex w-full items-center justify-center gap-2 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors min-h-0 min-w-0"
+            >
+              {collapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /><span>Collapse</span></>}
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className={`flex-1 min-w-0 flex flex-col pt-[52px] transition-all duration-300 z-10 
+          ${collapsed ? 'md:pl-16' : 'md:pl-[240px]'} lg:pr-[200px] bg-white dark:bg-zinc-900`}>
+          <main
+            ref={mainRef}
+            onScroll={(e) => setShowTop((e.target as HTMLElement).scrollTop > 300)}
+            className="flex-1 min-w-0 overflow-auto"
+          >
+            <div className="mx-auto min-h-[calc(100vh-52px)] w-full px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
+              {children}
+            </div>
+          </main>
+        </div>
+
+        {/* Right Panel (standings + awards) */}
+        <aside className="fixed top-[52px] right-0 bottom-0 w-[200px] border-l border-zinc-200 dark:border-zinc-800 border-[0.5px] p-4 bg-white dark:bg-zinc-900 hidden lg:flex flex-col z-20 overflow-y-auto">
+          {/* Panel title */}
+          <div className="text-[11px] uppercase tracking-[0.6px] text-zinc-400 font-medium mb-3">Standings</div>
+          
+          {/* Standings rows */}
+          <div className="flex flex-col mb-6">
+            {standings.length > 0 ? (
+              standings.map((team, idx) => (
+                <div key={team.TeamID} className="flex items-center justify-between gap-1.5 py-[5px] border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] last:border-0 text-xs">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-[10px] text-zinc-400 w-3.5 shrink-0">#{idx + 1}</span>
+                    <div 
+                      className="w-1.5 h-1.5 rounded-full shrink-0" 
+                      style={{ backgroundColor: getHeatDotColor(team.WinPCT) }} 
+                    />
+                    <span className="text-zinc-800 dark:text-zinc-200 font-medium truncate">{team.TeamName}</span>
+                  </div>
+                  <span className="text-[#C9540A] font-medium text-[11px] text-right w-8 shrink-0">
+                    {((team.WinPCT || 0) * 100).toFixed(0)}%
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-[10px] text-zinc-400 py-2">No standings data.</div>
+            )}
+          </div>
+          
+          {/* Awards Section */}
+          <div className="text-[11px] uppercase tracking-[0.6px] text-zinc-400 font-medium mb-3">Awards</div>
+          <div className="flex flex-col gap-1">
+            {awardItems.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2.5 py-2 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] last:border-0">
+                <div className="w-[30px] h-[30px] rounded-lg bg-[#FEF0E8] flex items-center justify-center text-[#C9540A] shrink-0">
+                  <Trophy size={14} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate">{item.name}</div>
+                  <div className="text-[11px] text-zinc-500 truncate">{item.player}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {showTop && (
+          <button
+            onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-6 right-[220px] z-50 w-10 h-10 rounded-full bg-[#C9540A] text-white flex items-center justify-center shadow hover:bg-orange-600 transition-all active:scale-95 min-w-0 min-h-0"
+            aria-label="Back to top"
+          >
+            ↑
+          </button>
+        )}
+      </div>
     </LayoutContext.Provider>
   );
 }

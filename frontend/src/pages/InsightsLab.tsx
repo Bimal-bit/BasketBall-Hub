@@ -265,11 +265,11 @@ export default function InsightsLab() {
     <div className="max-w-full space-y-4 overflow-hidden sm:space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-[11px] sm:text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.22em] text-orange-500">
+          <div className="mb-2 flex items-center gap-2 text-[11px] sm:text-xs font-medium uppercase tracking-[0.18em] sm:tracking-[0.22em] text-orange-500">
             <BrainCircuit size={16} />
             Insights Lab
           </div>
-          <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white sm:text-4xl">
+          <h1 className="text-2xl font-medium uppercase  tracking-tighter text-white sm:text-4xl">
             Compare, predict, recap, and follow
           </h1>
           <p className="mt-2 max-w-2xl text-xs sm:text-sm text-gray-400">
@@ -278,7 +278,7 @@ export default function InsightsLab() {
         </div>
         <button
           onClick={() => loadLabData(() => false)}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 bg-gray-900/60 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/60 px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
         >
           <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
           {refreshing ? 'Refreshing' : 'Refresh Lab'}
@@ -338,9 +338,9 @@ export default function InsightsLab() {
             <div className="space-y-4 sm:space-y-5">
               <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 <TeamWinBlock game={selectedGame} side="away" probability={100 - winModel.homeProbability} />
-                <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-2 text-center sm:p-4">
-                  <div className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">{selectedGame.status}</div>
-                  <div className="mt-2 text-lg font-black text-white sm:text-3xl">{selectedGame.away_score}-{selectedGame.home_score}</div>
+                <div className="min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-2 text-center sm:p-4">
+                  <div className="text-xs font-medium uppercase tracking-[0.18em] text-gray-500">{selectedGame.status}</div>
+                  <div className="mt-2 text-lg font-medium text-white sm:text-3xl">{selectedGame.away_score}-{selectedGame.home_score}</div>
                   <div className="mt-1 text-xs text-gray-400">{gameStatusInIndia(selectedGame)}</div>
                 </div>
                 <TeamWinBlock game={selectedGame} side="home" probability={winModel.homeProbability} />
@@ -353,7 +353,7 @@ export default function InsightsLab() {
                   label: `${selectedGame.away_team_abbreviation} @ ${selectedGame.home_team_abbreviation}`,
                   sub: `${selectedGame.away_score}-${selectedGame.home_score} ${gameStatusInIndia(selectedGame)}`,
                 })}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:w-auto"
               >
                 <Bell size={14} />
                 Watch this game
@@ -369,12 +369,12 @@ export default function InsightsLab() {
           <button
             onClick={generateRecap}
             disabled={!selectedGame || recapLoading}
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-white hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Sparkles size={15} />
             {recapLoading ? 'Writing recap' : 'Generate recap'}
           </button>
-          <div className="mt-4 max-h-56 overflow-y-auto rounded-xl border border-gray-800 bg-black/30 p-3 text-xs leading-5 text-gray-300 sm:max-h-none sm:p-4 sm:text-sm sm:leading-6">
+          <div className="mt-4 max-h-56 overflow-y-auto rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-3 text-xs leading-5 text-gray-300 sm:max-h-none sm:p-4 sm:text-sm sm:leading-6">
             {recap || 'Choose a game and generate a recap to summarize leaders, score flow, and the most important notes.'}
           </div>
         </Panel>
@@ -387,10 +387,10 @@ export default function InsightsLab() {
         ) : (
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {watchlist.map(item => (
-              <div key={item.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4 hover:scale-[1.02] hover:bg-gray-900/60 transition-all duration-200 shadow-md hover:shadow-lg">
+              <div key={item.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/50 p-4 hover:scale-[1.02] hover:bg-white dark:bg-zinc-900/60 transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="min-w-0">
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{item.type}</div>
-                  <div className="mt-1 truncate font-bold text-white">{item.label}</div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-orange-500">{item.type}</div>
+                  <div className="mt-1 truncate font-medium text-white">{item.label}</div>
                   <div className="truncate text-xs text-gray-400">{item.sub}</div>
                 </div>
                 <button
@@ -411,10 +411,10 @@ export default function InsightsLab() {
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-gray-800 bg-gray-900/40 p-3 shadow-2xl shadow-black/10 sm:p-5">
+    <div className="min-w-0 rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 p-3 shadow-none shadow-none/10 sm:p-5">
       <div className="mb-3 flex items-center gap-3 sm:mb-5">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 sm:h-9 sm:w-9">{icon}</div>
-        <h2 className="min-w-0 text-base font-black uppercase italic tracking-tight text-white sm:text-lg">{title}</h2>
+        <h2 className="min-w-0 text-base font-medium uppercase  tracking-tight text-white sm:text-lg">{title}</h2>
       </div>
       {children}
     </div>
@@ -429,11 +429,11 @@ function PlayerSelect({ label, value, players, onChange }: {
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-gray-500">{label}</span>
+      <span className="mb-2 block text-xs font-medium uppercase tracking-[0.16em] text-gray-500">{label}</span>
       <select
         value={value ?? ''}
         onChange={event => onChange(Number(event.target.value))}
-        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-2.5 text-xs text-white sm:py-3 sm:text-sm"
+        className="w-full min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 px-3 py-2.5 text-xs text-white sm:py-3 sm:text-sm"
       >
         {players.map(player => (
           <option key={player.PERSON_ID} value={player.PERSON_ID}>{playerName(player)}</option>
@@ -451,11 +451,11 @@ function TeamSelect({ label, value, teams, onChange }: {
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-gray-500">{label}</span>
+      <span className="mb-2 block text-xs font-medium uppercase tracking-[0.16em] text-gray-500">{label}</span>
       <select
         value={value ?? ''}
         onChange={event => onChange(Number(event.target.value))}
-        className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-2.5 text-xs text-white sm:py-3 sm:text-sm"
+        className="w-full min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 px-3 py-2.5 text-xs text-white sm:py-3 sm:text-sm"
       >
         {teams.map(team => (
           <option key={team.id} value={team.id}>{team.full_name}</option>
@@ -471,7 +471,7 @@ function GameSelect({ value, games, onChange }: { value: string; games: Game[]; 
       value={value}
       onChange={event => onChange(event.target.value)}
       disabled={games.length === 0}
-      className="w-full min-w-0 rounded-xl border border-gray-800 bg-black/40 px-3 py-2.5 text-xs text-white disabled:opacity-60 sm:py-3 sm:text-sm"
+      className="w-full min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 px-3 py-2.5 text-xs text-white disabled:opacity-60 sm:py-3 sm:text-sm"
     >
       {games.length === 0 && <option value="">No games available today</option>}
       {games.map(game => (
@@ -528,7 +528,7 @@ function PlayerFace({ player, align = 'left', recentPpg }: { player: Player; ali
   const playerId = getPlayerId(player);
   const teamId = player.TEAM_ID || '';
   return (
-    <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-lg ${align === 'right' ? 'text-right' : ''}`}>
+    <div className={`min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-3 sm:p-4 hover:scale-[1.02] transition-all duration-200 shadow-none hover:shadow-none ${align === 'right' ? 'text-right' : ''}`}>
       <img
         src={getPlayerHeadshotUrl(playerId)}
         alt={playerName(player)}
@@ -536,9 +536,9 @@ function PlayerFace({ player, align = 'left', recentPpg }: { player: Player; ali
           e.currentTarget.src = teamId ? getTeamLogoUrl(teamId) : '/assets/images/nba-6.svg';
           e.currentTarget.classList.add('p-2', 'object-contain');
         }}
-        className={`mb-3 h-16 w-16 rounded-full border border-gray-800 bg-gray-950 object-cover object-top sm:h-24 sm:w-24 ${align === 'right' ? 'ml-auto' : ''}`}
+        className={`mb-3 h-16 w-16 rounded-full border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 object-cover object-top sm:h-24 sm:w-24 ${align === 'right' ? 'ml-auto' : ''}`}
       />
-      <div className="truncate font-black text-white">{playerName(player)}</div>
+      <div className="truncate font-medium text-white">{playerName(player)}</div>
       <div className="text-xs text-gray-400">{player.TEAM_ABBREVIATION || 'NBA'}</div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <TinyStat label="FG" value={`${(((player.FG_PCT ?? 0) * 100) || 0).toFixed(1)}%`} />
@@ -589,11 +589,11 @@ function CompareTeams({ teamA, teamB, teamALogs, teamBLogs, teamARoster, teamBRo
 
 function TeamMiniCard({ team, profile }: { team: TeamOption; profile: TeamProfile }) {
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-lg">
+    <div className="min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-3 sm:p-4 hover:scale-[1.02] transition-all duration-200 shadow-none hover:shadow-none">
       <div className="flex min-w-0 items-center gap-3">
         <img src={getTeamLogoUrl(team.id)} alt={team.full_name} onError={(e) => { e.currentTarget.src = '/assets/images/nba-6.svg'; }} className="h-9 w-9 object-contain sm:h-12 sm:w-12" />
         <div className="min-w-0">
-          <div className="truncate font-black text-white">{team.full_name}</div>
+          <div className="truncate font-medium text-white">{team.full_name}</div>
           <div className="truncate text-xs text-gray-400">{team.conference || team.state || 'NBA'} - {team.l10 || 'L10 unavailable'}</div>
         </div>
       </div>
@@ -614,15 +614,15 @@ function MetricRow({ label, a, b, suffix = '' }: { label: string; a: number; b: 
   return (
     <div>
       <div className="mb-1 grid grid-cols-[64px_minmax(0,1fr)_64px] items-center gap-2 text-xs sm:grid-cols-[80px_minmax(0,1fr)_80px] sm:gap-3 sm:text-sm">
-        <span className="truncate font-black text-white">{formatMetric(a, suffix)}</span>
-        <span className="truncate text-center text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 sm:text-xs sm:tracking-[0.16em]">{label}</span>
-        <span className="truncate text-right font-black text-white">{formatMetric(b, suffix)}</span>
+        <span className="truncate font-medium text-white">{formatMetric(a, suffix)}</span>
+        <span className="truncate text-center text-[10px] font-medium uppercase tracking-[0.12em] text-gray-500 sm:text-xs sm:tracking-[0.16em]">{label}</span>
+        <span className="truncate text-right font-medium text-white">{formatMetric(b, suffix)}</span>
       </div>
       <div className="grid grid-cols-2 gap-1">
-        <div className="flex justify-end rounded-full bg-gray-950">
+        <div className="flex justify-end rounded-full bg-white dark:bg-zinc-900">
           <div className="h-2 rounded-full bg-orange-500" style={{ width: `${aWidth}%` }} />
         </div>
-        <div className="rounded-full bg-gray-950">
+        <div className="rounded-full bg-white dark:bg-zinc-900">
           <div className="h-2 rounded-full bg-blue-500" style={{ width: `${bWidth}%` }} />
         </div>
       </div>
@@ -638,8 +638,8 @@ function ProbabilityChart({ data }: { data: number[] }) {
   }).join(' ');
 
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
-      <div className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
+    <div className="min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-3 sm:p-4">
+      <div className="mb-3 flex items-center justify-between text-xs font-medium uppercase tracking-[0.16em] text-gray-500">
         <span>Away control</span>
         <span>Home win probability</span>
       </div>
@@ -656,10 +656,10 @@ function TeamWinBlock({ game, side, probability }: { game: Game; side: 'home' | 
   const abbr = side === 'home' ? game.home_team_abbreviation : game.away_team_abbreviation;
 
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-2 text-center sm:p-4">
+    <div className="min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-2 text-center sm:p-4">
       <img src={getTeamLogoUrl(teamId)} alt={abbr || 'Team'} onError={(e) => { e.currentTarget.src = '/assets/images/nba-6.svg'; }} className="mx-auto h-8 w-8 object-contain sm:h-12 sm:w-12" />
-      <div className="mt-2 text-sm font-black text-white">{abbr}</div>
-      <div className="mt-1 text-lg font-black text-orange-400 sm:text-3xl">{probability.toFixed(0)}%</div>
+      <div className="mt-2 text-sm font-medium text-white">{abbr}</div>
+      <div className="mt-1 text-lg font-medium text-orange-400 sm:text-3xl">{probability.toFixed(0)}%</div>
     </div>
   );
 }
@@ -668,7 +668,7 @@ function AddButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-800 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:mt-4 sm:w-auto"
+      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/10 sm:mt-4 sm:w-auto"
     >
       <Plus size={14} />
       Add to watchlist
@@ -678,9 +678,9 @@ function AddButton({ onClick }: { onClick: () => void }) {
 
 function TinyStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-lg bg-gray-950/80 p-1.5 sm:p-2">
-      <div className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-gray-500">{label}</div>
-      <div className="mt-1 truncate text-xs font-black text-white sm:text-base">{value}</div>
+    <div className="min-w-0 rounded-lg bg-white dark:bg-zinc-900/80 p-1.5 sm:p-2">
+      <div className="truncate text-[10px] font-medium uppercase tracking-[0.16em] text-gray-500">{label}</div>
+      <div className="mt-1 truncate text-xs font-medium text-white sm:text-base">{value}</div>
     </div>
   );
 }
@@ -691,10 +691,10 @@ function TrendCard({ title, logs }: { title: string; logs: PlayerGameLog[] }) {
   const high = Math.max(...points, 0);
 
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
+    <div className="min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="min-w-0 truncate text-sm font-black text-white">{title}</div>
-        <div className="shrink-0 text-xs font-bold uppercase tracking-[0.16em] text-orange-400">{recent ? `${recent.toFixed(1)} PPG` : 'No logs'}</div>
+        <div className="min-w-0 truncate text-sm font-medium text-white">{title}</div>
+        <div className="shrink-0 text-xs font-medium uppercase tracking-[0.16em] text-orange-400">{recent ? `${recent.toFixed(1)} PPG` : 'No logs'}</div>
       </div>
       <div className="flex h-14 items-end gap-1 sm:h-20">
         {points.length ? points.map((value, index) => (
@@ -709,11 +709,11 @@ function TrendCard({ title, logs }: { title: string; logs: PlayerGameLog[] }) {
 
 function TeamDetailList({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
-      <div className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">{title}</div>
+    <div className="min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-3 sm:p-4">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.18em] text-gray-500">{title}</div>
       <div className="space-y-2">
         {items.length ? items.map(item => (
-          <div key={item} className="truncate rounded-lg bg-gray-950/80 px-3 py-2 text-sm font-semibold text-white">{item}</div>
+          <div key={item} className="truncate rounded-lg bg-white dark:bg-zinc-900/80 px-3 py-2 text-sm font-medium text-white">{item}</div>
         )) : (
           <div className="text-sm text-gray-500">Roster scoring data unavailable</div>
         )}
@@ -724,8 +724,8 @@ function TeamDetailList({ title, items }: { title: string; items: string[] }) {
 
 function InfoStrip({ title, value }: { title: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
-      <div className="text-xs font-black uppercase tracking-[0.18em] text-gray-500">{title}</div>
+    <div className="min-w-0 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-3 sm:p-4">
+      <div className="text-xs font-medium uppercase tracking-[0.18em] text-gray-500">{title}</div>
       <div className="mt-2 break-words text-sm text-gray-300">{value}</div>
     </div>
   );
@@ -765,7 +765,7 @@ function WatchlistSummary({ watchlist, games, players, teams }: {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-gray-800 bg-black/20 p-6 text-center text-sm text-gray-400">
+    <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-6 text-center text-sm text-gray-400">
       {text}
     </div>
   );

@@ -11,33 +11,32 @@ type Props = {
   large?: boolean;
 };
 
-const colorMap = {
-  orange: 'text-orange-400 bg-orange-500/10',
-  blue: 'text-blue-400 bg-blue-500/10',
-  green: 'text-green-400 bg-green-500/10',
-  red: 'text-red-400 bg-red-500/10',
-  yellow: 'text-yellow-400 bg-yellow-500/10',
-};
-
-export default function StatCard({ label, value, sub, icon, trend, trendValue, color = 'orange', large }: Props) {
+export default function StatCard({ label, value, sub, icon, trend, trendValue }: Props) {
+  const isPositive = trend === 'up';
+  const isNegative = trend === 'down';
+  
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">{label}</span>
-        {icon && (
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colorMap[color]}`}>
-            {icon}
-          </div>
-        )}
+    <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-lg p-3 border border-zinc-200/50 dark:border-zinc-700/50 transition-colors flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-1 gap-2">
+          <span className="text-[11px] text-zinc-500 font-medium truncate">{label}</span>
+          {icon && (
+            <div className="text-zinc-400 dark:text-zinc-500 shrink-0">
+              {icon}
+            </div>
+          )}
+        </div>
+        <div className="text-[22px] font-medium text-zinc-900 dark:text-white leading-tight">
+          {value}
+        </div>
       </div>
-      <div className={`${large ? 'text-3xl' : 'text-2xl'} font-bold text-white mb-1`}>{value}</div>
-      <div className="flex items-center gap-2">
-        {sub && <span className="text-xs text-gray-400">{sub}</span>}
+      <div className="flex items-center gap-1.5 mt-1">
         {trend && trendValue && (
-          <span className={`text-xs font-medium ${trend === 'up' ? 'text-green-400' : trend === 'down' ? 'text-red-400' : 'text-gray-400'}`}>
-            {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→'} {trendValue}
+          <span className={`text-[11px] font-medium ${isPositive ? 'text-green-700' : isNegative ? 'text-red-600' : 'text-zinc-500'}`}>
+            {isPositive ? '↑' : isNegative ? '↓' : '→'} {trendValue}
           </span>
         )}
+        {sub && <span className="text-[10px] text-zinc-400 truncate">{sub}</span>}
       </div>
     </div>
   );

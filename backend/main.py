@@ -23,8 +23,16 @@ NBA_HEADERS = {
     "Referer": "https://www.nba.com/",
     "Connection": "keep-alive"
 }
-# Apply headers globally to all nba_api requests
+# Create a custom requests Session with a default timeout to avoid infinite hangs
+class DefaultTimeoutSession(requests.Session):
+    def request(self, method, url, *args, **kwargs):
+        if 'timeout' not in kwargs or kwargs['timeout'] is None:
+            kwargs['timeout'] = 10  # default 10 seconds timeout
+        return super().request(method, url, *args, **kwargs)
+
+# Apply headers and custom session globally to all nba_api requests
 NBAStatsHTTP.default_headers = NBA_HEADERS
+NBAStatsHTTP.set_session(DefaultTimeoutSession())
 
 app = FastAPI(title="NBA Intelligence API")
 
@@ -158,7 +166,8 @@ def cached(duration=60):
                 if inspect.iscoroutinefunction(func):
                     data = await func(*args, **kwargs)
                 else:
-                    data = func(*args, **kwargs)
+                    import asyncio
+                    data = await asyncio.to_thread.run(func, *args, **kwargs)
                 
                 cache[key] = {
                     "data": data,
@@ -464,7 +473,7 @@ def infer_play_points(play, desc):
     return 2
 
 @app.get("/api/scoreboard")
-async def get_scoreboard(date: str = None):
+def get_scoreboard(date: str = None):
     target_date = parse_scoreboard_date(date)
 
     def fetch():
@@ -513,7 +522,7 @@ async def get_scoreboard(date: str = None):
     return get_cached_scoreboard(f"scoreboard:{target_date}", fetch)
 
 @app.get("/api/game/{game_id}/playbyplay")
-async def get_playbyplay(game_id: str):
+def get_playbyplay(game_id: str):
     try:
         # Try Live CDN first for speed and reliability
         return fetch_live_playbyplay(game_id)
@@ -1012,7 +1021,7 @@ async def get_awards():
 
 @app.get("/api/standings")
 @cached(duration=3600) # Cache for 1 hour
-async def get_standings(season: str = None, season_type: str = "Regular Season"):
+def get_standings(season: str = None, season_type: str = "Regular Season"):
     target_season = season or current_nba_season()
     # Sanitize season string
     clean_season = target_season.split(' (')[0]
@@ -1039,7 +1048,7 @@ async def get_standings(season: str = None, season_type: str = "Regular Season")
 
 @app.get("/api/players/top")
 @cached(duration=3600) # Cache for 1 hour
-async def get_top_players():
+def get_top_players():
     def fetch():
         leaders = leaguedashplayerstats.LeagueDashPlayerStats(
             season=current_nba_season(),
@@ -1270,9 +1279,18 @@ async def get_team_roster(team_id: int):
         )
         stats_df = stats.get_data_frames()[0]
         
+        # Deduplicate stats_df by prioritizing current team_id, then TOT, then any other team row
+        if not stats_df.empty:
+            stats_df['is_current_team'] = stats_df['TEAM_ID'] == team_id
+            stats_df['is_tot'] = stats_df['TEAM_ABBREVIATION'] == 'TOT'
+            stats_df = stats_df.sort_values(by=['PLAYER_ID', 'is_current_team', 'is_tot'], ascending=[True, False, False])
+            stats_subset = stats_df[['PLAYER_ID', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'FG_PCT', 'FG3_PCT', 'FT_PCT']].drop_duplicates(subset=['PLAYER_ID'], keep='first')
+        else:
+            stats_subset = pd.DataFrame(columns=['PLAYER_ID', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'FG_PCT', 'FG3_PCT', 'FT_PCT'])
+        
         # Merge on PLAYER_ID
         merged_df = roster_df.merge(
-            stats_df[['PLAYER_ID', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'FG_PCT', 'FG3_PCT', 'FT_PCT']], 
+            stats_subset, 
             on='PLAYER_ID', 
             how='left'
         )
@@ -1287,8 +1305,8 @@ async def get_team_roster(team_id: int):
         return []
 
 @app.get("/api/game/{game_id}/boxscore")
-@cached(duration=60)
-async def get_game_boxscore(game_id: str):
+@cached(ttl=60)
+def get_boxscore(game_id: str):
     try:
         return fetch_live_boxscore(game_id)
     except Exception as e:
@@ -1305,7 +1323,7 @@ async def get_game_boxscore(game_id: str):
         return []
 
 @app.get("/api/game/{game_id}/team-stats")
-async def get_game_team_stats(game_id: str):
+def get_game_team_stats(game_id: str):
     try:
         return fetch_live_team_stats(game_id)
     except Exception as e:
@@ -1322,11 +1340,11 @@ async def get_game_team_stats(game_id: str):
         return []
 
 @app.get("/api/player/{player_id}/shots/{game_id}")
-@cached(duration=300)
-async def get_player_shots(player_id: int, game_id: str):
+@cached(ttl=300)
+def get_player_shots(player_id: int, game_id: str):
     try:
         # We need team_id for shotchartdetail, or use 0 for all
-        shots = shotchartdetail.ShotChartDetail(player_id=player_id, game_id_nullable=game_id, team_id=0, context_measure_simple='FGA')
+        shots = shotchartdetail.ShotChartDetail(player_id=player_id, game_id_nullable=game_id, team_id=0, context_measure_simple='FGA', timeout=30)
         data = shots.shot_chart_detail.get_dict()
         headers = data['headers']
         rows = data['data']
@@ -1335,9 +1353,9 @@ async def get_player_shots(player_id: int, game_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/team/{team_id}/shots/{game_id}")
-async def get_team_shots(team_id: int, game_id: str):
+def get_team_shots(team_id: int, game_id: str):
     try:
-        shots = shotchartdetail.ShotChartDetail(player_id=0, game_id_nullable=game_id, team_id=team_id, context_measure_simple='FGA')
+        shots = shotchartdetail.ShotChartDetail(player_id=0, game_id_nullable=game_id, team_id=team_id, context_measure_simple='FGA', timeout=30)
         data = shots.shot_chart_detail.get_dict()
         headers = data['headers']
         rows = data['data']
@@ -1346,8 +1364,8 @@ async def get_team_shots(team_id: int, game_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/averages")
-@cached(duration=3600)
-async def get_player_averages(player_id: int, season: str = None):
+@cached(ttl=3600)
+def get_player_averages(player_id: int, season: str = None):
     try:
         from nba_api.stats.endpoints import playercareerstats, playergamelogs
         
@@ -1471,8 +1489,8 @@ async def get_player_averages(player_id: int, season: str = None):
         return {}
 
 @app.get("/api/player/{player_id}/stats")
-@cached(duration=3600)
-async def get_player_detailed_stats(player_id: int, season: str = None):
+@cached(ttl=3600)
+def get_player_detailed_stats(player_id: int, season: str = None):
     try:
         from nba_api.stats.endpoints import playergamelogs, commonplayerinfo
         import pandas as pd
@@ -1513,8 +1531,8 @@ async def get_player_detailed_stats(player_id: int, season: str = None):
         except:
              raise HTTPException(status_code=500, detail=str(e))
 @app.get("/api/players")
-@cached(duration=86400) # Players list changes very rarely
-async def get_all_players():
+@cached(ttl=86400)
+def get_all_players():
     try:
         from nba_api.stats.static import players
         all_players = players.get_players()
@@ -1526,8 +1544,8 @@ async def get_all_players():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/profile")
-@cached(duration=86400)
-async def get_player_profile(player_id: int):
+@cached(ttl=86400)
+def get_player_profile(player_id: int):
     try:
         from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
         from nba_api.stats.static import players
@@ -1582,8 +1600,8 @@ async def get_player_profile(player_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/awards")
-@cached(duration=86400)
-async def get_player_awards_season(player_id: int, season: str = None):
+@cached(ttl=86400)
+def get_player_awards(player_id: int, season: str = None):
     try:
         from nba_api.stats.endpoints import playerawards
         awards = playerawards.PlayerAwards(player_id=player_id)

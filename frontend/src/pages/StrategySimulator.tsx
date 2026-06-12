@@ -266,9 +266,9 @@ export default function StrategySimulator() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6 bg-black/40">
+    <div className="p-4 lg:p-6 space-y-6 bg-white dark:bg-zinc-900">
       <div>
-        <h1 className="text-3xl font-black text-white mb-2">Strategy Simulator</h1>
+        <h1 className="text-3xl font-medium text-white mb-2">Strategy Simulator</h1>
         <p className="text-sm text-gray-400">Build custom lineups and simulate game matchups. The model uses real NBA stats to predict outcomes.</p>
       </div>
 
@@ -298,12 +298,12 @@ export default function StrategySimulator() {
 
       {/* Optimization & Auto-fill */}
       <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
-        <div className="flex bg-gray-900 border border-gray-700 p-1.5 rounded-2xl">
+        <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-1.5 rounded-2xl">
            {(['BALANCED', 'OFFENSE', 'DEFENSE'] as const).map((opt) => (
              <button
                key={opt}
                onClick={() => setOptimization(opt)}
-               className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${optimization === opt ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-gray-300'}`}
+               className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-medium uppercase tracking-widest transition-all ${optimization === opt ? 'bg-orange-500 text-white shadow-none shadow-none' : 'text-gray-500 hover:text-gray-300'}`}
              >
                {opt}
              </button>
@@ -313,7 +313,7 @@ export default function StrategySimulator() {
         <button
           onClick={handleAutoFill}
           disabled={rosterLoading || homeRoster.length === 0}
-          className="flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-gray-700 disabled:to-gray-600 rounded-2xl text-[11px] text-white font-black uppercase tracking-widest transition-all duration-200 shadow-xl hover:shadow-orange-500/50 disabled:shadow-none active:scale-95"
+          className="flex items-center justify-center gap-2 px-5 py-3.5 bg-zinc-100 dark:bg-zinc-800   hover: hover: disabled: disabled: rounded-2xl text-[11px] text-white font-medium uppercase tracking-widest transition-all duration-200 shadow-none hover:shadow-none disabled:shadow-none active:scale-95"
         >
           <RefreshCw size={14} className={rosterLoading ? 'animate-spin' : ''} />
           {rosterLoading ? 'Loading Roster...' : 'Auto-Fill Lineups'}
@@ -323,10 +323,10 @@ export default function StrategySimulator() {
       {/* Lineups */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
         {rosterLoading && (
-          <div className="absolute inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center rounded-xl">
+          <div className="absolute inset-0 z-50 bg-white dark:bg-zinc-900 backdrop- flex items-center justify-center rounded-xl">
              <div className="flex flex-col items-center gap-2">
                 <RefreshCw size={24} className="animate-spin text-orange-500" />
-                <p className="text-xs font-black text-white uppercase tracking-widest">Updating Rosters...</p>
+                <p className="text-xs font-medium text-white uppercase tracking-widest">Updating Rosters...</p>
              </div>
           </div>
         )}
@@ -359,7 +359,7 @@ export default function StrategySimulator() {
         {(homeLineup.filter(Boolean).length < 5 || awayLineup.filter(Boolean).length < 5) && !simResult && (
           <div className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full">
             <Zap size={14} className="text-orange-500" />
-            <span className="text-[10px] font-black uppercase text-orange-400 tracking-widest">
+            <span className="text-[10px] font-medium uppercase text-orange-400 tracking-widest">
               Tactical Loadout Incomplete: {10 - (homeLineup.filter(Boolean).length + awayLineup.filter(Boolean).length)} slots remaining
             </span>
           </div>
@@ -368,7 +368,7 @@ export default function StrategySimulator() {
         <button
           onClick={simulate}
           disabled={simulating || rosterLoading || homeLineup.filter(Boolean).length === 0 || awayLineup.filter(Boolean).length === 0}
-          className="group relative flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-700 disabled:to-gray-600 rounded-2xl text-white font-black text-xl transition-all duration-300 shadow-2xl shadow-green-500/20 hover:shadow-green-500/40 hover:-translate-y-1 disabled:shadow-none disabled:translate-y-0"
+          className="group relative flex items-center gap-3 px-10 py-5 bg-zinc-100 dark:bg-zinc-800   hover: hover: disabled: disabled: rounded-2xl text-white font-medium text-xl transition-all duration-300 shadow-none shadow-green-500/20 hover:shadow-green-500/40 hover:-translate-y-1 disabled:shadow-none disabled:translate-y-0"
         >
           {simulating ? (
             <div className="flex items-center gap-3">
@@ -386,7 +386,7 @@ export default function StrategySimulator() {
         </button>
         
         {simulating && (
-          <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] animate-bounce">
+          <p className="text-[10px] font-medium text-gray-500 uppercase tracking-[0.2em] animate-bounce">
             Calculating Tactical Weights & Probabilities...
           </p>
         )}
@@ -434,18 +434,18 @@ function TeamSelectorCard({ label, value, teams, onChange }: TeamSelectorCardPro
   const selectedTeam = teams.get(value);
   
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-xl p-5 shadow-2xl relative overflow-hidden group">
+    <div className="bg-zinc-100 dark:bg-zinc-800   border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-5 shadow-none relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-orange-500/10 transition-all" />
       
-      <label className="text-[10px] font-black text-gray-500 block mb-4 uppercase tracking-[0.2em]">{label}</label>
+      <label className="text-[10px] font-medium text-gray-500 block mb-4 uppercase tracking-[0.2em]">{label}</label>
       <div className="flex gap-4 items-center">
         {selectedTeam && (
           <div className="relative">
-            <div className="absolute -inset-2 bg-white/5 rounded-full blur-lg" />
+            <div className="absolute -inset-2 bg-white/5 rounded-full " />
             <img 
               src={getTeamLogoUrl(value)} 
               alt={selectedTeam.TeamName}
-              className="w-16 h-16 object-contain relative z-10 drop-shadow-2xl"
+              className="w-16 h-16 object-contain relative z-10 drop-shadow-none"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
           </div>
@@ -454,10 +454,10 @@ function TeamSelectorCard({ label, value, teams, onChange }: TeamSelectorCardPro
           <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full appearance-none bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 text-lg font-black text-white focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all cursor-pointer"
+            className="w-full appearance-none bg-gray-800/50 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl px-4 py-3 text-lg font-medium text-white focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all cursor-pointer"
           >
             {Array.from(teams.values()).map((t) => (
-              <option key={t.TeamID} value={t.TeamID.toString()} className="bg-gray-900 text-white">
+              <option key={t.TeamID} value={t.TeamID.toString()} className="bg-white dark:bg-zinc-900 text-white">
                 {t.TeamName}
               </option>
             ))}
@@ -469,15 +469,15 @@ function TeamSelectorCard({ label, value, teams, onChange }: TeamSelectorCardPro
         <div className="mt-3 flex gap-2 text-xs">
           <div className="flex-1">
             <p className="text-gray-400 mb-1">Record</p>
-            <p className="text-white font-bold">{selectedTeam.Wins}-{selectedTeam.Losses}</p>
+            <p className="text-white font-medium">{selectedTeam.Wins}-{selectedTeam.Losses}</p>
           </div>
           <div className="flex-1">
             <p className="text-gray-400 mb-1">Win %</p>
-            <p className="text-white font-bold">{(selectedTeam.WinPCT * 100).toFixed(1)}%</p>
+            <p className="text-white font-medium">{(selectedTeam.WinPCT * 100).toFixed(1)}%</p>
           </div>
           <div className="flex-1">
             <p className="text-gray-400 mb-1">Streak</p>
-            <p className="text-white font-bold">{selectedTeam.Strk}</p>
+            <p className="text-white font-medium">{selectedTeam.Strk}</p>
           </div>
         </div>
       )}
@@ -520,24 +520,24 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-2xl p-6 shadow-2xl overflow-hidden relative group/court">
+    <div className="bg-zinc-100 dark:bg-zinc-800   border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl p-6 shadow-none overflow-hidden relative group/court">
       {/* Dynamic Tactical Influence Zones */}
       <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
          <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[200%] h-[60%] bg-[radial-gradient(ellipse_at_center,var(--court-color),transparent)]" style={{ '--court-color': color } as any} />
-         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black to-transparent" />
+         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-zinc-100 dark:bg-zinc-800 from-black to-transparent" />
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 relative z-10">
         <div className="flex items-center gap-4">
           <div className="relative">
-             <div className="absolute -inset-2 bg-white/5 rounded-full blur-md" />
+             <div className="absolute -inset-2 bg-white/5 rounded-full " />
              {logo && (
-               <img src={logo} alt={title} className="w-12 h-12 sm:w-14 sm:h-14 object-contain relative z-10 drop-shadow-xl" onError={(e) => (e.currentTarget.style.display = 'none')} />
+               <img src={logo} alt={title} className="w-12 h-12 sm:w-14 sm:h-14 object-contain relative z-10 drop-shadow-none" onError={(e) => (e.currentTarget.style.display = 'none')} />
              )}
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-white italic uppercase tracking-tighter mb-0 leading-none">{title}</h3>
-            <p className="text-[9px] uppercase tracking-[0.3em] text-gray-500 mt-1 font-black">{isHome ? 'Home Venue Control' : 'Away Strategic Loadout'}</p>
+            <h3 className="text-xl sm:text-2xl font-medium text-white  uppercase tracking-tighter mb-0 leading-none">{title}</h3>
+            <p className="text-[9px] uppercase tracking-[0.3em] text-gray-500 mt-1 font-medium">{isHome ? 'Home Venue Control' : 'Away Strategic Loadout'}</p>
           </div>
         </div>
         
@@ -546,10 +546,10 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
           <select 
             value={tactic}
             onChange={(e) => onTacticChange(e.target.value as TacticKey)}
-            className="w-full sm:w-auto bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] font-black text-orange-400 uppercase tracking-widest focus:outline-none focus:border-orange-500/50 appearance-none cursor-pointer"
+            className="w-full sm:w-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl px-3 py-2 text-[10px] font-medium text-orange-400 uppercase tracking-widest focus:outline-none focus:border-orange-500/50 appearance-none cursor-pointer"
           >
             {Object.entries(TACTICAL_STRATEGIES).map(([key, strat]) => (
-              <option key={key} value={key} className="bg-gray-900 text-white">{strat.name}</option>
+              <option key={key} value={key} className="bg-white dark:bg-zinc-900 text-white">{strat.name}</option>
             ))}
           </select>
         </div>
@@ -557,7 +557,7 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
 
       {/* Enhanced Court Visualization */}
       <div 
-        className="relative rounded-3xl mb-8 border-2 h-[320px] sm:h-[420px] shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-700 group-hover/court:border-opacity-60"
+        className="relative rounded-3xl mb-8 border-2 h-[320px] sm:h-[420px] shadow-none overflow-hidden transition-all duration-700 group-hover/court:border-opacity-60"
         style={{ 
           backgroundColor: `${color}08`,
           borderColor: `${color}30` 
@@ -571,7 +571,7 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
         
         {/* Center Court Logo Shadow */}
         {logo && (
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 scale-150 grayscale blur-sm pointer-events-none">
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 scale-150 grayscale  pointer-events-none">
               <img src={logo} alt="" className="w-48 h-48 object-contain" />
            </div>
         )}
@@ -601,7 +601,7 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
                        <img
                         src={getPlayerHeadshotUrl((player.PLAYER_ID || player.PERSON_ID || '').toString())}
                         alt={player.PLAYER_NAME}
-                        className="w-20 h-20 object-cover rounded-full border-2 relative z-10 shadow-2xl group-hover:scale-110 transition-transform duration-500"
+                        className="w-20 h-20 object-cover rounded-full border-2 relative z-10 shadow-none group-hover:scale-110 transition-transform duration-500"
                         style={{ 
                           borderColor: color,
                           filter: `drop-shadow(0 0 15px ${color}60)`
@@ -611,17 +611,17 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
                         }}
                       />
                       <div 
-                        className="absolute -bottom-2 -right-2 text-white text-[11px] font-black px-2.5 py-1 rounded-xl border-2 z-20 shadow-xl"
+                        className="absolute -bottom-2 -right-2 text-white text-[11px] font-medium px-2.5 py-1 rounded-xl border-2 z-20 shadow-none"
                         style={{ backgroundColor: color, borderColor: 'rgba(255,255,255,0.2)' }}
                       >
                         {pos}
                       </div>
                     </div>
-                    <div className="mt-4 text-center bg-black/80 backdrop-blur-md px-4 py-1.5 rounded-2xl border border-white/10 shadow-2xl transform group-hover:-translate-y-1 transition-transform">
-                      <p className="text-[12px] font-black text-white whitespace-nowrap tracking-tight uppercase italic">{player.PLAYER_NAME?.split(' ').pop()}</p>
+                    <div className="mt-4 text-center bg-white dark:bg-zinc-900 backdrop- px-4 py-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none transform group-hover:-translate-y-1 transition-transform">
+                      <p className="text-[12px] font-medium text-white whitespace-nowrap tracking-tight uppercase ">{player.PLAYER_NAME?.split(' ').pop()}</p>
                       <div className="flex items-center justify-center gap-2 mt-0.5">
-                         <p className="text-[10px] text-orange-400 font-black">{player.PTS || '?'}</p>
-                         <span className="text-[8px] text-gray-600 font-bold">PPG</span>
+                         <p className="text-[10px] text-orange-400 font-medium">{player.PTS || '?'}</p>
+                         <span className="text-[8px] text-gray-600 font-medium">PPG</span>
                       </div>
                     </div>
                     
@@ -630,14 +630,14 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
                         e.stopPropagation();
                         setSlot(i, '');
                       }}
-                      className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all z-30 shadow-xl hover:rotate-90"
+                      className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all z-30 shadow-none hover:rotate-90"
                     >
                       <X size={12} className="text-white" strokeWidth={3} />
                     </button>
                   </div>
                 ) : (
-                  <div className="w-16 h-16 rounded-full border-4 border-dashed border-white/5 flex items-center justify-center bg-white/[0.02] hover:bg-white/5 hover:border-white/20 transition-all group-hover:scale-110">
-                    <span className="text-white/10 font-black text-xl italic group-hover:text-white/40 transition-colors">{pos}</span>
+                  <div className="w-16 h-16 rounded-full border-4 border-dashed border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center justify-center bg-white/[0.02] hover:bg-white/5 hover:border-zinc-200 dark:border-zinc-800 border-[0.5px] transition-all group-hover:scale-110">
+                    <span className="text-white/10 font-medium text-xl  group-hover:text-white/40 transition-colors">{pos}</span>
                   </div>
                 )}
               </div>
@@ -649,18 +649,18 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
       {/* Stats Quick View */}
       {filled > 0 && (
         <div className="flex gap-3 mb-6">
-          <div className="flex-1 bg-white/5 rounded-xl p-2 border border-white/10 text-center">
+          <div className="flex-1 bg-white/5 rounded-xl p-2 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center">
             <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-0.5">Strength</p>
             <div className="flex items-center justify-center gap-1">
               <div className="h-1.5 flex-1 bg-gray-700 rounded-full overflow-hidden max-w-[40px]">
                 <div className="h-full bg-orange-500" style={{ width: `${Math.min(100, (totalPTS / 120) * 100)}%` }} />
               </div>
-              <span className="text-xs font-black text-white">{totalPTS}</span>
+              <span className="text-xs font-medium text-white">{totalPTS}</span>
             </div>
           </div>
-          <div className="flex-1 bg-white/5 rounded-xl p-2 border border-white/10 text-center">
+          <div className="flex-1 bg-white/5 rounded-xl p-2 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center">
             <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-0.5">Efficiency</p>
-            <p className="text-xs font-black text-blue-400">{avgPTS} <span className="text-[8px] text-gray-500">avg</span></p>
+            <p className="text-xs font-medium text-blue-400">{avgPTS} <span className="text-[8px] text-gray-500">avg</span></p>
           </div>
         </div>
       )}
@@ -670,7 +670,7 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
         {POSITIONS.map((pos, i) => (
           <div key={pos} className="flex gap-2 items-center">
             <div
-              className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black text-white shadow-lg"
+              className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-medium text-white shadow-none"
               style={{ backgroundColor: color }}
             >
               {pos}
@@ -678,7 +678,7 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
             <select
               value={lineup[i] ? (lineup[i]!.PLAYER_ID || lineup[i]!.PERSON_ID || '').toString() : ''}
               onChange={(e) => setSlot(i, e.target.value)}
-              className="flex-1 bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-[11px] text-gray-200 focus:outline-none transition-all appearance-none"
+              className="flex-1 bg-gray-800/80 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-[11px] text-gray-200 focus:outline-none transition-all appearance-none"
               style={{ borderLeftColor: color, borderLeftWidth: '3px' }}
             >
               <option value="">Select {POSITION_NAMES[pos]}...</option>
@@ -690,7 +690,7 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
                     const id = (p.PLAYER_ID || p.PERSON_ID || '').toString();
                     const isSelected = lineup.some(l => l && (l.PLAYER_ID || l.PERSON_ID || '').toString() === id);
                     return (
-                      <option key={id} value={id} disabled={isSelected} className="bg-gray-900">
+                      <option key={id} value={id} disabled={isSelected} className="bg-white dark:bg-zinc-900">
                         {p.PLAYER_NAME} {p.PTS ? `(${p.PTS} PPG)` : ''} — {p.POSITION}
                       </option>
                     );
@@ -704,7 +704,7 @@ function CourtLineup({ title, lineup, players, color, onChange, logo, isHome, ta
                     const id = (p.PLAYER_ID || p.PERSON_ID || '').toString();
                     const isSelected = lineup.some(l => l && (l.PLAYER_ID || l.PERSON_ID || '').toString() === id);
                     return (
-                      <option key={id} value={id} disabled={isSelected} className="bg-gray-900 opacity-50">
+                      <option key={id} value={id} disabled={isSelected} className="bg-white dark:bg-zinc-900 opacity-50">
                         {p.PLAYER_NAME} ({p.POSITION})
                       </option>
                     );
@@ -744,11 +744,11 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
   return (
     <div className="space-y-6">
       {/* Main Result Card */}
-      <div className="bg-gradient-to-br from-indigo-950 via-gray-900 to-black border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+      <div className="bg-zinc-100 dark:bg-zinc-800   to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl p-8 shadow-none relative overflow-hidden">
         {/* Animated background elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-50" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-zinc-100 dark:bg-zinc-800 from-transparent  to-transparent opacity-50" />
         
-        <div className="text-[10px] font-black text-orange-500 text-center mb-8 uppercase tracking-[0.4em]">Simulation Success</div>
+        <div className="text-[10px] font-medium text-orange-500 text-center mb-8 uppercase tracking-[0.4em]">Simulation Success</div>
 
         {/* Scorecard */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-4 mb-10">
@@ -763,16 +763,16 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
                 </div>
               )}
             </div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{homeTeam?.TeamName}</p>
-            <p className="text-4xl sm:text-6xl font-black italic tracking-tighter" style={{ color: homeWin ? '#fff' : '#444' }}>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mb-1">{homeTeam?.TeamName}</p>
+            <p className="text-4xl sm:text-6xl font-medium  tracking-tighter" style={{ color: homeWin ? '#fff' : '#444' }}>
               {result.predictedHomePts}
             </p>
           </div>
 
           <div className="flex flex-row sm:flex-col items-center gap-4 order-1 sm:order-2">
-            <div className="hidden sm:block w-px h-12 bg-gradient-to-b from-transparent via-gray-700 to-transparent mb-2" />
-            <p className="text-xl sm:text-2xl font-black text-gray-800 italic">VS</p>
-            <div className="hidden sm:block w-px h-12 bg-gradient-to-t from-transparent via-gray-700 to-transparent mt-2" />
+            <div className="hidden sm:block w-px h-12 bg-zinc-100 dark:bg-zinc-800 from-transparent  to-transparent mb-2" />
+            <p className="text-xl sm:text-2xl font-medium text-gray-800 ">VS</p>
+            <div className="hidden sm:block w-px h-12 bg-zinc-100 dark:bg-zinc-800 from-transparent  to-transparent mt-2" />
           </div>
 
           <div className="flex-1 text-center order-3">
@@ -786,8 +786,8 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
                 </div>
               )}
             </div>
-            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{awayTeam?.TeamName}</p>
-            <p className="text-4xl sm:text-6xl font-black italic tracking-tighter" style={{ color: !homeWin ? '#fff' : '#444' }}>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mb-1">{awayTeam?.TeamName}</p>
+            <p className="text-4xl sm:text-6xl font-medium  tracking-tighter" style={{ color: !homeWin ? '#fff' : '#444' }}>
               {result.predictedAwayPts}
             </p>
           </div>
@@ -795,13 +795,13 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
 
         {/* Win Probability Bar */}
         <div className="space-y-3 mb-8">
-          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+          <div className="flex justify-between text-[10px] font-medium uppercase tracking-widest">
             <span style={{ color: homeTeam?.logo_color }}>{homeTeam?.TeamName} {result.homeWinProb}%</span>
             <span style={{ color: awayTeam?.logo_color }}>{100 - result.homeWinProb}% {awayTeam?.TeamName}</span>
           </div>
-          <div className="h-3 rounded-full bg-gray-800 overflow-hidden flex p-0.5 border border-white/5 shadow-inner">
+          <div className="h-3 rounded-full bg-gray-800 overflow-hidden flex p-0.5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none">
             <div
-              className="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+              className="h-full rounded-full transition-all duration-1000 ease-out shadow-none"
               style={{ width: `${result.homeWinProb}%`, backgroundColor: homeTeam?.logo_color || '#f97316' }}
             />
             <div
@@ -814,10 +814,10 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
         {/* MVP Card */}
         <div 
           onClick={() => mvpPlayer && onPlayerClick(mvpPlayer)}
-          className="bg-white/[0.03] rounded-2xl p-6 border border-white/5 flex flex-col sm:flex-row items-center gap-6 group transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg hover:bg-white/[0.08] cursor-pointer"
+          className="bg-white/[0.03] rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 border-[0.5px] flex flex-col sm:flex-row items-center gap-6 group transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none hover:bg-white/[0.08] cursor-pointer"
         >
           <div className="relative shrink-0">
-            <div className="absolute -inset-4 bg-yellow-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -inset-4 bg-yellow-500/20 rounded-full  opacity-0 group-hover:opacity-100 transition-opacity" />
             <img 
               src={mvpPlayer ? getPlayerHeadshotUrl((mvpPlayer.PLAYER_ID || mvpPlayer.PERSON_ID || '').toString()) : ''}
               alt={result.mvp}
@@ -828,25 +828,25 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
             />
           </div>
           <div className="text-center sm:text-left">
-            <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-1">Projected MVP</p>
-            <p className="text-2xl sm:text-xl font-black text-white">{result.mvp}</p>
+            <p className="text-[10px] font-medium text-yellow-500 uppercase tracking-widest mb-1">Projected MVP</p>
+            <p className="text-2xl sm:text-xl font-medium text-white">{result.mvp}</p>
             {mvpPlayer && (
-               <p className="text-xs text-gray-500 font-bold">{mvpPlayer.PTS || 0} PTS • {mvpPlayer.REB || 0} REB • {mvpPlayer.AST || 0} AST</p>
+               <p className="text-xs text-gray-500 font-medium">{mvpPlayer.PTS || 0} PTS • {mvpPlayer.REB || 0} REB • {mvpPlayer.AST || 0} AST</p>
             )}
           </div>
           <div className="ml-auto text-right">
-             <div className="text-xs text-orange-400 font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity">View Prediction →</div>
-             <div className="text-4xl font-black text-white/5 tracking-tighter">MVP</div>
+             <div className="text-xs text-orange-400 font-medium mb-1 opacity-0 group-hover:opacity-100 transition-opacity">View Prediction →</div>
+             <div className="text-4xl font-medium text-white/5 tracking-tighter">MVP</div>
           </div>
         </div>
 
         {/* Tactical Edge & Key Matchup */}
-        <div className="mt-8 pt-8 border-t border-white/5 relative overflow-hidden">
+        <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-800 border-[0.5px] relative overflow-hidden">
            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 blur-3xl pointer-events-none" />
            
            <div className="flex items-center gap-2 mb-6">
               <Brain className="text-orange-400" size={18} />
-              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tactical Edge & Key Matchup Spotlight</h4>
+              <h4 className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">Tactical Edge & Key Matchup Spotlight</h4>
            </div>
            
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
@@ -856,23 +856,23 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
                     <div key={pos} className="flex items-center justify-between group/adv">
                        <div className="flex items-center gap-3">
                           <div 
-                            className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[11px] font-black text-white group-hover/adv:bg-orange-500/20 transition-all border border-white/5"
+                            className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[11px] font-medium text-white group-hover/adv:bg-orange-500/20 transition-all border border-zinc-200 dark:border-zinc-800 border-[0.5px]"
                             style={{ borderColor: advantage > 0 ? (homeTeam?.logo_color + '40') : (awayTeam?.logo_color + '40') }}
                           >
                              {pos}
                           </div>
                           <div>
-                             <span className="text-[11px] font-black text-white uppercase tracking-tight block">{POSITION_NAMES[pos]}</span>
-                             <span className={`text-[10px] font-bold ${advantage > 0 ? 'text-emerald-400' : 'text-blue-400'}`}>
+                             <span className="text-[11px] font-medium text-white uppercase tracking-tight block">{POSITION_NAMES[pos]}</span>
+                             <span className={`text-[10px] font-medium ${advantage > 0 ? 'text-emerald-400' : 'text-blue-400'}`}>
                                 {advantage > 0 ? homeTeam?.TeamName : awayTeam?.TeamName} Lead
                              </span>
                           </div>
                        </div>
                        <div className="flex items-center gap-3">
-                          <div className={`text-sm font-black italic ${advantage > 0 ? 'text-emerald-400' : 'text-blue-400'}`}>
+                          <div className={`text-sm font-medium  ${advantage > 0 ? 'text-emerald-400' : 'text-blue-400'}`}>
                              {advantage > 0 ? '+' : ''}{advantage.toFixed(1)}
                           </div>
-                          <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-white/5">
+                          <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 border-[0.5px]">
                              <div 
                                className={`h-full transition-all duration-1000 ${advantage > 0 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
                                style={{ width: `${Math.min(100, Math.abs(advantage) * 5)}%`, marginLeft: advantage > 0 ? '0' : 'auto' }} 
@@ -884,11 +884,11 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
               </div>
 
               {/* Matchup Intelligence Card */}
-              <div className="bg-gradient-to-br from-white/[0.03] to-transparent border border-white/10 rounded-[2rem] p-6 flex flex-col justify-between group/matchup hover:border-orange-500/30 transition-all">
+              <div className="bg-zinc-100 dark:bg-zinc-800 from-white/[0.03] to-transparent border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[2rem] p-6 flex flex-col justify-between group/matchup hover:border-orange-500/30 transition-all">
                  <div className="relative">
                     <div className="absolute -top-1 -left-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                    <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-4 ml-3">Model Analysis</p>
-                    <p className="text-sm text-gray-300 leading-relaxed italic font-medium">
+                    <p className="text-[10px] font-medium text-orange-500 uppercase tracking-widest mb-4 ml-3">Model Analysis</p>
+                    <p className="text-sm text-gray-300 leading-relaxed  font-medium">
                        {result.homeWinProb > 65 
                          ? `The ${homeTeam?.TeamName}'s tactical offensive sets are creating severe mismatches for the ${awayTeam?.TeamName}. expect high-volume scoring from the ${positionalAdvantages.reduce((a, b) => a.advantage > b.advantage ? a : b).pos} position.`
                          : result.homeWinProb < 35 
@@ -896,14 +896,14 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
                            : `A psychological battle is unfolding. The ${homeTactic} and ${awayTactic} systems are in a state of high-equilibrium. The result will likely hinge on ${result.mvp}'s ability to close out the game.`}
                     </p>
                  </div>
-                 <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
+                 <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                        <Zap size={14} className="text-orange-400" />
-                       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Simulation Confidence: 94.2%</span>
+                       <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">Simulation Confidence: 94.2%</span>
                     </div>
                     <div className="flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded-lg">
                        <TrendingUp size={12} className="text-emerald-400" />
-                       <span className="text-[9px] font-black text-emerald-400">STABLE</span>
+                       <span className="text-[9px] font-medium text-emerald-400">STABLE</span>
                     </div>
                  </div>
               </div>
@@ -912,15 +912,15 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
       </div>
 
       {/* Projected Box Score */}
-      <div className="bg-gradient-to-br from-gray-900 to-black border border-white/10 rounded-2xl p-6 shadow-2xl">
+      <div className="bg-zinc-100 dark:bg-zinc-800  to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl p-6 shadow-none">
         <div className="flex items-center gap-2 mb-6">
            <Zap className="text-yellow-500" size={18} />
-           <h3 className="text-lg font-black text-white uppercase tracking-tighter italic">Projected Full Box Score</h3>
+           <h3 className="text-lg font-medium text-white uppercase tracking-tighter ">Projected Full Box Score</h3>
         </div>
         <div className="w-full overflow-x-auto rounded-xl">
           <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
             <thead>
-              <tr className="text-[9px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5">
+              <tr className="text-[9px] font-medium text-gray-500 uppercase tracking-widest border-b border-zinc-200 dark:border-zinc-800 border-[0.5px]">
                 <th className="py-3 px-2">Player</th>
                 <th className="py-3 px-2">PTS</th>
                 <th className="py-3 px-2">REB</th>
@@ -935,14 +935,14 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
                 if (!stats) return null;
                 const isHome = i < 5;
                 return (
-                  <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                    <td className="py-3 px-2 font-bold text-gray-300">
+                  <tr key={i} className="border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:bg-white/5 transition-colors group">
+                    <td className="py-3 px-2 font-medium text-gray-300">
                       <div className="flex items-center gap-2">
                         <div className={`w-1 h-3 rounded-full ${isHome ? 'bg-orange-500' : 'bg-blue-500'}`} />
                         {p!.PLAYER_NAME}
                       </div>
                     </td>
-                    <td className="py-3 px-2 font-black text-white">{Math.round(stats?.pts || 0)}</td>
+                    <td className="py-3 px-2 font-medium text-white">{Math.round(stats?.pts || 0)}</td>
                     <td className="py-3 px-2 text-gray-400">{Math.round(stats?.reb || 0)}</td>
                     <td className="py-3 px-2 text-gray-400">{Math.round(stats?.ast || 0)}</td>
                     <td className="py-3 px-2 text-gray-400">{Math.round(stats?.stl || 0)}/{Math.round(stats?.blk || 0)}</td>
@@ -962,10 +962,10 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
       </div>
 
       {/* Stats Chart */}
-      <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-xl p-6">
+      <div className="bg-zinc-100 dark:bg-zinc-800   border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-6">
         <div className="flex items-center gap-2 mb-6">
            <Scale className="text-orange-500" size={18} />
-           <h3 className="text-lg font-black text-white">Advanced Matchup Comparison</h3>
+           <h3 className="text-lg font-medium text-white">Advanced Matchup Comparison</h3>
         </div>
         
         <div className="space-y-6">
@@ -1014,15 +1014,15 @@ function StatComparisonRow({ label, homeValue, awayValue, homeColor = '#f97316',
     <div className="space-y-2">
       <div className="flex justify-between items-end">
         <div className="text-left">
-          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">{label}</p>
-          <span className="text-xl font-black text-white">{homeValue.toFixed(1)}</span>
+          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-widest mb-1">{label}</p>
+          <span className="text-xl font-medium text-white">{homeValue.toFixed(1)}</span>
         </div>
         <div className="text-right">
-          <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1 text-right">{label}</p>
-          <span className="text-xl font-black text-white">{awayValue.toFixed(1)}</span>
+          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-widest mb-1 text-right">{label}</p>
+          <span className="text-xl font-medium text-white">{awayValue.toFixed(1)}</span>
         </div>
       </div>
-      <div className="h-3 bg-gray-800/50 rounded-full overflow-hidden flex p-0.5 border border-white/5">
+      <div className="h-3 bg-gray-800/50 rounded-full overflow-hidden flex p-0.5 border border-zinc-200 dark:border-zinc-800 border-[0.5px]">
         <div 
           className="h-full rounded-l-full transition-all duration-1000 ease-out"
           style={{ width: `${homePct}%`, backgroundColor: homeColor }}
@@ -1050,11 +1050,11 @@ function TacticSelector({ label, value, onChange, color }: any) {
   };
 
   return (
-    <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-4 group hover:border-gray-600 transition-all">
-      <label className="text-[10px] font-black text-gray-500 block mb-3 uppercase tracking-widest">{label}</label>
+    <div className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 group hover:border-zinc-200 dark:border-zinc-800 border-[0.5px] transition-all">
+      <label className="text-[10px] font-medium text-gray-500 block mb-3 uppercase tracking-widest">{label}</label>
       <div className="flex gap-3 items-center">
         <div 
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-lg"
+          className="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-none"
           style={{ backgroundColor: color || '#374151' }}
         >
           {getIcon(value)}
@@ -1063,10 +1063,10 @@ function TacticSelector({ label, value, onChange, color }: any) {
           <select
             value={value}
             onChange={(e) => onChange(e.target.value as TacticKey)}
-            className="w-full bg-transparent text-white font-bold text-sm focus:outline-none cursor-pointer"
+            className="w-full bg-transparent text-white font-medium text-sm focus:outline-none cursor-pointer"
           >
             {Object.entries(TACTICAL_STRATEGIES).map(([key, strat]) => (
-              <option key={key} value={key} className="bg-gray-900">{strat.name}</option>
+              <option key={key} value={key} className="bg-white dark:bg-zinc-900">{strat.name}</option>
             ))}
           </select>
           <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{selected.description}</p>
@@ -1085,14 +1085,14 @@ interface LineupStatsProps {
 
 function LineupStats({ label, players, color, onPlayerClick }: LineupStatsProps) {
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-xl p-4">
-      <h4 className="text-sm font-bold text-white mb-3">{label}</h4>
+    <div className="bg-zinc-100 dark:bg-zinc-800   border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+      <h4 className="text-sm font-medium text-white mb-3">{label}</h4>
       <div className="space-y-2">
         {players.map((p) => (
           <div 
             key={(p.PLAYER_ID || p.PERSON_ID || '').toString()} 
             onClick={() => onPlayerClick(p)}
-            className="flex items-center gap-2 text-xs group cursor-pointer hover:bg-white/5 p-1 rounded-lg transition-transform duration-200 hover:scale-105 shadow-md"
+            className="flex items-center gap-2 text-xs group cursor-pointer hover:bg-white/5 p-1 rounded-lg transition-transform duration-200 hover:scale-105 shadow-none"
           >
             <img
               src={getPlayerHeadshotUrl((p.PLAYER_ID || p.PERSON_ID || '').toString())}
@@ -1103,11 +1103,11 @@ function LineupStats({ label, players, color, onPlayerClick }: LineupStatsProps)
               }}
             />
             <div className="flex-1">
-              <p className="text-gray-200 font-semibold">{p.PLAYER_NAME}</p>
+              <p className="text-gray-200 font-medium">{p.PLAYER_NAME}</p>
               <p className="text-gray-500 text-xs">{p.POSITION} • {p.TEAM_ABBREVIATION}</p>
             </div>
             <div className="text-center">
-              <p className="text-orange-400 font-bold">{p.PTS}</p>
+              <p className="text-orange-400 font-medium">{p.PTS}</p>
               <p className="text-gray-500 text-xs">PPG</p>
             </div>
           </div>
@@ -1126,30 +1126,30 @@ function PlayerMatchupModal({ player, stats, onClose, teamColor }: any) {
   }, [player?.PLAYER_ID || player?.PERSON_ID]);
 
   return (
-    <div id="player-matchup-modal" className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 p-4 backdrop-blur-md">
+    <div id="player-matchup-modal" className="fixed inset-0 z-[100] overflow-y-auto bg-white dark:bg-zinc-900 p-4 backdrop-">
       <div className="flex min-h-full items-end sm:items-center justify-center">
-        <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 relative">
-        <div className="relative h-32 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl w-full max-w-lg shadow-none animate-in zoom-in-95 duration-200 relative">
+        <div className="relative h-32 bg-zinc-100 dark:bg-zinc-800   overflow-hidden">
           <div className="absolute inset-0 opacity-10" style={{ backgroundColor: teamColor }} />
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white bg-black/40 p-2 rounded-full z-20"
+            className="absolute top-4 right-4 text-gray-400 hover:text-white bg-white dark:bg-zinc-900 p-2 rounded-full z-20"
           >
             <X size={20} />
           </button>
           
           <div className="absolute -bottom-10 left-8 flex items-end gap-4 z-10">
             <div className="relative">
-               <div className="absolute -inset-2 bg-white/20 rounded-full blur-lg" />
+               <div className="absolute -inset-2 bg-white/20 rounded-full " />
                <img 
                  src={getPlayerHeadshotUrl((player.PLAYER_ID || player.PERSON_ID || '').toString())}
                  alt={player.PLAYER_NAME}
-                 className="w-24 h-24 object-cover rounded-full border-4 border-gray-900 bg-gray-800"
+                 className="w-24 h-24 object-cover rounded-full border-4 border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-gray-800"
                />
             </div>
             <div className="mb-12">
-               <h3 className="text-2xl font-black text-white leading-tight">{player.PLAYER_NAME}</h3>
-               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{player.POSITION} • {player.TEAM_ABBREVIATION}</p>
+               <h3 className="text-2xl font-medium text-white leading-tight">{player.PLAYER_NAME}</h3>
+               <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">{player.POSITION} • {player.TEAM_ABBREVIATION}</p>
             </div>
           </div>
         </div>
@@ -1157,7 +1157,7 @@ function PlayerMatchupModal({ player, stats, onClose, teamColor }: any) {
         <div className="p-8 pt-16">
           <div className="flex items-center gap-2 mb-6">
             <Zap size={16} className="text-yellow-500" />
-            <h4 className="text-xs font-black text-white uppercase tracking-[0.2em]">Matchup Prediction</h4>
+            <h4 className="text-xs font-medium text-white uppercase tracking-[0.2em]">Matchup Prediction</h4>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -1169,9 +1169,9 @@ function PlayerMatchupModal({ player, stats, onClose, teamColor }: any) {
             <PredictionBox label="Blocks" value={stats.blk} unit="BLK" color="text-red-500" />
           </div>
 
-          <div className="mt-8 p-4 bg-white/5 rounded-xl border border-white/5">
-             <p className="text-[10px] text-gray-500 font-bold uppercase mb-2">Simulation Insight</p>
-             <p className="text-xs text-gray-300 leading-relaxed italic">
+          <div className="mt-8 p-4 bg-white/5 rounded-xl border border-zinc-200 dark:border-zinc-800 border-[0.5px]">
+             <p className="text-[10px] text-gray-500 font-medium uppercase mb-2">Simulation Insight</p>
+             <p className="text-xs text-gray-300 leading-relaxed ">
                Based on current lineup synergy and opponent defensive metrics, {(player.PLAYER_NAME || 'Player').split(' ').pop()} is projected to produce a {stats.pts > (player.PTS || 0) ? 'higher than average' : 'contained'} scoring output in this specific matchup.
              </p>
           </div>
@@ -1185,11 +1185,11 @@ function PlayerMatchupModal({ player, stats, onClose, teamColor }: any) {
 function PredictionBox({ label, value, unit, color }: any) {
   const displayValue = label === 'FG Accuracy' ? value.toFixed(1) : Math.round(value);
   return (
-    <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-      <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{label}</p>
+    <div className="bg-gray-800/50 border border-zinc-200 dark:border-zinc-800 border-[0.5px]/50 rounded-xl p-4">
+      <p className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mb-1">{label}</p>
       <div className="flex items-baseline gap-1">
-        <span className={`text-2xl font-black ${color}`}>{displayValue}</span>
-        <span className="text-[10px] font-bold text-gray-600">{unit}</span>
+        <span className={`text-2xl font-medium ${color}`}>{displayValue}</span>
+        <span className="text-[10px] font-medium text-gray-600">{unit}</span>
       </div>
     </div>
   );
