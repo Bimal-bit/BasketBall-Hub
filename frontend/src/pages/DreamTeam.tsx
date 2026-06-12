@@ -40,6 +40,7 @@ type PrimeStats = {
   fgPct: number;
   fg3Pct: number;
   ftPct: number;
+  estimated?: boolean;
 };
 
 type DreamPlayer = {
@@ -113,6 +114,7 @@ const fallbackPrime = (player: any, position: Position): PrimeStats => {
     fgPct: numberFrom(player.FG_PCT, 0.47),
     fg3Pct: numberFrom(player.FG3_PCT, 0.35),
     ftPct: numberFrom(player.FT_PCT, 0.78),
+    estimated: true,
   };
 };
 
@@ -518,7 +520,7 @@ function TeamPanel({ team, roster, score, onPick, onRemove }: {
               </button>
               <img src={getPlayerHeadshotUrl(player.id)} alt="" className="h-16 w-16 rounded-xl bg-white object-cover" />
               <div className="min-w-0 flex-1 pr-6">
-                <div className="text-[10px] font-medium uppercase tracking-widest text-orange-500">{position} / {player.prime.season}</div>
+                <div className="text-[10px] font-medium uppercase tracking-widest text-orange-500">{position} / {player.prime.season}{player.prime.estimated ? ' (estimated)' : ''}</div>
                 <div className="truncate text-sm font-medium uppercase text-zinc-900 dark:text-white">{player.name}</div>
                 <div className="mt-1 grid grid-cols-3 gap-1 text-[10px] text-gray-500">
                   <span>{player.prime.pts || 0} PTS</span>
@@ -696,6 +698,7 @@ function normalizePrime(avg: any, season: string): PrimeStats | null {
     fgPct: Number(avg.FG_PCT ?? 0),
     fg3Pct: Number(avg.FG3_PCT ?? 0),
     ftPct: Number(avg.FT_PCT ?? 0),
+    estimated: false,
   };
   return primeScore(prime) > 0 ? prime : null;
 }

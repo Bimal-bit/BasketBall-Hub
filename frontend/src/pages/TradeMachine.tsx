@@ -159,6 +159,7 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
             );
           })}
         </div>
+        <div className="mt-2 text-[11px] text-gray-400">* Player salary values shown are estimates derived from heuristics.</div>
       </div>
       <div className="grid max-h-[520px] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-1">
         {roster.map(player => {
@@ -169,7 +170,7 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
               <img src={getPlayerHeadshotUrl(playerId)} alt="" className="h-10 w-10 rounded-full object-cover object-top bg-white dark:bg-zinc-900" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-white truncate">{getPlayerName(player)}</div>
-                <div className="text-xs text-gray-500">{player.POSITION || 'G/F'} / ${getSalary(player).toFixed(1)}M</div>
+                <div className="text-xs text-gray-500">{player.POSITION || 'G/F'} / ${getSalary(player).toFixed(1)}M<span className="text-[10px] ml-1 text-gray-400">*</span></div>
               </div>
               <div className="text-right">
                 <div className="text-xs font-medium text-white">{Number(player.PTS ?? 0).toFixed(1)}</div>
@@ -190,7 +191,7 @@ function PackageSummary({ title, players, picks, salary, impact }: { title: stri
       <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2"><Repeat2 size={14} className="text-orange-400" />{title}</h3>
       <div className="grid grid-cols-3 gap-2 mb-3">
         <MiniStat label="Assets" value={players.length + picks.length} />
-        <MiniStat label="Salary" value={`$${salary.toFixed(1)}M`} />
+        <MiniStat label="Salary" value={`$${salary.toFixed(1)}M*`} />
         <MiniStat label="Impact" value={impact.toFixed(1)} />
       </div>
       <div className="text-xs leading-relaxed text-gray-400">{[...players.map(getPlayerName), ...picks.map(pick => pick.label)].join(', ') || 'No assets selected'}</div>

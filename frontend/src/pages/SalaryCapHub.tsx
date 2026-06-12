@@ -85,7 +85,7 @@ export default function SalaryCapHub() {
         <Metric icon={<AlertTriangle size={18} className="text-yellow-400 mx-auto mb-1" />} label="Tax Bill" value={`$${team.taxBill.toFixed(1)}M`} />
         <Metric icon={<TrendingUp size={18} className="text-cyan-400 mx-auto mb-1" />} label="Apron" value={getApronLabel(team)} />
         <Metric icon={<CalendarClock size={18} className="text-blue-400 mx-auto mb-1" />} label="Wins" value={`${team.wins}`} />
-        <Metric icon={<FileSignature size={18} className="text-blue-400 mx-auto mb-1" />} label="Top Contract" value={topSalary ? `$${topSalary.salary.toFixed(1)}M` : '--'} />
+        <Metric icon={<FileSignature size={18} className="text-blue-400 mx-auto mb-1" />} label="Top Contract" value={topSalary ? `$${topSalary.salary.toFixed(1)}M*` : '--'} />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Metric icon={<Banknote size={18} className="text-cyan-400 mx-auto mb-1" />} label="Cap Usage" value={`${capUsage}%`} />
@@ -113,7 +113,7 @@ export default function SalaryCapHub() {
                     <div className="text-xs text-gray-500">{player.POSITION || 'G/F'} / {player.TEAM_ABBREVIATION}</div>
                   </div>
                 </div>
-                <div className="text-right text-sm font-medium text-white">${salary.toFixed(1)}M</div>
+                <div className="text-right text-sm font-medium text-white">${salary.toFixed(1)}M<span className="text-[10px] ml-1 text-gray-400">*</span></div>
                 <div className="text-center text-xs text-gray-300">{years} yrs</div>
                 <div className={`text-center text-[10px] font-medium uppercase ${status === 'FA' ? 'text-orange-300' : status === 'Option' ? 'text-yellow-300' : 'text-green-300'}`}>{status}</div>
               </div>
@@ -121,6 +121,7 @@ export default function SalaryCapHub() {
             {!loading && rosterContracts.length === 0 && <div className="text-center py-10 text-xs text-gray-500">No roster contracts available</div>}
             {loading && <BasketballLoader />}
           </div>
+          <div className="mt-3 text-[11px] text-gray-400">* Salary values are estimates derived from public stats and heuristics.</div>
         </div>
 
         <div className="space-y-4">
