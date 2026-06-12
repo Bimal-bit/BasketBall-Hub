@@ -66,6 +66,15 @@ export default function StrategySimulator() {
   const [optimization, setOptimization] = useState<'BALANCED' | 'OFFENSE' | 'DEFENSE'>('BALANCED');
 
   useEffect(() => {
+    if (selectedPlayer) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => { document.body.classList.remove('modal-open'); };
+  }, [selectedPlayer]);
+
+  useEffect(() => {
     async function loadInitialData() {
       try {
         const [teamsData, playersData] = await Promise.all([
@@ -264,7 +273,7 @@ export default function StrategySimulator() {
       </div>
 
       {/* Team Selectors */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <TeamSelectorCard
           label="Home Team"
           value={homeTeam}
@@ -312,7 +321,7 @@ export default function StrategySimulator() {
       </div>
 
       {/* Lineups */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
         {rosterLoading && (
           <div className="absolute inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center rounded-xl">
              <div className="flex flex-col items-center gap-2">
@@ -805,7 +814,7 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
         {/* MVP Card */}
         <div 
           onClick={() => mvpPlayer && onPlayerClick(mvpPlayer)}
-          className="bg-white/[0.03] rounded-2xl p-6 border border-white/5 flex flex-col sm:flex-row items-center gap-6 group hover:bg-white/[0.08] transition-all cursor-pointer"
+          className="bg-white/[0.03] rounded-2xl p-6 border border-white/5 flex flex-col sm:flex-row items-center gap-6 group transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg hover:bg-white/[0.08] cursor-pointer"
         >
           <div className="relative shrink-0">
             <div className="absolute -inset-4 bg-yellow-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -947,7 +956,7 @@ function SimulationResults({ result, homeTeam, awayTeam, homeLineup, awayLineup,
       </div>
 
       {/* Lineup Comparison */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <LineupStats label={homeTeam?.TeamName || 'Home'} players={homeLineup} color={homeTeam?.logo_color} onPlayerClick={onPlayerClick} />
         <LineupStats label={awayTeam?.TeamName || 'Away'} players={awayLineup} color={awayTeam?.logo_color} onPlayerClick={onPlayerClick} />
       </div>
@@ -1083,7 +1092,7 @@ function LineupStats({ label, players, color, onPlayerClick }: LineupStatsProps)
           <div 
             key={(p.PLAYER_ID || p.PERSON_ID || '').toString()} 
             onClick={() => onPlayerClick(p)}
-            className="flex items-center gap-2 text-xs group cursor-pointer hover:bg-white/5 p-1 rounded-lg transition-all"
+            className="flex items-center gap-2 text-xs group cursor-pointer hover:bg-white/5 p-1 rounded-lg transition-transform duration-200 hover:scale-105 shadow-md"
           >
             <img
               src={getPlayerHeadshotUrl((p.PLAYER_ID || p.PERSON_ID || '').toString())}
@@ -1111,9 +1120,15 @@ function LineupStats({ label, players, color, onPlayerClick }: LineupStatsProps)
 function PlayerMatchupModal({ player, stats, onClose, teamColor }: any) {
   if (!stats) return null;
 
+  useEffect(() => {
+    const el = document.getElementById('player-matchup-modal');
+    if (el) el.scrollTop = 0;
+  }, [player?.PLAYER_ID || player?.PERSON_ID]);
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+    <div id="player-matchup-modal" className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 p-4 backdrop-blur-md">
+      <div className="flex min-h-full items-end sm:items-center justify-center">
+        <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 relative">
         <div className="relative h-32 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
           <div className="absolute inset-0 opacity-10" style={{ backgroundColor: teamColor }} />
           <button 
@@ -1160,6 +1175,7 @@ function PlayerMatchupModal({ player, stats, onClose, teamColor }: any) {
                Based on current lineup synergy and opponent defensive metrics, {(player.PLAYER_NAME || 'Player').split(' ').pop()} is projected to produce a {stats.pts > (player.PTS || 0) ? 'higher than average' : 'contained'} scoring output in this specific matchup.
              </p>
           </div>
+        </div>
         </div>
       </div>
     </div>

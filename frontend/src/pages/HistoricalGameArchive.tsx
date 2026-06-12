@@ -112,7 +112,7 @@ export default function HistoricalGameArchive() {
           <div className="text-xs text-gray-400">Loaded {games.length} records{limit >= 1230 ? ' (full season archive)' : ''}</div>
           {loading && <div className="text-center py-10 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">Loading official games...</div>}
           {!loading && filtered.map(game => (
-            <button key={game.GAME_ID} onClick={() => setSelectedId(game.GAME_ID)} className={`w-full text-left rounded-xl border p-4 transition-colors ${selected?.GAME_ID === game.GAME_ID ? 'bg-gray-800 border-orange-500/40' : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}>
+            <button key={game.GAME_ID} onClick={() => setSelectedId(game.GAME_ID)} className={`w-full text-left rounded-xl border p-4 transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg ${selected?.GAME_ID === game.GAME_ID ? 'bg-gray-800 border-orange-500/40 shadow-orange-500/5' : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}>
               <div className="flex items-center justify-between gap-3 mb-2">
                 <div className="text-sm font-semibold text-white truncate">{getMatchup(game)}</div>
                 {getMargin(game) <= 5 && <Clock size={13} className="text-orange-400 flex-shrink-0" />}

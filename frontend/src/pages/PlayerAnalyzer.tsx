@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Search, User, Calendar, Trophy, Star, TrendingUp, DollarSign, Activity } from 'lucide-react';
 import { nbaApi, getPlayerHeadshotUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
@@ -35,6 +35,16 @@ export default function PlayerAnalyzer() {
   const [loadError, setLoadError] = useState(false);
   const [playerError, setPlayerError] = useState(false);
   const [slowLoading, setSlowLoading] = useState(false);
+
+  const detailRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedPlayer && detailRef.current) {
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [selectedPlayer?.id || selectedPlayer?.PERSON_ID || selectedPlayer?.PLAYER_ID]);
   
   const [seasonStats, setSeasonStats] = useState<any | null>(null);
   const [seasonAwards, setSeasonAwards] = useState<any[]>([]);
@@ -305,7 +315,7 @@ export default function PlayerAnalyzer() {
             <p className="text-xs text-orange-500 font-black uppercase tracking-[0.4em] mt-2">Comprehensive NBA Database</p>
          </div>
          
-          <div className="flex flex-col gap-3 w-full sm:max-w-2xl">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:max-w-2xl items-stretch sm:items-center">
              <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors" size={18} />
                 <input 
@@ -326,7 +336,7 @@ export default function PlayerAnalyzer() {
                    setSelectingSlot('p2');
                  }
                }}
-               className={`px-6 py-4 rounded-full font-black uppercase text-xs italic transition-all border
+               className={`px-6 py-4 rounded-full font-black uppercase text-xs italic transition-all border shrink-0
                  ${isComparing ? 'bg-orange-500 border-orange-400 text-white shadow-[0_0_30px_rgba(249,115,22,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'}`}
              >
                {isComparing ? 'Exit Comparison' : 'Compare Players'}
@@ -355,7 +365,7 @@ export default function PlayerAnalyzer() {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Left Column: Player List */}
-        <div className={`${selectedPlayer || isComparing ? 'order-2' : 'order-1'} xl:order-1 xl:col-span-4 bg-slate-900/30 border border-white/5 rounded-2xl sm:rounded-[3.5rem] p-3 sm:p-4 flex flex-col backdrop-blur-md min-h-[320px] max-h-[48vh] xl:max-h-none xl:min-h-[800px]`}>
+        <div className={`${selectedPlayer || isComparing ? 'order-2' : 'order-1'} xl:order-1 xl:col-span-4 bg-slate-900/30 border border-white/5 rounded-2xl sm:rounded-[3.5rem] p-3 sm:p-4 flex flex-col backdrop-blur-md min-h-[320px] max-h-[48vh] xl:max-h-none xl:min-h-[800px] min-h-0`}>
           <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5 mb-3 sm:mb-4 shrink-0">
              <div className="flex items-center justify-between mb-2">
                <div className="text-xs font-black text-gray-500 uppercase tracking-widest">Player Directory</div>
@@ -382,7 +392,7 @@ export default function PlayerAnalyzer() {
                </button>
              </div>
           </div>
-          <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-2 sm:space-y-3 custom-scrollbar">
+          <div className="h-[40vh] sm:h-auto sm:flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-2 sm:space-y-3 custom-scrollbar">
             {loadingList ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <BasketballLoader />
@@ -408,8 +418,8 @@ export default function PlayerAnalyzer() {
                 <button 
                   key={getPlayerId(p)}
                   onClick={() => handlePlayerSelect(p)}
-                  className={`w-full flex items-center gap-3 sm:gap-5 p-3 sm:p-4 rounded-2xl sm:rounded-3xl transition-all border text-left group
-                    ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'bg-orange-500/10 border-orange-500/50' : 'bg-black/20 border-transparent hover:bg-white/5 hover:border-white/10'}`}
+                  className={`w-full flex items-center gap-3 sm:gap-5 p-3 sm:p-4 rounded-2xl sm:rounded-3xl transition-transform duration-200 hover:scale-105 border text-left group shadow-md hover:shadow-lg
+                    ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'bg-orange-500/10 border-orange-500/50 shadow-orange-500/10' : 'bg-black/20 border-transparent hover:bg-white/5 hover:border-white/10'}`}
                 >
                    <div className="relative shrink-0">
                       <img 
@@ -438,7 +448,7 @@ export default function PlayerAnalyzer() {
         </div>
 
         {/* Right Column: Player Profile & Stats */}
-        <div className={`${selectedPlayer || isComparing ? 'order-1' : 'order-2'} xl:order-2 xl:col-span-8`}>
+        <div ref={detailRef} className={`${selectedPlayer || isComparing ? 'order-1' : 'order-2'} xl:order-2 xl:col-span-8`}>
           {!selectedPlayer && !isComparing ? (
             <div className="h-full flex flex-col items-center justify-center bg-slate-900/20 border border-white/5 rounded-[3.5rem] border-dashed text-gray-600">
                <User size={80} className="mb-6 opacity-20" />
@@ -750,8 +760,8 @@ function PlayerColumn({
   return (
     <div 
       onClick={onSelect}
-      className={`space-y-6 sm:space-y-8 p-4 sm:p-6 rounded-3xl sm:rounded-[3.5rem] border transition-all cursor-pointer relative
-        ${isActive ? `bg-white/[0.03] ${accentBorder} shadow-2xl` : 'bg-slate-900/10 border-white/5 opacity-80 hover:opacity-100'}`}
+      className={`space-y-6 sm:space-y-8 p-4 sm:p-6 rounded-3xl sm:rounded-[3.5rem] border transition-transform duration-200 hover:scale-[1.02] cursor-pointer relative shadow-md hover:shadow-lg
+        ${isActive ? `bg-white/[0.03] ${accentBorder} shadow-orange-500/5` : 'bg-slate-900/10 border-white/5 opacity-80 hover:opacity-100'}`}
     >
        <div className="flex items-center justify-between">
           <div className={`px-6 py-2 rounded-2xl ${accentBg} border ${accentBorder} inline-block text-[10px] font-black text-white uppercase tracking-widest`}>

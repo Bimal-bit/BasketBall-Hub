@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronRight, RefreshCw, Trophy, X, Zap, Activity } from 'lucide-react';
 import {
   nbaApi,
@@ -17,6 +17,7 @@ import {
 } from '../lib/api';
 import { SkeletonGrid } from '../components/SkeletonCard';
 import { formatIndianTime, gameStatusInIndia } from '../lib/time';
+import { useLayout } from '../lib/layoutContext';
 
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split('-').map(Number);
@@ -89,6 +90,7 @@ function LiveTicker({ games }: { games: Game[] }) {
 }
 
 export default function Dashboard() {
+  const { collapsed } = useLayout();
   const [games, setGames] = useState<Game[]>([]);
   const [standings, setStandings] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -307,9 +309,19 @@ export default function Dashboard() {
   }
 
   const teamsById = useMemo(() => Object.fromEntries(standings.map(team => [team.TeamID, team])), [standings]);
+
+  // Body scroll lock when any modal is open
+  useEffect(() => {
+    if (selectedGame || selectedPlayer) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => { document.body.classList.remove('modal-open'); };
+  }, [selectedGame, selectedPlayer]);
+
   const scoreboardDate = parseDateKey(selectedDate);
-  const scoreboardLabel = scoreboardDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  
+  const scoreboardLabel = scoreboardDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });  
   const filteredGames = useMemo(() => {
     return games.filter(game => {
       if (game.series_info) {
@@ -428,6 +440,7 @@ export default function Dashboard() {
               awayTeamName={game.away_team_name || teamsById[game.away_team_id]?.TeamName || game.away_team_abbreviation || 'Away'}
               homeTeamName={game.home_team_name || teamsById[game.home_team_id]?.TeamName || game.home_team_abbreviation || 'Home'}
               onClick={() => handleGameClick(game)}
+              isSelected={selectedGame?.game_id === game.game_id}
             />
           ))}
         </div>
@@ -467,6 +480,7 @@ export default function Dashboard() {
           onClose={() => setSelectedGame(null)}
           onPlayerClick={handlePlayerClick}
           onGameSelect={handleGameClick}
+          collapsed={collapsed}
         />
       )}
 
@@ -478,7 +492,8 @@ export default function Dashboard() {
           averages={playerAverages}
           playerImpact={playerImpact}
           playByPlay={playByPlay}
-          onClose={() => setSelectedPlayer(null)} 
+          onClose={() => setSelectedPlayer(null)}
+          collapsed={collapsed}
         />
       )}
     </div>
@@ -504,11 +519,12 @@ function SectionTitle({ title, action, onAction }: { title: string; action?: str
   );
 }
 
-function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
+function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
   game: Game;
   awayTeamName: string;
   homeTeamName: string;
   onClick: () => void;
+  isSelected?: boolean;
 }) {
   const isClose = game.status === 'live' && Math.abs(game.home_score - game.away_score) < 8;
   const homeProb = useMemo(() => {
@@ -522,7 +538,7 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick }: {
   return (
     <div
       onClick={onClick}
-      className="group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/40 transition-all duration-300 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/10"
+      className={`group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-3xl border bg-gray-900/40 transition-transform duration-200 hover:scale-105 hover:border-orange-500/50 shadow-md hover:shadow-lg hover:shadow-orange-500/10 active:scale-[0.98] select-none ${isSelected ? 'border-orange-500 shadow-orange-500/20 shadow-2xl' : 'border-gray-800'}`}
     >
       {isClose && (
         <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-orange-600 px-2.5 py-1 rounded-full animate-pulse shadow-lg shadow-orange-600/20">
@@ -613,7 +629,7 @@ function PlayerLeaderCard({ player, rank, onClick }: { player: DashboardPlayer &
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/40 transition-all duration-300 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/10"
+      className="group cursor-pointer overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/40 transition-transform duration-200 hover:scale-105 hover:border-orange-500/50 shadow-md hover:shadow-lg hover:shadow-orange-500/10 active:scale-[0.98] active:border-orange-500/80 select-none"
     >
       <div className="relative p-6">
         <div className="mb-4 flex items-start justify-between">
@@ -669,6 +685,12 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
   onPlayerClick: (player: DashboardPlayer, gameId?: string) => void;
   onGameSelect: (game: Game) => void;
 }) {
+  const { collapsed } = useLayout();
+  useEffect(() => {
+    const el = document.getElementById('game-details-modal');
+    if (el) el.scrollTop = 0;
+  }, [game.game_id]);
+
   const awayName = game.away_team_name || teamsById[game.away_team_id]?.TeamName || game.away_team_abbreviation || 'Away';
   const homeName = game.home_team_name || teamsById[game.home_team_id]?.TeamName || game.home_team_abbreviation || 'Home';
   const awayPlayers = boxScore.filter(player => player.TEAM_ID === game.away_team_id);
@@ -686,8 +708,8 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/80 p-0 sm:p-6 backdrop-blur-xl lg:left-16 xl:left-64">
-      <div className="relative mx-auto min-h-dvh w-full max-w-6xl overflow-hidden rounded-none border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md sm:min-h-0 sm:rounded-[2rem]">
+    <div id="game-details-modal" className={`fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black/80 p-0 sm:p-6 backdrop-blur-xl transition-all duration-500 ${collapsed ? 'lg:left-16' : 'lg:left-64'}`}>
+      <div className="relative mx-auto min-h-dvh w-full max-w-6xl flex flex-col rounded-none border border-white/10 bg-black text-slate-100 shadow-2xl backdrop-blur-md sm:min-h-0 sm:rounded-[2rem]">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute right-6 top-6 z-[60] rounded-full bg-slate-900/90 p-2 transition-all hover:bg-orange-500 hover:scale-110 active:scale-95 cursor-pointer shadow-xl border border-white/10"
@@ -726,12 +748,10 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
           </div>
         </div>
 
-        <div className="flex w-full justify-between gap-1 overflow-x-auto border-b border-white/10 bg-black px-1 sm:justify-start sm:px-5 py-0">
+        <div className="flex w-full overflow-x-auto border-b border-white/10 bg-black px-1 sm:px-5 py-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`shrink-0 border-b-2 px-3 sm:px-5 py-3 sm:py-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] transition-all ${
+            <button key={tab.id} onClick={() => onTabChange(tab.id)}
+              className={`shrink-0 flex-1 min-w-[60px] border-b-2 px-2 sm:px-5 py-3 sm:py-4 text-[10px] sm:text-xs font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all ${
                 activeTab === tab.id ? 'border-orange-500 text-orange-400' : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
@@ -740,26 +760,28 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
           ))}
         </div>
 
-        <div className="w-full max-w-full p-2 sm:p-6 lg:p-8">
-          {(activeTab === 'away' || activeTab === 'home') && (
-            <TeamStatsPanel teamId={selectedTeamId} teamName={selectedTeamName} players={selectedPlayers} gameId={game.game_id} onPlayerClick={onPlayerClick} />
-          )}
-          {activeTab === 'Game' && (
-            <GameSummary
-              game={game}
-              awayName={awayName}
-              homeName={homeName}
-              awayPlayers={awayPlayers}
-              homePlayers={homePlayers}
-              awayStats={awayStats}
-              homeStats={homeStats}
-              awayShots={teamShots[game.away_team_id] || []}
-              homeShots={teamShots[game.home_team_id] || []}
-              playByPlay={playByPlay}
-              onPlayerClick={onPlayerClick}
-            />
-          )}
-          {activeTab === 'Feed' && <GameFeed playByPlay={playByPlay} boxScore={boxScore} game={game} />}
+        <div className="flex-1 overflow-y-auto">
+          <div className="w-full max-w-full p-2 sm:p-6 lg:p-8">
+            {(activeTab === 'away' || activeTab === 'home') && (
+              <TeamStatsPanel teamId={selectedTeamId} teamName={selectedTeamName} players={selectedPlayers} gameId={game.game_id} onPlayerClick={onPlayerClick} />
+            )}
+            {activeTab === 'Game' && (
+              <GameSummary
+                game={game}
+                awayName={awayName}
+                homeName={homeName}
+                awayPlayers={awayPlayers}
+                homePlayers={homePlayers}
+                awayStats={awayStats}
+                homeStats={homeStats}
+                awayShots={teamShots[game.away_team_id] || []}
+                homeShots={teamShots[game.home_team_id] || []}
+                playByPlay={playByPlay}
+                onPlayerClick={onPlayerClick}
+              />
+            )}
+            {activeTab === 'Feed' && <GameFeed playByPlay={playByPlay} boxScore={boxScore} game={game} />}
+          </div>
         </div>
       </div>
     </div>
@@ -768,7 +790,7 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 
 function GameHeroTeam({ teamId, name, score, align }: { teamId: number; name: string; score: number; align: 'left' | 'right' }) {
   return (
-    <div className={`flex items-center gap-2 sm:gap-4 ${align === 'right' ? 'flex-row-reverse text-right' : 'text-left'}`}>
+    <div className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-4 ${align === 'right' ? 'sm:flex-row-reverse text-center sm:text-right' : 'text-center sm:text-left'}`}>
       {/* Logo — transparent background, no white box */}
       <img
         src={getTeamLogoUrl(teamId)}
@@ -868,7 +890,7 @@ function PlayerStatRow({ player, onClick }: { player: BoxScorePlayer; onClick: (
   return (
     <div 
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClick(); }}
-      className="bg-gray-900/40 border border-gray-800 rounded-3xl overflow-hidden group transition-all duration-300 hover:border-orange-500/50 cursor-pointer hover:shadow-2xl hover:shadow-orange-500/10 relative z-10"
+      className="bg-gray-900/40 border border-gray-800 rounded-3xl overflow-hidden group transition-transform duration-200 hover:scale-105 hover:border-orange-500/50 cursor-pointer shadow-md hover:shadow-lg hover:shadow-orange-500/10 relative z-10"
     >
       <div className="p-6 relative">
         <div className="flex items-start justify-between mb-4">
@@ -932,7 +954,15 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
   playerImpact: PlayerImpact | null;
   playByPlay: PlayByPlay[];
   onClose: () => void;
+  collapsed?: boolean;
 }) {
+  const { collapsed: layoutCollapsed } = useLayout();
+  const collapsed = layoutCollapsed;
+  useEffect(() => {
+    const el = document.getElementById('player-detail-modal');
+    if (el) el.scrollTop = 0;
+  }, [player.PERSON_ID || player.PLAYER_ID]);
+
   const [shotFilter, setShotFilter] = useState<'all' | 'makes' | 'misses'>('all');
   const playerId = player.PERSON_ID || player.PLAYER_ID || '';
   const fullName = player.PLAYER_NAME || `${player.PLAYER_FIRST_NAME || ''} ${player.PLAYER_LAST_NAME || ''}`.trim();
@@ -1009,8 +1039,9 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
   }, [matchPlays, playerImpact]);
   
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-0 backdrop-blur-xl sm:p-6 lg:left-16 xl:left-64">
-      <div className="relative flex max-h-dvh w-full max-w-5xl flex-col overflow-hidden rounded-none border border-white/10 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur-md sm:max-h-[90vh] sm:rounded-[2rem]">
+    <div id="player-detail-modal" className={`fixed inset-0 z-[100] overflow-y-auto bg-black/80 p-0 backdrop-blur-xl sm:p-6 transition-all duration-500 ${collapsed ? 'lg:left-16' : 'lg:left-64'}`}>
+      <div className="flex min-h-full items-end sm:items-center justify-center">
+        <div className="relative flex w-full max-w-5xl flex-col rounded-none border border-white/10 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur-md sm:rounded-[2rem]">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute top-4 right-4 z-[110] p-2 bg-slate-900/90 hover:bg-orange-500 rounded-full transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-xl border border-white/10"
@@ -1037,7 +1068,7 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
            </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 p-4 sm:p-6 lg:p-8 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 p-4 sm:p-6 lg:p-8">
            <div className="w-full lg:w-1/2 space-y-6">
               <div className="rounded-3xl border border-white/10 bg-slate-950/80 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.25)]">
                  <h3 className="text-sm font-black uppercase tracking-[0.24em] text-slate-400 mb-6">Advanced Stats</h3>
@@ -1190,6 +1221,7 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
               </div>
            </div>
         </div>
+        </div>
       </div>
     </div>
   );
@@ -1303,17 +1335,19 @@ function QuarterBox({ game, awayName, homeName, awayPeriods, homePeriods }: {
         </div>
         <div className="text-right text-xs font-bold uppercase tracking-[0.18em] text-gray-500">{game.arena || 'Arena TBD'}</div>
       </div>
-      <div className="grid gap-1 overflow-x-auto text-center text-xs font-bold text-gray-400" style={{ gridTemplateColumns: `80px repeat(${labels.length}, minmax(44px, 1fr))` }}>
-        <div className="text-left">Box</div>
-        {labels.map(label => <div key={label}>{label}</div>)}
-        <div className="text-left">
-          <img src={getTeamLogoUrl(game.away_team_id)} alt={awayName} className="h-8 w-8 object-contain" />
+      <div className="overflow-x-auto -mx-5 px-5">
+        <div className="grid gap-1 min-w-max text-center text-xs font-bold text-gray-400" style={{ gridTemplateColumns: `80px repeat(${labels.length}, minmax(44px, 1fr))` }}>
+          <div className="text-left">Box</div>
+          {labels.map(label => <div key={label}>{label}</div>)}
+          <div className="text-left">
+            <img src={getTeamLogoUrl(game.away_team_id)} alt={awayName} className="h-8 w-8 object-contain" />
+          </div>
+          {labels.map((_, index) => <div key={`away-${index}`} className="text-xl text-white">{awayPeriods[index] ?? 0}</div>)}
+          <div className="text-left">
+            <img src={getTeamLogoUrl(game.home_team_id)} alt={homeName} className="h-8 w-8 object-contain" />
+          </div>
+          {labels.map((_, index) => <div key={`home-${index}`} className="text-xl text-white">{homePeriods[index] ?? 0}</div>)}
         </div>
-        {labels.map((_, index) => <div key={`away-${index}`} className="text-xl text-white">{awayPeriods[index] ?? 0}</div>)}
-        <div className="text-left">
-          <img src={getTeamLogoUrl(game.home_team_id)} alt={homeName} className="h-8 w-8 object-contain" />
-        </div>
-        {labels.map((_, index) => <div key={`home-${index}`} className="text-xl text-white">{homePeriods[index] ?? 0}</div>)}
       </div>
     </div>
   );
@@ -1970,14 +2004,14 @@ function GameFeed({ playByPlay, boxScore, game }: { playByPlay: PlayByPlay[]; bo
       {/* Win probability footer */}
       {game.status !== 'scheduled' && (
         <div className="sticky bottom-0 bg-black/95 backdrop-blur border-t border-white/10 px-4 py-3 flex items-center gap-3">
-          <button className="flex-1 rounded-full py-2.5 font-black text-sm uppercase tracking-widest text-white"
+          <div className="flex-1 rounded-full py-3 font-black text-xs sm:text-sm uppercase tracking-widest text-white text-center cursor-default"
             style={{ background: `linear-gradient(135deg, #c8102e, #860038)` }}>
             {game.away_team_abbreviation} {awayProb}%
-          </button>
-          <button className="flex-1 rounded-full py-2.5 font-black text-sm uppercase tracking-widest text-white"
+          </div>
+          <div className="flex-1 rounded-full py-3 font-black text-xs sm:text-sm uppercase tracking-widest text-white text-center cursor-default"
             style={{ background: `linear-gradient(135deg, #1d428a, #006bb6)` }}>
             {game.home_team_abbreviation} {homeProb}%
-          </button>
+          </div>
         </div>
       )}
     </div>

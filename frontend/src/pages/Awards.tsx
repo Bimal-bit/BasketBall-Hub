@@ -43,6 +43,20 @@ export default function Awards() {
   const [drillDownPlayer, setDrillDownPlayer] = useState<BoxScorePlayer | null>(null);
 
   useEffect(() => {
+    if (selectedPlayer || selectedGame || drillDownPlayer) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => { document.body.classList.remove('modal-open'); };
+  }, [selectedPlayer, selectedGame, drillDownPlayer]);
+
+  useEffect(() => {
+    const el = document.getElementById('awards-player-modal');
+    if (el) el.scrollTop = 0;
+  }, [selectedPlayer?.id]);
+
+  useEffect(() => {
     let mounted = true;
 
     nbaApi.getAwards()
@@ -216,8 +230,9 @@ export default function Awards() {
       </div>
 
       {selectedPlayer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 bg-black/98 backdrop-blur-3xl animate-in fade-in duration-500">
-          <div className="relative bg-slate-950 w-full max-w-6xl max-h-[96vh] rounded-3xl sm:rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] overflow-hidden flex flex-col lg:grid lg:grid-cols-[300px_1fr]">
+        <div id="awards-player-modal" className="fixed inset-0 z-[100] overflow-y-auto bg-black/98 backdrop-blur-3xl p-2 sm:p-6 animate-in fade-in duration-500">
+          <div className="flex min-h-full items-end sm:items-center justify-center">
+            <div className="relative bg-slate-950 w-full max-w-6xl rounded-3xl sm:rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,1)] flex flex-col lg:grid lg:grid-cols-[300px_1fr]">
             <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 z-[110] w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center bg-white/10 hover:bg-orange-500/20 text-white rounded-full transition-all border border-white/5"><X size={22} /></button>
 
             <div className="relative min-h-28 shrink-0 overflow-hidden bg-gradient-to-br from-orange-600/30 via-slate-950 to-slate-950 sm:min-h-32 lg:min-h-0">
@@ -233,7 +248,7 @@ export default function Awards() {
                </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 scrollbar-hide space-y-5 sm:space-y-8">
+            <div className="flex-1 p-3 sm:p-6 lg:p-8 space-y-5 sm:space-y-8">
                {loading ? (
                   <div className="flex flex-col items-center justify-center py-24 sm:py-40 gap-6 sm:gap-8"><Loader2 className="w-14 h-14 sm:w-20 sm:h-20 text-orange-500 animate-spin" /><div className="text-xs sm:text-sm font-black text-gray-700 uppercase tracking-[0.35em] sm:tracking-[1em]">Synchronizing Records</div></div>
                ) : (
@@ -281,6 +296,7 @@ export default function Awards() {
                   </>
                )}
             </div>
+          </div>
           </div>
         </div>
       )}
@@ -397,34 +413,41 @@ function BoxScoreModal({ game, boxScore, loading, onPlayerClick, onClose }: any)
   useEffect(() => { if (teamIds.length > 0 && !teamFilter) setTeamFilter(teamIds[0]); }, [teamIds, teamFilter]);
   const filtered = useMemo<BoxScorePlayer[]>(() => teamFilter ? (boxScore as BoxScorePlayer[]).filter((p: BoxScorePlayer) => p.TEAM_ID === teamFilter) : boxScore, [boxScore, teamFilter]);
 
+  useEffect(() => {
+    const el = document.getElementById('awards-box-score-modal');
+    if (el) el.scrollTop = 0;
+  }, [game?.GAME_ID]);
+
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-black/99 backdrop-blur-3xl animate-in slide-in-from-bottom-20 duration-500">
-      <div className="relative w-full max-w-7xl max-h-[96vh] overflow-hidden rounded-3xl sm:rounded-[3rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
-        <div className="p-4 sm:p-10 bg-slate-900/40 border-b border-white/5 flex flex-col items-center">
-          <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-gray-500 hover:text-white"><X size={28} /></button>
-          <div className="pr-10 text-3xl sm:text-6xl font-black text-white italic uppercase tracking-tighter mb-4 sm:mb-8 drop-shadow-2xl text-center truncate max-w-full">{game.MATCHUP}</div>
-          <div className="flex max-w-full gap-2 overflow-x-auto p-2 bg-black/60 rounded-2xl sm:rounded-[3rem] border border-white/10 shadow-inner">
-            {teamIds.map(tid => (
-              <button key={tid} onClick={() => setTeamFilter(tid)} className={`flex shrink-0 items-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-xl sm:rounded-[2.5rem] transition-all ${teamFilter === tid ? 'bg-orange-500 text-white shadow-[0_0_40px_rgba(249,115,22,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                <img src={getTeamLogoUrl(tid)} className="w-9 h-9 sm:w-14 sm:h-14 object-contain" alt="" />
-                <span className="text-xs sm:text-base font-black uppercase tracking-widest">Team</span>
-              </button>
-            ))}
+    <div id="awards-box-score-modal" className="fixed inset-0 z-[120] overflow-y-auto bg-black/99 backdrop-blur-3xl p-2 sm:p-4 animate-in slide-in-from-bottom-20 duration-500">
+      <div className="flex min-h-full items-end sm:items-center justify-center">
+        <div className="relative w-full max-w-7xl rounded-3xl sm:rounded-[3rem] border border-white/10 bg-slate-950 flex flex-col shadow-2xl">
+          <div className="p-4 sm:p-10 bg-slate-900/40 border-b border-white/5 flex flex-col items-center">
+            <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-gray-500 hover:text-white"><X size={28} /></button>
+            <div className="pr-10 text-3xl sm:text-6xl font-black text-white italic uppercase tracking-tighter mb-4 sm:mb-8 drop-shadow-2xl text-center truncate max-w-full">{game.MATCHUP}</div>
+            <div className="flex max-w-full gap-2 overflow-x-auto p-2 bg-black/60 rounded-2xl sm:rounded-[3rem] border border-white/10 shadow-inner">
+              {teamIds.map(tid => (
+                <button key={tid} onClick={() => setTeamFilter(tid)} className={`flex shrink-0 items-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-xl sm:rounded-[2.5rem] transition-all ${teamFilter === tid ? 'bg-orange-500 text-white shadow-[0_0_40px_rgba(249,115,22,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                  <img src={getTeamLogoUrl(tid)} className="w-9 h-9 sm:w-14 sm:h-14 object-contain" alt="" />
+                  <span className="text-xs sm:text-base font-black uppercase tracking-widest">Team</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 sm:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 scrollbar-hide">
-          {loading ? <div className="col-span-full py-40 flex justify-center"><Loader2 className="w-20 h-20 text-orange-500 animate-spin" /></div> :
-            filtered.map((p: any) => (
-              <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-white/5 bg-white/[0.03] hover:border-orange-500/40 hover:bg-white/5 transition-all text-left group">
-                <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-[2rem] object-cover bg-gray-900 shadow-2xl group-hover:scale-110 transition-transform" alt="" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm sm:text-lg font-black text-white uppercase truncate group-hover:text-orange-400">{p.PLAYER_NAME}</div>
-                  <div className="text-[10px] text-gray-700 font-black uppercase mt-2 tracking-widest">{p.START_POSITION || 'BENCH'}</div>
-                </div>
-                <div className="text-right"><div className="text-2xl sm:text-4xl font-black text-orange-500 tabular-nums">{p.PTS || 0}</div><div className="text-[10px] text-gray-800 font-black uppercase mt-1">PTS</div></div>
-              </button>
-            ))
-          }
+          <div className="flex-1 p-3 sm:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+            {loading ? <div className="col-span-full py-40 flex justify-center"><Loader2 className="w-20 h-20 text-orange-500 animate-spin" /></div> :
+              filtered.map((p: any) => (
+                <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-white/5 bg-white/[0.03] hover:border-orange-500/40 hover:bg-white/5 transition-all text-left group">
+                  <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-[2rem] object-cover bg-gray-900 shadow-2xl group-hover:scale-110 transition-transform" alt="" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm sm:text-lg font-black text-white uppercase truncate group-hover:text-orange-400">{p.PLAYER_NAME}</div>
+                    <div className="text-[10px] text-gray-700 font-black uppercase mt-2 tracking-widest">{p.START_POSITION || 'BENCH'}</div>
+                  </div>
+                  <div className="text-right border-0"><div className="text-2xl sm:text-4xl font-black text-orange-500 tabular-nums">{p.PTS || 0}</div><div className="text-[10px] text-gray-800 font-black uppercase mt-1">PTS</div></div>
+                </button>
+              ))
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -436,33 +459,40 @@ function PlayerOverlay({ player, season, onClose }: any) {
   const [loading, setLoading] = useState(true);
   useEffect(() => { nbaApi.getPlayerDetailedStats(player.PLAYER_ID, season).then(res => setStats(res.slice(0, 10))).finally(() => setLoading(false)); }, [player.PLAYER_ID, season]);
 
+  useEffect(() => {
+    const el = document.getElementById('awards-player-overlay');
+    if (el) el.scrollTop = 0;
+  }, [player?.PLAYER_ID]);
+
   return (
-    <div className="fixed inset-0 z-[130] flex items-center justify-center p-2 sm:p-4 bg-black/99 backdrop-blur-3xl animate-in zoom-in-95 duration-300">
-      <div className="relative w-full max-w-3xl max-h-[96vh] overflow-hidden rounded-3xl sm:rounded-[4rem] border border-white/10 bg-slate-950 shadow-[0_0_150px_rgba(0,0,0,1)] flex flex-col">
-        <div className="h-36 sm:h-72 bg-gradient-to-br from-orange-600/50 to-transparent relative p-4 sm:p-12 flex items-end gap-4 sm:gap-10 pr-14">
-          <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-orange-500 transition-colors"><X size={28} /></button>
-          <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-24 h-24 sm:w-56 sm:h-56 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 sm:border-8 border-slate-950 shadow-2xl translate-y-8 sm:translate-y-24" alt="" />
-          <h2 className="text-2xl sm:text-6xl font-black text-white italic uppercase tracking-tighter pb-2 sm:pb-6 leading-none drop-shadow-2xl truncate">{player.PLAYER_NAME}</h2>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 sm:p-12 pt-10 sm:pt-32 space-y-6 sm:space-y-12">
-          <div className="grid grid-cols-4 gap-2 sm:gap-6">
-             <Pill val={player.PTS} label="Points" />
-             <Pill val={player.REB} label="Rebounds" />
-             <Pill val={player.AST} label="Assists" />
-             <Pill val={player.STL} label="Steals" />
+    <div id="awards-player-overlay" className="fixed inset-0 z-[130] overflow-y-auto bg-black/99 backdrop-blur-3xl p-2 sm:p-4 animate-in zoom-in-95 duration-300">
+      <div className="flex min-h-full items-end sm:items-center justify-center">
+        <div className="relative w-full max-w-3xl rounded-3xl sm:rounded-[4rem] border border-white/10 bg-slate-950 shadow-[0_0_150px_rgba(0,0,0,1)] flex flex-col">
+          <div className="h-36 sm:h-72 bg-gradient-to-br from-orange-600/50 to-transparent relative p-4 sm:p-12 flex items-end gap-4 sm:gap-10 pr-14">
+            <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-orange-500 transition-colors"><X size={28} /></button>
+            <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-24 h-24 sm:w-56 sm:h-56 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-950 border-4 sm:border-8 border-slate-950 shadow-2xl translate-y-8 sm:translate-y-24" alt="" />
+            <h2 className="text-2xl sm:text-6xl font-black text-white italic uppercase tracking-tighter pb-2 sm:pb-6 leading-none drop-shadow-2xl truncate">{player.PLAYER_NAME}</h2>
           </div>
-          <div className="space-y-4 sm:space-y-8">
-            <h3 className="text-[10px] sm:text-[11px] font-black text-gray-700 uppercase tracking-[0.2em] sm:tracking-[0.6em] border-b border-white/5 pb-4 sm:pb-6">Historical Log Feed</h3>
-            <div className="space-y-2 sm:space-y-4">
-              {loading ? <div className="py-20 flex justify-center"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div> :
-                stats.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between gap-3 p-3 sm:p-6 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] transition-all">
-                    <div className="text-[9px] sm:text-[10px] text-gray-600 w-20 sm:w-28 uppercase font-black tracking-widest shrink-0">{s.GAME_DATE}</div>
-                    <div className="text-xs sm:text-sm font-black text-white flex-1 uppercase italic tracking-tight truncate">{s.MATCHUP}</div>
-                    <div className="text-2xl sm:text-3xl font-black text-orange-500 italic tabular-nums">{s.PTS} <span className="text-[10px] sm:text-sm uppercase tracking-normal">PTS</span></div>
-                  </div>
-                ))
-              }
+          <div className="flex-1 p-3 sm:p-12 pt-10 sm:pt-32 space-y-6 sm:space-y-12">
+            <div className="grid grid-cols-4 gap-2 sm:gap-6">
+               <Pill val={player.PTS} label="Points" />
+               <Pill val={player.REB} label="Rebounds" />
+               <Pill val={player.AST} label="Assists" />
+               <Pill val={player.STL} label="Steals" />
+            </div>
+            <div className="space-y-4 sm:space-y-8">
+              <h3 className="text-[10px] sm:text-[11px] font-black text-gray-700 uppercase tracking-[0.2em] sm:tracking-[0.6em] border-b border-white/5 pb-4 sm:pb-6">Historical Log Feed</h3>
+              <div className="space-y-2 sm:space-y-4">
+                {loading ? <div className="py-20 flex justify-center"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div> :
+                  stats.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between gap-3 p-3 sm:p-6 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] transition-all">
+                      <div className="text-[9px] sm:text-[10px] text-gray-600 w-20 sm:w-28 uppercase font-black tracking-widest shrink-0">{s.GAME_DATE}</div>
+                      <div className="text-xs sm:text-sm font-black text-white flex-1 uppercase italic tracking-tight truncate">{s.MATCHUP}</div>
+                      <div className="text-2xl sm:text-3xl font-black text-orange-500 italic tabular-nums">{s.PTS} <span className="text-[10px] sm:text-sm uppercase tracking-normal">PTS</span></div>
+                    </div>
+                  ))
+                }
+              </div>
             </div>
           </div>
         </div>

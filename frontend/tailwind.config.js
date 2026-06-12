@@ -6,4 +6,9 @@ export default {
     extend: {},
   },
   plugins: [],
+  safelist: [
+    'lg:left-16',
+    'lg:left-64',
+    'xl:left-64',
+  ],
 };

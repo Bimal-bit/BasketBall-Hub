@@ -1,4 +1,5 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutContext } from '../lib/layoutContext';
 import {
   Activity, BarChart2, Zap, Target, Shuffle, Clock,
   ChevronLeft, ChevronRight, TrendingUp, Menu, Trophy, Landmark, History, Repeat2, Sun, Moon, Search, X, BrainCircuit
@@ -43,6 +44,8 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [navQuery, setNavQuery] = useState('');
+  const [showTop, setShowTop] = useState(false);
+  const mainRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
   const activeItem = navItems.find(n => n.id === activePage) ?? navItems[0];
 
@@ -74,13 +77,14 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
   }
 
   return (
+    <LayoutContext.Provider value={{ collapsed }}>
     <div className="min-h-screen relative flex bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-300">
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[var(--bg-main)]" />
 
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/60 z-20 md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -89,18 +93,29 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
       <aside className={`
         fixed top-0 left-0 h-full z-30 flex flex-col border-r transition-all duration-500 ease-out backdrop-blur-xl shadow-2xl/10
         bg-[var(--bg-side)]/95 border-[var(--border-main)]
-        ${collapsed ? 'w-16' : 'w-64'}
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        w-full ${collapsed ? 'md:w-16' : 'md:w-64'}
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
-        <div className={`flex items-center gap-4 px-4 py-6 border-b border-[var(--border-main)] ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-10 h-12 rounded-lg bg-[var(--surface-muted)] p-1.5 flex items-center justify-center flex-shrink-0 border border-[var(--border-main)] group shadow-inner">
-            <img src="/assets/images/ideJVe-SgJ_logos.svg" loading="lazy" className="h-full w-auto max-w-full object-contain filter group-hover:brightness-125 transition-all" alt="NBA Live Intelligence logo" />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col">
-              <div className="text-base font-semibold leading-none text-[var(--text-main)] uppercase">NBA Live</div>
-              <div className="text-[10px] font-medium text-[var(--accent)] uppercase tracking-[0.18em] mt-1.5">Intelligence</div>
+        <div className={`flex items-center justify-between px-4 py-6 border-b border-[var(--border-main)] ${collapsed ? 'md:justify-center' : ''}`}>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-12 rounded-lg bg-[var(--surface-muted)] p-1.5 flex items-center justify-center flex-shrink-0 border border-[var(--border-main)] group shadow-inner">
+              <img src="/assets/images/ideJVe-SgJ_logos.svg" loading="lazy" className="h-full w-auto max-w-full object-contain filter group-hover:brightness-125 transition-all" alt="NBA Live Intelligence logo" />
             </div>
+            {(!collapsed || mobileOpen) && (
+              <div className="flex flex-col">
+                <div className="text-base font-semibold leading-none text-[var(--text-main)] uppercase">NBA Live</div>
+                <div className="text-[10px] font-medium text-[var(--accent)] uppercase tracking-[0.18em] mt-1.5">Intelligence</div>
+              </div>
+            )}
+          </div>
+          {mobileOpen && (
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="md:hidden rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)]"
+              aria-label="Close navigation"
+            >
+              <X size={20} />
+            </button>
           )}
         </div>
 
@@ -189,7 +204,7 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
         <div className="p-4 border-t border-[var(--border-main)]">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex w-full items-center justify-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+            className="hidden md:flex w-full items-center justify-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
           >
             {collapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /><span>Collapse</span></>}
           </button>
@@ -197,13 +212,13 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
       </aside>
 
       {/* Main content */}
-      <div className={`flex-1 min-w-0 max-w-full flex flex-col overflow-x-hidden transition-all duration-500 z-10 ${collapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
+      <div className={`flex-1 min-w-0 max-w-full flex flex-col overflow-x-hidden transition-all duration-500 z-10 ${collapsed ? 'md:ml-16' : 'md:ml-64'}`}>
         {/* Top bar */}
-        <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-[var(--surface-strong)]/85 px-3 backdrop-blur-xl transition-all duration-300 border-[var(--border-main)] shadow-slate-950/10 sm:px-4 lg:h-auto lg:px-6 lg:py-3">
+        <header className="sticky top-0 z-50 flex h-14 sm:h-16 items-center justify-between border-b bg-[var(--surface-strong)]/85 px-3 sm:px-4 backdrop-blur-xl transition-all duration-300 border-[var(--border-main)] shadow-slate-950/10 md:h-auto md:px-6 md:py-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)] lg:hidden"
+              className="rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-main)] md:hidden"
               aria-label="Open navigation"
             >
               <Menu size={20} />
@@ -231,12 +246,27 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 min-w-0 max-w-full overflow-auto overflow-x-hidden">
+        <main
+          ref={mainRef}
+          onScroll={(e) => setShowTop((e.target as HTMLElement).scrollTop > 300)}
+          className="flex-1 min-w-0 max-w-full overflow-auto overflow-x-hidden"
+        >
           <div className="mx-auto min-h-[calc(100vh-56px)] w-full max-w-7xl min-w-0 px-4 py-4 transition-all duration-500 animate-fade-in-up sm:px-6 sm:py-5 lg:px-8">
             {children}
           </div>
         </main>
       </div>
+
+      {showTop && (
+        <button
+          onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg hover:bg-orange-400 transition-all active:scale-95"
+          aria-label="Back to top"
+        >
+          ↑
+        </button>
+      )}
     </div>
+    </LayoutContext.Provider>
   );
 }

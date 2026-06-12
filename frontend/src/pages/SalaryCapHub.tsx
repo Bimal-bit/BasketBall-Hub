@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Banknote, CalendarClock, FileSignature, Landmark, TrendingDown, TrendingUp } from 'lucide-react';
 import { nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl, type NbaTeam, type Player, type Standing } from '../lib/api';
+import BasketballLoader from '../components/BasketballLoader';
 
 type CapTeam = {
   id: number;
@@ -68,17 +69,17 @@ export default function SalaryCapHub() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-white mb-1">Contract & Salary Cap Hub</h2>
           <p className="text-sm text-gray-400">All NBA teams from `nba_api`, with roster-driven cap estimates and contract pressure.</p>
         </div>
-        <select value={teamId} onChange={event => setTeamId(Number(event.target.value))} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50">
+        <select value={teamId} onChange={event => setTeamId(Number(event.target.value))} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 w-full sm:w-auto">
           {teams.map(option => <option key={option.id} value={option.id}>{option.full_name}</option>)}
         </select>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <Metric icon={<Landmark size={18} className="text-orange-400 mx-auto mb-1" />} label="Payroll" value={`$${team.payroll.toFixed(1)}M`} />
         <Metric icon={<Banknote size={18} className="text-green-400 mx-auto mb-1" />} label="Cap Space" value={`${team.capSpace >= 0 ? '+' : ''}$${team.capSpace.toFixed(1)}M`} />
         <Metric icon={<AlertTriangle size={18} className="text-yellow-400 mx-auto mb-1" />} label="Tax Bill" value={`$${team.taxBill.toFixed(1)}M`} />
@@ -86,7 +87,7 @@ export default function SalaryCapHub() {
         <Metric icon={<CalendarClock size={18} className="text-blue-400 mx-auto mb-1" />} label="Wins" value={`${team.wins}`} />
         <Metric icon={<FileSignature size={18} className="text-blue-400 mx-auto mb-1" />} label="Top Contract" value={topSalary ? `$${topSalary.salary.toFixed(1)}M` : '--'} />
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Metric icon={<Banknote size={18} className="text-cyan-400 mx-auto mb-1" />} label="Cap Usage" value={`${capUsage}%`} />
         <Metric icon={<CalendarClock size={18} className="text-yellow-400 mx-auto mb-1" />} label="MLE Status" value={exceptionStatus} />
         <Metric icon={<TrendingDown size={18} className="text-green-400 mx-auto mb-1" />} label="High Salary Slots" value={`${salaryTiers.high}`} />
@@ -104,7 +105,7 @@ export default function SalaryCapHub() {
           </div>
           <div className="space-y-2">
             {rosterContracts.map(({ player, salary, years, status }) => (
-              <div key={getPlayerId(player)} className="flex flex-wrap sm:grid sm:grid-cols-[1fr_80px_70px_92px] items-center gap-2 sm:gap-3 rounded-lg bg-gray-800/40 p-3">
+              <div key={getPlayerId(player)} className="flex flex-wrap sm:grid sm:grid-cols-[1fr_80px_70px_92px] items-center gap-2 sm:gap-3 rounded-lg bg-gray-800/40 p-3 hover:scale-[1.01] hover:bg-gray-800/60 transition-all duration-200 shadow-sm hover:shadow-md">
                 <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                   <img src={getPlayerHeadshotUrl(getPlayerId(player))} alt="" className="h-9 w-9 rounded-full object-cover object-top bg-gray-950 shrink-0" />
                   <div className="min-w-0">
@@ -118,7 +119,7 @@ export default function SalaryCapHub() {
               </div>
             ))}
             {!loading && rosterContracts.length === 0 && <div className="text-center py-10 text-xs text-gray-500">No roster contracts available</div>}
-            {loading && <div className="text-center py-10 text-xs text-gray-500">Loading roster...</div>}
+            {loading && <BasketballLoader />}
           </div>
         </div>
 
@@ -170,7 +171,7 @@ function CapGauge({ team }: { team: CapTeam }) {
 }
 
 function Metric({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">{icon}<div className="text-2xl font-bold text-white truncate">{value}</div><div className="text-xs text-gray-400">{label}</div></div>;
+  return <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-md hover:shadow-lg">{icon}<div className="text-2xl font-bold text-white truncate">{value}</div><div className="text-xs text-gray-400">{label}</div></div>;
 }
 
 function ListPanel({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
@@ -178,7 +179,7 @@ function ListPanel({ title, icon, children }: { title: string; icon: ReactNode; 
 }
 
 function ListRow({ primary, secondary, value }: { primary: string; secondary: string; value: string }) {
-  return <div className="flex items-center justify-between gap-3 rounded-lg bg-gray-800/40 p-3"><div className="min-w-0"><div className="text-xs font-medium text-white truncate">{primary}</div><div className="text-[10px] text-gray-500 truncate">{secondary}</div></div><div className="text-xs font-bold text-orange-300 flex-shrink-0">{value}</div></div>;
+  return <div className="flex items-center justify-between gap-3 rounded-lg bg-gray-800/40 p-3 hover:scale-[1.02] hover:bg-gray-800/60 transition-all duration-200 shadow-sm hover:shadow-md"><div className="min-w-0"><div className="text-xs font-medium text-white truncate">{primary}</div><div className="text-[10px] text-gray-500 truncate">{secondary}</div></div><div className="text-xs font-bold text-orange-300 flex-shrink-0">{value}</div></div>;
 }
 
 function buildCapTeam(team: NbaTeam | undefined, payroll: number, wins: number): CapTeam {

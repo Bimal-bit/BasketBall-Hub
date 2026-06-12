@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MessageSquare, Sparkles, RefreshCw, Copy, Check } from 'lucide-react';
 import { supabase, type Game, type Team, type PlayerGameStat, type Player } from '../lib/supabase';
 import { generateCommentary } from '../lib/analytics';
+import BasketballLoader from '../components/BasketballLoader';
 
 type CommentaryEntry = {
   gameId: string;
@@ -100,18 +101,18 @@ export default function AICommentary() {
     setTimeout(() => setCopied(null), 2000);
   }
 
-  if (loading) return <div className="p-6 animate-pulse space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-gray-800 rounded-xl" />)}</div>;
+  if (loading) return <BasketballLoader />;
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-white mb-1">AI Commentary Generator</h2>
           <p className="text-sm text-gray-400">Automatically generates professional-grade match summaries using NLP analysis of game stats and player performance patterns.</p>
         </div>
         <button
           onClick={() => games.forEach(g => generateForGame(g))}
-          className="flex items-center gap-2 px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs text-orange-400 transition-colors"
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs text-orange-400 transition-colors w-full sm:w-auto shrink-0"
         >
           <Sparkles size={12} />
           Generate All
@@ -124,7 +125,7 @@ export default function AICommentary() {
           <h3 className="text-sm font-semibold text-white mb-3">Generated Summaries</h3>
           <div className="space-y-3">
             {commentaries.map(c => (
-              <div key={c.gameId} className="bg-gray-900 border border-orange-500/20 rounded-xl p-4">
+              <div key={c.gameId} className="bg-gray-900 border border-orange-500/20 rounded-xl p-4 hover:scale-[1.01] transition-all duration-200 shadow-md hover:shadow-lg">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-md bg-orange-500/10 flex items-center justify-center">
@@ -176,7 +177,7 @@ export default function AICommentary() {
             const topName = topStat ? players.get(topStat.player_id)?.name : undefined;
 
             return (
-              <div key={game.game_id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center gap-4">
+              <div key={game.game_id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:scale-[1.01] transition-all duration-200 shadow-md hover:shadow-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <TeamBadge team={away} />
@@ -191,7 +192,7 @@ export default function AICommentary() {
                 <button
                   onClick={() => generateForGame(game)}
                   disabled={isGenerating}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors w-full sm:w-auto ${
                     hasCommentary
                       ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
                       : 'bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20'
@@ -213,13 +214,13 @@ export default function AICommentary() {
       {/* Example templates */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
         <h3 className="text-sm font-semibold text-white mb-3">Commentary Templates</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
             { type: 'Dominant Win', example: 'In a commanding performance, the [Team] showcased their depth and firepower, pulling away in the third quarter to claim a decisive victory...', color: 'text-green-400' },
             { type: 'Clutch Thriller', example: 'It came down to the final possession. With the crowd on their feet and the clock ticking, [Player] stepped up to deliver the moment...', color: 'text-orange-400' },
             { type: 'Comeback Story', example: 'Down by 18 entering the fourth quarter, few believed a comeback was possible. Then [Player] caught fire from deep...', color: 'text-blue-400' },
           ].map(({ type, example, color }) => (
-            <div key={type} className="bg-gray-800/50 rounded-lg p-3">
+            <div key={type} className="bg-gray-800/50 rounded-lg p-3 hover:scale-[1.02] transition-all duration-200 shadow-sm hover:shadow">
               <div className={`text-xs font-medium mb-1 ${color}`}>{type}</div>
               <p className="text-xs text-gray-400 leading-relaxed italic">"{example}"</p>
             </div>

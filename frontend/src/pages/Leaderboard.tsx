@@ -51,6 +51,20 @@ export default function Leaderboard() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
+    if (selectedPlayer) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => { document.body.classList.remove('modal-open'); };
+  }, [selectedPlayer]);
+
+  useEffect(() => {
+    const el = document.getElementById('leaderboard-player-modal');
+    if (el) el.scrollTop = 0;
+  }, [selectedPlayer?.PLAYER_ID]);
+
+  useEffect(() => {
     async function loadLeaders() {
       setLoading(true);
       try {
@@ -198,7 +212,7 @@ export default function Leaderboard() {
         <div className="lg:col-span-3 space-y-6">
           {/* Top 3 Spotlight */}
           {!loading && filteredLeaders.length >= 3 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                {[1, 0, 2].map(idx => {
                  const p = filteredLeaders[idx];
                  if (!p) return null;
@@ -209,7 +223,7 @@ export default function Leaderboard() {
                    <div 
                     key={p.PLAYER_ID} 
                     onClick={() => setSelectedPlayer(p)}
-                    className={`relative bg-gradient-to-b ${color} to-transparent border rounded-3xl p-6 text-center shadow-2xl overflow-hidden group hover:-translate-y-1 transition-all duration-500 cursor-pointer`}
+                    className={`relative bg-gradient-to-b ${color} to-transparent border rounded-3xl p-6 text-center shadow-md hover:shadow-lg hover:shadow-orange-500/10 overflow-hidden group hover:scale-105 transition-transform duration-200 cursor-pointer`}
                    >
                       <div className="absolute top-0 right-0 p-4">
                          <div className={`text-4xl font-black opacity-10 italic tracking-tighter ${idx === 0 ? 'text-yellow-500' : 'text-white'}`}>{rank}</div>
@@ -364,8 +378,9 @@ export default function Leaderboard() {
 
       {/* Detailed Stats Modal */}
       {selectedPlayer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
-           <div className="bg-gray-900 border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300">
+        <div id="leaderboard-player-modal" className="fixed inset-0 z-[100] overflow-y-auto bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-300">
+           <div className="flex min-h-full items-end sm:items-center justify-center">
+              <div className="bg-gray-900 border border-white/10 rounded-[2.5rem] w-full max-w-2xl shadow-2xl relative animate-in zoom-in-95 duration-300">
               <button 
                 onClick={() => setSelectedPlayer(null)}
                 className="absolute top-6 right-6 text-gray-500 hover:text-white bg-white/5 p-2.5 rounded-full z-20 transition-all border border-white/5 hover:bg-white/10"
@@ -430,6 +445,7 @@ export default function Leaderboard() {
                     </div>
                  </div>
               </div>
+           </div>
            </div>
         </div>
       )}

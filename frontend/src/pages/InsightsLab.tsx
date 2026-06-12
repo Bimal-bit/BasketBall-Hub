@@ -26,6 +26,7 @@ import {
 } from '../lib/api';
 import { mockPlayers, mockTeams } from '../lib/mockData';
 import { gameStatusInIndia } from '../lib/time';
+import BasketballLoader from '../components/BasketballLoader';
 
 type WatchItem = {
   id: string;
@@ -257,11 +258,7 @@ export default function InsightsLab() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center text-sm font-bold uppercase tracking-[0.2em] text-orange-400">
-        Loading insights
-      </div>
-    );
+    return <BasketballLoader />;
   }
 
   return (
@@ -288,7 +285,7 @@ export default function InsightsLab() {
         </button>
       </div>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-6">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         <Panel title="Player Comparison" icon={<Users size={18} />}>
           <div className="grid gap-3 sm:grid-cols-2">
             <PlayerSelect label="Player A" value={playerAId} players={players} onChange={setPlayerAId} />
@@ -334,7 +331,7 @@ export default function InsightsLab() {
         </Panel>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr] xl:gap-6">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_0.9fr] lg:gap-6">
         <Panel title="Win Probability Graph" icon={<Sparkles size={18} />}>
           <GameSelect value={gameId} games={games} onChange={setGameId} />
           {selectedGame && winModel ? (
@@ -388,9 +385,9 @@ export default function InsightsLab() {
         {watchlist.length === 0 ? (
           <EmptyState text="Add players, teams, or games from the panels above. Your watchlist is saved in this browser." />
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {watchlist.map(item => (
-              <div key={item.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4">
+              <div key={item.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4 hover:scale-[1.02] hover:bg-gray-900/60 transition-all duration-200 shadow-md hover:shadow-lg">
                 <div className="min-w-0">
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">{item.type}</div>
                   <div className="mt-1 truncate font-bold text-white">{item.label}</div>
@@ -531,7 +528,7 @@ function PlayerFace({ player, align = 'left', recentPpg }: { player: Player; ali
   const playerId = getPlayerId(player);
   const teamId = player.TEAM_ID || '';
   return (
-    <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 ${align === 'right' ? 'text-right' : ''}`}>
+    <div className={`min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-lg ${align === 'right' ? 'text-right' : ''}`}>
       <img
         src={getPlayerHeadshotUrl(playerId)}
         alt={playerName(player)}
@@ -567,7 +564,7 @@ function CompareTeams({ teamA, teamB, teamALogs, teamBLogs, teamARoster, teamBRo
 
   return (
     <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
-      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <TeamMiniCard team={teamA} profile={aProfile} />
         <TeamMiniCard team={teamB} profile={bProfile} />
       </div>
@@ -592,7 +589,7 @@ function CompareTeams({ teamA, teamB, teamALogs, teamBLogs, teamARoster, teamBRo
 
 function TeamMiniCard({ team, profile }: { team: TeamOption; profile: TeamProfile }) {
   return (
-    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4">
+    <div className="min-w-0 rounded-xl border border-gray-800 bg-black/30 p-3 sm:p-4 hover:scale-[1.02] transition-all duration-200 shadow-md hover:shadow-lg">
       <div className="flex min-w-0 items-center gap-3">
         <img src={getTeamLogoUrl(team.id)} alt={team.full_name} onError={(e) => { e.currentTarget.src = '/assets/images/nba-6.svg'; }} className="h-9 w-9 object-contain sm:h-12 sm:w-12" />
         <div className="min-w-0">

@@ -447,7 +447,7 @@ export default function SeasonVault() {
                     <div 
                       key={player.PLAYER_ID}
                       onClick={() => setSelectedPlayer(player)}
-                      className="group/player bg-white/5 border border-white/5 rounded-3xl p-5 hover:bg-white/10 hover:border-orange-500/30 transition-all duration-500 cursor-pointer"
+                      className="group/player bg-white/5 border border-white/5 rounded-3xl p-5 hover:bg-white/10 hover:border-orange-500/30 transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg cursor-pointer"
                     >
                       <div className="relative mb-4">
                         <div className="absolute inset-0 bg-white/5 rounded-2xl blur-md opacity-0 group-hover/player:opacity-100 transition-opacity" />

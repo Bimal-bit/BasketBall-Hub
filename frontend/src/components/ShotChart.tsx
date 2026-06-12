@@ -40,12 +40,9 @@ export default function ShotChart({ shots, compact = false }: Props) {
   const made = displayShots.filter(s => s.made).length;
   const pct = Math.round((made / displayShots.length) * 100);
 
-  const h = compact ? 180 : 260;
-  const w = 100;
-
   return (
-    <div>
-      <svg viewBox="0 0 100 110" width="100%" height={h} className="block">
+    <div className="w-full overflow-hidden">
+      <svg viewBox="0 0 100 110" className="w-full h-auto max-w-[280px] sm:max-w-[320px] mx-auto block">
         {/* Court background */}
         <rect x="0" y="0" width="100" height="110" fill="#111827" rx="4" />
 

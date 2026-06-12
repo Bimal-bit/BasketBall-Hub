@@ -149,7 +149,7 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
           {picks.map(pick => {
             const checked = selectedPicks.includes(pick.id);
             return (
-              <button key={pick.id} onClick={() => onTogglePick(pick.id)} className={`w-full min-w-0 flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${checked ? 'bg-orange-500/10 border-orange-500/40' : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'}`}>
+              <button key={pick.id} onClick={() => onTogglePick(pick.id)} className={`w-full min-w-0 flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg ${checked ? 'bg-orange-500/10 border-orange-500/40 shadow-orange-500/5' : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'}`}>
                 <div>
                   <div className="text-xs font-medium text-white">{pick.label}</div>
                   <div className="text-[10px] text-gray-500">{pick.protection}</div>
@@ -165,7 +165,7 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
           const playerId = getPlayerId(player);
           const checked = selected.includes(playerId);
           return (
-            <button key={`${team.id}-${playerId}`} onClick={() => onToggle(playerId)} className={`w-full min-w-0 flex items-center gap-3 p-3 rounded-2xl border text-left transition-colors ${checked ? 'bg-orange-500/10 border-orange-500/40' : 'bg-gray-800/40 border-gray-800 hover:border-gray-700'}`}>
+            <button key={`${team.id}-${playerId}`} onClick={() => onToggle(playerId)} className={`w-full min-w-0 flex items-center gap-3 p-3 rounded-2xl border text-left transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg ${checked ? 'bg-orange-500/10 border-orange-500/40 shadow-orange-500/5' : 'bg-gray-800/40 border-gray-800 hover:border-gray-700'}`}>
               <img src={getPlayerHeadshotUrl(playerId)} alt="" className="h-10 w-10 rounded-full object-cover object-top bg-gray-950" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-white truncate">{getPlayerName(player)}</div>

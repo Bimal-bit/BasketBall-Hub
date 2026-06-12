@@ -126,9 +126,9 @@ export default function ShotPredictor() {
         <p className="text-sm text-gray-400">Official NBA API player logs and shot charts, with contest-adjusted probability from real shooting history.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
             <label className="text-xs font-medium text-gray-400 block mb-2">Find Player</label>
             <div className="relative mb-3">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -151,7 +151,7 @@ export default function ShotPredictor() {
             </select>
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4 shadow-md">
             <div>
               <label className="text-xs font-medium text-gray-400 block mb-2">Season</label>
               <select
@@ -177,7 +177,7 @@ export default function ShotPredictor() {
             </div>
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4 shadow-md">
             <div className="flex items-center gap-2">
               <Sliders size={14} className="text-orange-400" />
               <span className="text-sm font-semibold text-white">Shot Context</span>
@@ -187,7 +187,7 @@ export default function ShotPredictor() {
                 <label className="text-gray-400">Defender Distance</label>
                 <span className="text-blue-400 font-medium">{defenderDist} ft</span>
               </div>
-              <input type="range" min={0} max={10} step={0.5} value={defenderDist} onChange={event => setDefenderDist(Number(event.target.value))} className="w-full accent-blue-500" />
+              <input type="range" min={0} max={10} step={0.5} value={defenderDist} onChange={event => setDefenderDist(Number(event.target.value))} className="w-full accent-blue-500 cursor-pointer" />
             </div>
             <div>
               <label className="text-xs text-gray-400 block mb-2">Shot Zone</label>
@@ -215,21 +215,21 @@ export default function ShotPredictor() {
                   <label className="text-gray-400">Clock</label>
                   <span className="text-blue-400 font-medium">{gameClock}s</span>
                 </div>
-                <input type="range" min={1} max={24} step={1} value={gameClock} onChange={event => setGameClock(Number(event.target.value))} className="w-full accent-blue-500" />
+                <input type="range" min={1} max={24} step={1} value={gameClock} onChange={event => setGameClock(Number(event.target.value))} className="w-full accent-blue-500 cursor-pointer" />
               </div>
               <div>
                 <div className="flex justify-between text-xs mb-2">
                   <label className="text-gray-400">Margin</label>
                   <span className="text-blue-400 font-medium">{scoreMargin}</span>
                 </div>
-                <input type="range" min={0} max={20} step={1} value={scoreMargin} onChange={event => setScoreMargin(Number(event.target.value))} className="w-full accent-blue-500" />
+                <input type="range" min={0} max={20} step={1} value={scoreMargin} onChange={event => setScoreMargin(Number(event.target.value))} className="w-full accent-blue-500 cursor-pointer" />
               </div>
             </div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 text-center">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 text-center shadow-md hover:scale-[1.02] transition-all duration-200 hover:shadow-lg">
             {loadingPlayer ? (
               <div className="py-16 flex justify-center"><BasketballLoader /></div>
             ) : (
@@ -244,7 +244,7 @@ export default function ShotPredictor() {
             )}
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
             <h3 className="text-sm font-semibold text-white mb-3">Official Context</h3>
             <div className="space-y-2 text-sm">
               <ContextRow label="Player" value={selectedPlayer?.full_name ?? '--'} />
@@ -258,8 +258,8 @@ export default function ShotPredictor() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+        <div className="space-y-4 md:col-span-2 lg:col-span-1">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
             <h3 className="text-sm font-semibold text-white mb-3">Official Shot Chart</h3>
             {shots.length > 0 ? (
               <ShotChart shots={chartShots} compact />
@@ -268,18 +268,18 @@ export default function ShotPredictor() {
             )}
           </div>
 
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md">
             <h3 className="text-sm font-semibold text-white mb-3">Zone Results</h3>
             <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 gap-2 mb-3">
                 {SHOT_ZONES.map(zone => (
-                  <button key={zone} onClick={() => setSelectedZone(zone)} className={`rounded-lg border px-2 py-1.5 text-[10px] text-left transition-colors ${selectedZone === zone ? 'border-orange-500/50 bg-orange-500/10 text-orange-200' : 'border-gray-800 bg-gray-800/30 text-gray-400 hover:border-gray-700'}`}>
+                  <button key={zone} onClick={() => setSelectedZone(zone)} className={`rounded-lg border px-2 py-1.5 text-[10px] text-left transition-all duration-200 hover:scale-[1.02] ${selectedZone === zone ? 'border-orange-500/50 bg-orange-500/10 text-orange-200' : 'border-gray-800 bg-gray-800/30 text-gray-400 hover:border-gray-700'}`}>
                     {zone}
                   </button>
                 ))}
               </div>
               {zoneBreakdown.map(zone => (
-                <button key={zone.zone} onClick={() => setSelectedZone(zone.zone)} className={`w-full text-left ${selectedZone === zone.zone ? 'opacity-100' : 'opacity-75'}`}>
+                <button key={zone.zone} onClick={() => setSelectedZone(zone.zone)} className={`w-full text-left ${selectedZone === zone.zone ? 'opacity-100' : 'opacity-75'} hover:scale-[1.01] transition-all duration-200`}>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-gray-400">{zone.zone}</span>
                     <span className="font-medium text-white">{zone.makes}/{zone.attempts} ({zone.pct.toFixed(1)}%)</span>

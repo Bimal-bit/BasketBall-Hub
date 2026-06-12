@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle, Clock, Search, SlidersHorizontal, Zap } from 'lucide-react';
 import { getPlayerHeadshotUrl, getTeamLogoUrl, nbaApi, type NbaTeam, type Player, type PlayerFatigueScore, type PlayerGameLog } from '../lib/api';
 import MiniLineChart from '../components/MiniLineChart';
@@ -21,6 +21,7 @@ export default function FatigueDetection() {
   const [season, setSeason] = useState('');
   const [generatedAt, setGeneratedAt] = useState('');
   const [selectedStats, setSelectedStats] = useState<any>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadTeams();
@@ -45,6 +46,12 @@ export default function FatigueDetection() {
       .finally(() => { if (active) setLoadingDetails(false); });
 
     return () => { active = false; };
+  }, [selected]);
+
+  useEffect(() => {
+    if (selected && detailRef.current) {
+      detailRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }, [selected]);
 
   async function loadTeams() {
@@ -127,7 +134,7 @@ export default function FatigueDetection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         <RiskButton active={filter === 'high'} icon={<AlertTriangle size={20} className="text-red-400 mx-auto mb-1" />} value={highRisk} label="High Risk" color="red" onClick={() => setFilter(filter === 'high' ? 'all' : 'high')} />
         <RiskButton active={filter === 'medium'} icon={<Clock size={20} className="text-yellow-400 mx-auto mb-1" />} value={medRisk} label="Medium Risk" color="yellow" onClick={() => setFilter(filter === 'medium' ? 'all' : 'medium')} />
         <RiskButton active={filter === 'low'} icon={<CheckCircle size={20} className="text-green-400 mx-auto mb-1" />} value={lowRisk} label="Low Risk" color="green" onClick={() => setFilter(filter === 'low' ? 'all' : 'low')} />
@@ -206,7 +213,7 @@ export default function FatigueDetection() {
         </div>
 
         {selected && (
-          <div className="space-y-4">
+          <div ref={detailRef} className="space-y-4">
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <div className="flex items-center gap-3 mb-4">
                 <PlayerFace player={selected} teamId={selectedTeam?.id ?? Number(selected.TEAM_ID)} sizeClass="w-10 h-10" />
@@ -287,7 +294,7 @@ function FatigueRow({ player, teams, selected, onClick }: {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-transform duration-200 hover:scale-[1.02] text-left shadow-md hover:shadow-lg ${
         selected ? 'bg-gray-800 border-orange-500/40' : 'bg-gray-900 border-gray-800 hover:border-gray-700'
       }`}
     >
@@ -387,7 +394,7 @@ function RiskButton({ active, icon, value, label, color, onClick }: {
   return (
     <button
       onClick={onClick}
-      className={`bg-gray-900 border rounded-xl p-4 text-center transition-all ${active ? border : 'border-gray-800 hover:border-gray-700'}`}
+      className={`bg-gray-900 border rounded-xl p-4 text-center transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg ${active ? border : 'border-gray-800 hover:border-gray-700'}`}
     >
       {icon}
       <div className={`text-2xl font-bold ${text}`}>{value}</div>

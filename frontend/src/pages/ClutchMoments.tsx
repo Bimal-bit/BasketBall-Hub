@@ -201,12 +201,12 @@ export default function ClutchMoments() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="order-2 lg:order-1 lg:col-span-1 space-y-2">
           <h3 className="text-sm font-semibold text-white">Recent Games</h3>
           <div className="max-h-64 space-y-2 overflow-y-auto pr-1 lg:max-h-none">
           {filteredGames.map(clutchGame => (
-            <button key={clutchGame.game.game_id} onClick={() => setSelectedGame(clutchGame)} className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${selectedGame?.game.game_id === clutchGame.game.game_id ? 'bg-gray-800 border-orange-500/40' : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}>
+            <button key={clutchGame.game.game_id} onClick={() => setSelectedGame(clutchGame)} className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-transform duration-200 hover:scale-105 text-left shadow-md hover:shadow-lg ${selectedGame?.game.game_id === clutchGame.game.game_id ? 'bg-gray-800 border-orange-500/40 shadow-orange-500/5' : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   {clutchGame.isClutch && <Flame size={10} className="text-orange-400 flex-shrink-0" />}
@@ -305,17 +305,17 @@ export default function ClutchMoments() {
             <PerformerRow key={`${performer.playerId}-mobile-${index}`} performer={performer} rank={index + 1} />
           ))}
         </div>
-        <div className="hidden overflow-x-auto sm:block">
-          <table className="w-full min-w-[600px] text-xs sm:text-sm">
+        <div className="overflow-x-auto w-full rounded-xl">
+          <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
             <thead>
               <tr className="text-xs text-gray-400 border-b border-gray-800">
                 <th className="text-left pb-2 font-medium">Player</th>
                 <th className="text-center pb-2 font-medium">Score</th>
-                <th className="text-center pb-2 font-medium">Grade</th>
-                <th className="text-center pb-2 font-medium">PTS</th>
-                <th className="text-center pb-2 font-medium">REB</th>
-                <th className="text-center pb-2 font-medium">AST</th>
-                <th className="text-center pb-2 font-medium">Game</th>
+                <th className="text-center pb-2 font-medium hidden sm:table-cell">Grade</th>
+                <th className="text-center pb-2 font-medium hidden sm:table-cell">PTS</th>
+                <th className="text-center pb-2 font-medium hidden sm:table-cell">REB</th>
+                <th className="text-center pb-2 font-medium hidden sm:table-cell">AST</th>
+                <th className="text-center pb-2 font-medium hidden sm:table-cell">Game</th>
               </tr>
             </thead>
             <tbody>
@@ -323,11 +323,11 @@ export default function ClutchMoments() {
                 <tr key={`${performer.playerId}-${index}`} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                   <td className="py-2.5 text-xs font-medium text-white">{index + 1}. {performer.playerName}<div className="text-xs text-gray-500">{performer.teamAbbreviation}</div></td>
                   <td className="text-center py-2.5 text-xs font-bold text-orange-400">{performer.clutchScore.toFixed(1)}</td>
-                  <td className="text-center py-2.5 text-xs font-bold text-cyan-300">{performer.grade}</td>
-                  <td className="text-center py-2.5 text-xs text-white">{performer.stat.PTS ?? 0}</td>
-                  <td className="text-center py-2.5 text-xs text-gray-300">{performer.stat.REB ?? 0}</td>
-                  <td className="text-center py-2.5 text-xs text-gray-300">{performer.stat.AST ?? 0}</td>
-                  <td className="text-center py-2.5 text-xs text-gray-400">{performer.game.game.away_team_abbreviation} @ {performer.game.game.home_team_abbreviation}</td>
+                  <td className="text-center py-2.5 text-xs font-bold text-cyan-300 hidden sm:table-cell">{performer.grade}</td>
+                  <td className="text-center py-2.5 text-xs text-white hidden sm:table-cell">{performer.stat.PTS ?? 0}</td>
+                  <td className="text-center py-2.5 text-xs text-gray-300 hidden sm:table-cell">{performer.stat.REB ?? 0}</td>
+                  <td className="text-center py-2.5 text-xs text-gray-300 hidden sm:table-cell">{performer.stat.AST ?? 0}</td>
+                  <td className="text-center py-2.5 text-xs text-gray-400 hidden sm:table-cell">{performer.game.game.away_team_abbreviation} @ {performer.game.game.home_team_abbreviation}</td>
                 </tr>
               ))}
             </tbody>
@@ -469,7 +469,7 @@ function buildLeaderBoxScore(game: Game): BoxScorePlayer[] {
 
 function MetricCard({ icon, value, label }: { icon: ReactNode; value: string | number; label: string }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-2 text-center sm:p-4 min-w-0">
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-2 text-center sm:p-4 min-w-0 transition-transform duration-200 hover:scale-105 shadow-md hover:shadow-lg">
       {icon}
       <div className="text-base sm:text-2xl font-bold text-white truncate">{value}</div>
       <div className="text-[10px] sm:text-xs text-gray-400 truncate">{label}</div>
