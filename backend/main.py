@@ -149,7 +149,10 @@ def risk_level_from_score(score):
         return "medium"
     return "low"
 
-def cached(duration=60):
+def cached(duration=60, ttl=None):
+    if ttl is not None:
+        duration = ttl
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -2178,4 +2181,5 @@ async def get_team_jerseys(team_name: str, season: str = None):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
