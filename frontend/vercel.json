@@ -1,6 +1,9 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "env": {
+    "VITE_API_BASE_URL": "https://basketball-hub-api.onrender.com/api"
+  },
   "rewrites": [
     {
       "source": "/(.*)",

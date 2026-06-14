@@ -1,15 +1,53 @@
 import { cachedFetch } from './apiCache';
+import {
+  FALLBACK_STANDINGS,
+  FALLBACK_TOP_PLAYERS,
+  FALLBACK_TEAMS,
+  FALLBACK_PLAYERS,
+} from './offlineFallback';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const PRODUCTION_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || PRODUCTION_API_BASE_URL).replace(/\/$/, '');
 const MINUTE = 60_000;
 
-function getApiUrl(path: string) {
-  if (!API_BASE_URL) {
-    console.error('VITE_API_BASE_URL is not defined');
-    throw new Error('VITE_API_BASE_URL is not defined');
-  }
+// Track backend reachability so we don't spam failed requests
+let _backendReachable: boolean | null = null;
+let _lastReachabilityCheck = 0;
+const REACHABILITY_TTL = 30_000; // re-check every 30s
 
-  return `${API_BASE_URL.replace(/\/$/, '')}${path}`;
+async function checkBackendReachable(): Promise<boolean> {
+  const now = Date.now();
+  if (_backendReachable !== null && now - _lastReachabilityCheck < REACHABILITY_TTL) {
+    return _backendReachable;
+  }
+  _lastReachabilityCheck = now;
+  try {
+    const url = `${API_BASE_URL}/health`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+    _backendReachable = res.ok;
+  } catch {
+    _backendReachable = false;
+  }
+  return _backendReachable!;
+}
+
+function getApiUrl(path: string) {
+  return `${API_BASE_URL}${path}`;
+}
+
+async function apiGet<T>(path: string, ttlMs: number, fallback?: T): Promise<T> {
+  const reachable = await checkBackendReachable();
+  if (!reachable) {
+    if (fallback !== undefined) return fallback;
+    throw new Error('Backend unavailable and no fallback provided');
+  }
+  try {
+    return await cachedFetch<T>(getApiUrl(path), ttlMs);
+  } catch (err) {
+    if (fallback !== undefined) return fallback;
+    throw err;
+  }
 }
 
 export interface GameLeader {
@@ -312,11 +350,11 @@ export interface PlayByPlay {
 export const nbaApi = {
   getScoreboard: (date?: string): Promise<Game[]> => {
     const query = date ? `?date=${encodeURIComponent(date)}` : '';
-    return cachedFetch(getApiUrl(`/scoreboard${query}`), 30_000);
+    return apiGet<Game[]>(`/scoreboard${query}`, 30_000, []);
   },
 
   getPlayByPlay: (gameId: string): Promise<PlayByPlay[]> => {
-    return cachedFetch(getApiUrl(`/game/${gameId}/playbyplay`), MINUTE);
+    return apiGet<PlayByPlay[]>(`/game/${gameId}/playbyplay`, MINUTE, []);
   },
 
   getStandings: (season?: string, seasonType?: string): Promise<Standing[]> => {
@@ -324,67 +362,67 @@ export const nbaApi = {
     if (season) params.append('season', season);
     if (seasonType) params.append('season_type', seasonType);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return cachedFetch(getApiUrl(`/standings${query}`), 300_000);
+    return apiGet<Standing[]>(`/standings${query}`, 300_000, FALLBACK_STANDINGS as Standing[]);
   },
 
   getTopPlayers: (): Promise<Player[]> => {
-    return cachedFetch(getApiUrl('/players/top'), 600_000);
+    return apiGet<Player[]>('/players/top', 600_000, FALLBACK_TOP_PLAYERS as unknown as Player[]);
   },
 
   searchPlayers: (query: string): Promise<Player[]> => {
     const params = new URLSearchParams({ query });
-    return cachedFetch(getApiUrl(`/players/search?${params.toString()}`), 600_000);
+    return apiGet<Player[]>(`/players/search?${params.toString()}`, 600_000, []);
   },
 
   getTeams: (): Promise<NbaTeam[]> => {
-    return cachedFetch(getApiUrl('/teams'), 3_600_000);
+    return apiGet<NbaTeam[]>('/teams', 3_600_000, FALLBACK_TEAMS as NbaTeam[]);
   },
 
   getBoxScore: (gameId: string): Promise<BoxScorePlayer[]> => {
-    return cachedFetch(getApiUrl(`/game/${gameId}/boxscore`), 600_000);
+    return apiGet<BoxScorePlayer[]>(`/game/${gameId}/boxscore`, 600_000, []);
   },
 
   getGameTeamStats: (gameId: string): Promise<BoxScoreTeam[]> => {
-    return cachedFetch(getApiUrl(`/game/${gameId}/team-stats`), 600_000);
+    return apiGet<BoxScoreTeam[]>(`/game/${gameId}/team-stats`, 600_000, []);
   },
 
   getPlayerShots: (playerId: number, gameId: string): Promise<PlayerShot[]> => {
-    return cachedFetch(getApiUrl(`/player/${playerId}/shots/${gameId}`), 600_000);
+    return apiGet<PlayerShot[]>(`/player/${playerId}/shots/${gameId}`, 600_000, []);
   },
 
   getTeamShots: (teamId: number, gameId: string): Promise<PlayerShot[]> => {
-    return cachedFetch(getApiUrl(`/team/${teamId}/shots/${gameId}`), 600_000);
+    return apiGet<PlayerShot[]>(`/team/${teamId}/shots/${gameId}`, 600_000, []);
   },
 
   getPlayerImpact: (gameId: string, playerId: number): Promise<PlayerImpact> => {
-    return cachedFetch(getApiUrl(`/game/${gameId}/player/${playerId}/impact`), 600_000);
+    return apiGet<PlayerImpact>(`/game/${gameId}/player/${playerId}/impact`, 600_000);
   },
 
   getPlayerAverages: (playerId: number, season?: string): Promise<any> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return cachedFetch(getApiUrl(`/player/${playerId}/averages${query}`), 600_000);
+    return apiGet<any>(`/player/${playerId}/averages${query}`, 600_000, {});
   },
 
   getAllPlayers: (): Promise<any[]> => {
-    return cachedFetch(getApiUrl('/players'), 3_600_000);
+    return apiGet<any[]>('/players', 3_600_000, FALLBACK_PLAYERS);
   },
 
   getPlayerInfo: (playerId: number): Promise<any> => {
-    return cachedFetch(getApiUrl(`/player/${playerId}`), 600_000);
+    return apiGet<any>(`/player/${playerId}`, 600_000, {});
   },
 
   getPlayerProfile: (playerId: number): Promise<any> => {
-    return cachedFetch(getApiUrl(`/player/${playerId}/profile`), 600_000);
+    return apiGet<any>(`/player/${playerId}/profile`, 600_000, { id: playerId, seasons: [] });
   },
 
   getPlayerAwards: (playerId: number, season?: string): Promise<any[]> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return cachedFetch(getApiUrl(`/player/${playerId}/awards${query}`), 600_000);
+    return apiGet<any[]>(`/player/${playerId}/awards${query}`, 600_000, []);
   },
 
   getPlayerDetailedStats: (playerId: number, season?: string): Promise<PlayerGameLog[]> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return cachedFetch(getApiUrl(`/player/${playerId}/stats${query}`), 600_000);
+    return apiGet<PlayerGameLog[]>(`/player/${playerId}/stats${query}`, 600_000, []);
   },
 
   getTeamGameLog: (teamId: number, season?: string, seasonType?: string): Promise<TeamGame[]> => {
@@ -392,7 +430,7 @@ export const nbaApi = {
     if (season) params.append('season', season);
     if (seasonType) params.append('season_type', seasonType);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return cachedFetch(getApiUrl(`/team/${teamId}/gamelog${query}`), 600_000);
+    return apiGet<TeamGame[]>(`/team/${teamId}/gamelog${query}`, 600_000, []);
   },
 
   getFatigueReport: (teamId?: number | 'all', season?: string): Promise<FatigueReport> => {
@@ -400,45 +438,51 @@ export const nbaApi = {
     if (teamId && teamId !== 'all') params.append('team_id', String(teamId));
     if (season) params.append('season', season);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return cachedFetch(getApiUrl(`/fatigue${query}`), 300_000);
+    return apiGet<FatigueReport>(`/fatigue${query}`, 300_000);
   },
 
   getPlayoffs: (season?: string): Promise<any[]> => {
     const query = season ? `?season=${encodeURIComponent(season)}` : '';
-    return cachedFetch(getApiUrl(`/playoffs${query}`), 600_000);
+    return apiGet<any[]>(`/playoffs${query}`, 600_000, []);
   },
 
   getAwards: (): Promise<unknown[]> => {
-    return cachedFetch(getApiUrl('/awards'), 600_000);
+    return apiGet<unknown[]>('/awards', 600_000, []);
   },
 
   getTeamRoster: (teamId: number | string): Promise<Player[]> => {
-    return cachedFetch(getApiUrl(`/team/${teamId}/roster`), 600_000);
+    return apiGet<Player[]>(`/team/${teamId}/roster`, 600_000, []);
   },
+
   getAllTeamRosters: (): Promise<Record<string, Player[]>> => {
-    return cachedFetch(getApiUrl('/teams/rosters'), 600_000);
+    return apiGet<Record<string, Player[]>>('/teams/rosters', 600_000, {});
   },
+
   getLeaders: (category: string, season?: string, perMode: string = "PerGame", seasonType: string = "Regular Season"): Promise<Player[]> => {
     const params = new URLSearchParams({ category, per_mode: perMode, season_type: seasonType });
     if (season) params.append('season', season);
-    return cachedFetch(getApiUrl(`/leaders?${params.toString()}`), 600_000);
+    return apiGet<Player[]>(`/leaders?${params.toString()}`, 600_000, FALLBACK_TOP_PLAYERS as unknown as Player[]);
   },
+
   getTeamHistory: (teamId: number | string, season: string): Promise<any> => {
-    return cachedFetch(getApiUrl(`/vault/team-history?team_id=${teamId}&season=${season}`), 86_400_000);
+    return apiGet<any>(`/vault/team-history?team_id=${teamId}&season=${season}`, 86_400_000, {});
   },
+
   getSeasonAwards: (season: string): Promise<any[]> => {
-    return cachedFetch(getApiUrl(`/vault/season-awards?season=${season}`), 86_400_000);
+    return apiGet<any[]>(`/vault/season-awards?season=${season}`, 86_400_000, []);
   },
+
   getTeamJerseys: (teamName: string, season?: string): Promise<any[]> => {
     const query = season ? `&season=${season}` : '';
-    return cachedFetch(getApiUrl(`/vault/jerseys?team_name=${encodeURIComponent(teamName)}${query}`), 86_400_000);
+    return apiGet<any[]>(`/vault/jerseys?team_name=${encodeURIComponent(teamName)}${query}`, 86_400_000, []);
   },
+
   getHistoricalGames: (season?: string, seasonType: string = "Regular Season", teamId?: number | string, limit: number = 1000): Promise<ArchiveGame[]> => {
     const params = new URLSearchParams({ season_type: seasonType, limit: String(limit) });
     if (season) params.append('season', season);
     if (teamId && teamId !== 'all') params.append('team_id', String(teamId));
-    return cachedFetch(getApiUrl(`/archive/games?${params.toString()}`), 3_600_000);
-  }
+    return apiGet<ArchiveGame[]>(`/archive/games?${params.toString()}`, 3_600_000, []);
+  },
 };
 
 export const getTeamLogoUrl = (teamId: number | string) => 

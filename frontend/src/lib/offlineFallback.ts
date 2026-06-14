@@ -1,0 +1,103 @@
+/**
+ * Offline fallback data for when the backend is unavailable.
+ * Provides mock standings, players, and team data so the UI
+ * never shows a blank/broken state.
+ */
+
+export const FALLBACK_STANDINGS = [
+  // Eastern
+  { TeamID: 1610612738, TeamCity: "Boston", TeamName: "Celtics", Conference: "East", Wins: 61, Losses: 21, WinPCT: 0.744, L10Rec: "8-2", Strk: "W3" },
+  { TeamID: 1610612755, TeamCity: "Philadelphia", TeamName: "76ers", Conference: "East", Wins: 54, Losses: 28, WinPCT: 0.659, L10Rec: "7-3", Strk: "W1" },
+  { TeamID: 1610612752, TeamCity: "New York", TeamName: "Knicks", Conference: "East", Wins: 50, Losses: 32, WinPCT: 0.610, L10Rec: "6-4", Strk: "L1" },
+  { TeamID: 1610612749, TeamCity: "Milwaukee", TeamName: "Bucks", Conference: "East", Wins: 49, Losses: 33, WinPCT: 0.598, L10Rec: "5-5", Strk: "W2" },
+  { TeamID: 1610612737, TeamCity: "Atlanta", TeamName: "Hawks", Conference: "East", Wins: 43, Losses: 39, WinPCT: 0.524, L10Rec: "5-5", Strk: "L2" },
+  { TeamID: 1610612748, TeamCity: "Miami", TeamName: "Heat", Conference: "East", Wins: 46, Losses: 36, WinPCT: 0.561, L10Rec: "6-4", Strk: "W1" },
+  { TeamID: 1610612739, TeamCity: "Cleveland", TeamName: "Cavaliers", Conference: "East", Wins: 48, Losses: 34, WinPCT: 0.585, L10Rec: "7-3", Strk: "W2" },
+  { TeamID: 1610612741, TeamCity: "Chicago", TeamName: "Bulls", Conference: "East", Wins: 40, Losses: 42, WinPCT: 0.488, L10Rec: "5-5", Strk: "L1" },
+  { TeamID: 1610612754, TeamCity: "Indiana", TeamName: "Pacers", Conference: "East", Wins: 47, Losses: 35, WinPCT: 0.573, L10Rec: "6-4", Strk: "W3" },
+  { TeamID: 1610612751, TeamCity: "Brooklyn", TeamName: "Nets", Conference: "East", Wins: 32, Losses: 50, WinPCT: 0.390, L10Rec: "4-6", Strk: "L3" },
+  { TeamID: 1610612753, TeamCity: "Orlando", TeamName: "Magic", Conference: "East", Wins: 47, Losses: 35, WinPCT: 0.573, L10Rec: "6-4", Strk: "W1" },
+  { TeamID: 1610612764, TeamCity: "Washington", TeamName: "Wizards", Conference: "East", Wins: 15, Losses: 67, WinPCT: 0.183, L10Rec: "2-8", Strk: "L5" },
+  { TeamID: 1610612766, TeamCity: "Charlotte", TeamName: "Hornets", Conference: "East", Wins: 21, Losses: 61, WinPCT: 0.256, L10Rec: "3-7", Strk: "L2" },
+  { TeamID: 1610612765, TeamCity: "Detroit", TeamName: "Pistons", Conference: "East", Wins: 14, Losses: 68, WinPCT: 0.171, L10Rec: "1-9", Strk: "L8" },
+  { TeamID: 1610612740, TeamCity: "New Orleans", TeamName: "Pelicans", Conference: "East", Wins: 35, Losses: 47, WinPCT: 0.427, L10Rec: "4-6", Strk: "L1" },
+  // Western
+  { TeamID: 1610612743, TeamCity: "Denver", TeamName: "Nuggets", Conference: "West", Wins: 57, Losses: 25, WinPCT: 0.695, L10Rec: "8-2", Strk: "W5" },
+  { TeamID: 1610612759, TeamCity: "San Antonio", TeamName: "Spurs", Conference: "West", Wins: 22, Losses: 60, WinPCT: 0.268, L10Rec: "3-7", Strk: "L4" },
+  { TeamID: 1610612750, TeamCity: "Minnesota", TeamName: "Timberwolves", Conference: "West", Wins: 56, Losses: 26, WinPCT: 0.683, L10Rec: "7-3", Strk: "W2" },
+  { TeamID: 1610612747, TeamCity: "Los Angeles", TeamName: "Lakers", Conference: "West", Wins: 47, Losses: 35, WinPCT: 0.573, L10Rec: "6-4", Strk: "W1" },
+  { TeamID: 1610612744, TeamCity: "Golden State", TeamName: "Warriors", Conference: "West", Wins: 46, Losses: 36, WinPCT: 0.561, L10Rec: "5-5", Strk: "L1" },
+  { TeamID: 1610612742, TeamCity: "Dallas", TeamName: "Mavericks", Conference: "West", Wins: 50, Losses: 32, WinPCT: 0.610, L10Rec: "7-3", Strk: "W3" },
+  { TeamID: 1610612756, TeamCity: "Phoenix", TeamName: "Suns", Conference: "West", Wins: 49, Losses: 33, WinPCT: 0.598, L10Rec: "6-4", Strk: "W2" },
+  { TeamID: 1610612760, TeamCity: "Oklahoma City", TeamName: "Thunder", Conference: "West", Wins: 57, Losses: 25, WinPCT: 0.695, L10Rec: "9-1", Strk: "W4" },
+  { TeamID: 1610612757, TeamCity: "Portland", TeamName: "Trail Blazers", Conference: "West", Wins: 21, Losses: 61, WinPCT: 0.256, L10Rec: "2-8", Strk: "L6" },
+  { TeamID: 1610612758, TeamCity: "Sacramento", TeamName: "Kings", Conference: "West", Wins: 46, Losses: 36, WinPCT: 0.561, L10Rec: "6-4", Strk: "W1" },
+  { TeamID: 1610612762, TeamCity: "Utah", TeamName: "Jazz", Conference: "West", Wins: 31, Losses: 51, WinPCT: 0.378, L10Rec: "4-6", Strk: "L2" },
+  { TeamID: 1610612746, TeamCity: "LA", TeamName: "Clippers", Conference: "West", Wins: 51, Losses: 31, WinPCT: 0.622, L10Rec: "7-3", Strk: "W2" },
+  { TeamID: 1610612763, TeamCity: "Memphis", TeamName: "Grizzlies", Conference: "West", Wins: 27, Losses: 55, WinPCT: 0.329, L10Rec: "3-7", Strk: "L3" },
+  { TeamID: 1610612745, TeamCity: "Houston", TeamName: "Rockets", Conference: "West", Wins: 41, Losses: 41, WinPCT: 0.500, L10Rec: "5-5", Strk: "W1" },
+  { TeamID: 1610612761, TeamCity: "Toronto", TeamName: "Raptors", Conference: "West", Wins: 25, Losses: 57, WinPCT: 0.305, L10Rec: "3-7", Strk: "L4" },
+];
+
+export const FALLBACK_TOP_PLAYERS = [
+  { PERSON_ID: 203999, PLAYER_NAME: "Nikola Jokic", TEAM_ID: 1610612743, TEAM_ABBREVIATION: "DEN", PTS: 26.4, REB: 12.4, AST: 9.0, STL: 1.3, BLK: 0.7, FG_PCT: 0.583, FG3_PCT: 0.359, FT_PCT: 0.817, POSITION: "C" },
+  { PERSON_ID: 1628983, PLAYER_NAME: "Shai Gilgeous-Alexander", TEAM_ID: 1610612760, TEAM_ABBREVIATION: "OKC", PTS: 31.2, REB: 5.8, AST: 6.6, STL: 2.0, BLK: 1.1, FG_PCT: 0.535, FG3_PCT: 0.355, FT_PCT: 0.874, POSITION: "PG" },
+  { PERSON_ID: 201939, PLAYER_NAME: "Stephen Curry", TEAM_ID: 1610612744, TEAM_ABBREVIATION: "GSW", PTS: 26.4, REB: 4.5, AST: 5.1, STL: 0.7, BLK: 0.4, FG_PCT: 0.452, FG3_PCT: 0.408, FT_PCT: 0.921, POSITION: "PG" },
+  { PERSON_ID: 203507, PLAYER_NAME: "Giannis Antetokounmpo", TEAM_ID: 1610612749, TEAM_ABBREVIATION: "MIL", PTS: 30.4, REB: 11.5, AST: 6.5, STL: 1.2, BLK: 1.1, FG_PCT: 0.612, FG3_PCT: 0.274, FT_PCT: 0.657, POSITION: "PF" },
+  { PERSON_ID: 1629029, PLAYER_NAME: "Luka Doncic", TEAM_ID: 1610612742, TEAM_ABBREVIATION: "DAL", PTS: 33.9, REB: 9.2, AST: 9.8, STL: 1.4, BLK: 0.5, FG_PCT: 0.487, FG3_PCT: 0.382, FT_PCT: 0.786, POSITION: "PG" },
+  { PERSON_ID: 2544, PLAYER_NAME: "LeBron James", TEAM_ID: 1610612747, TEAM_ABBREVIATION: "LAL", PTS: 25.7, REB: 7.3, AST: 8.3, STL: 1.3, BLK: 0.5, FG_PCT: 0.540, FG3_PCT: 0.410, FT_PCT: 0.750, POSITION: "SF" },
+  { PERSON_ID: 201935, PLAYER_NAME: "James Harden", TEAM_ID: 1610612746, TEAM_ABBREVIATION: "LAC", PTS: 21.0, REB: 5.0, AST: 8.5, STL: 1.1, BLK: 0.5, FG_PCT: 0.445, FG3_PCT: 0.386, FT_PCT: 0.874, POSITION: "SG" },
+  { PERSON_ID: 1630162, PLAYER_NAME: "Anthony Edwards", TEAM_ID: 1610612750, TEAM_ABBREVIATION: "MIN", PTS: 25.9, REB: 5.4, AST: 5.1, STL: 1.3, BLK: 0.6, FG_PCT: 0.461, FG3_PCT: 0.357, FT_PCT: 0.830, POSITION: "SG" },
+  { PERSON_ID: 1629630, PLAYER_NAME: "Ja Morant", TEAM_ID: 1610612763, TEAM_ABBREVIATION: "MEM", PTS: 25.1, REB: 5.6, AST: 8.1, STL: 1.1, BLK: 0.4, FG_PCT: 0.471, FG3_PCT: 0.305, FT_PCT: 0.762, POSITION: "PG" },
+  { PERSON_ID: 1628369, PLAYER_NAME: "Jayson Tatum", TEAM_ID: 1610612738, TEAM_ABBREVIATION: "BOS", PTS: 26.9, REB: 8.1, AST: 4.9, STL: 1.0, BLK: 0.6, FG_PCT: 0.466, FG3_PCT: 0.371, FT_PCT: 0.851, POSITION: "SF" },
+  { PERSON_ID: 1628384, PLAYER_NAME: "Bam Adebayo", TEAM_ID: 1610612748, TEAM_ABBREVIATION: "MIA", PTS: 19.3, REB: 10.4, AST: 3.9, STL: 1.1, BLK: 0.9, FG_PCT: 0.523, FG3_PCT: 0.088, FT_PCT: 0.806, POSITION: "C" },
+  { PERSON_ID: 203954, PLAYER_NAME: "Joel Embiid", TEAM_ID: 1610612755, TEAM_ABBREVIATION: "PHI", PTS: 34.7, REB: 11.0, AST: 5.6, STL: 1.0, BLK: 1.7, FG_PCT: 0.529, FG3_PCT: 0.330, FT_PCT: 0.877, POSITION: "C" },
+  { PERSON_ID: 1629627, PLAYER_NAME: "Zion Williamson", TEAM_ID: 1610612740, TEAM_ABBREVIATION: "NOP", PTS: 26.0, REB: 7.0, AST: 4.6, STL: 1.1, BLK: 0.6, FG_PCT: 0.601, FG3_PCT: 0.233, FT_PCT: 0.707, POSITION: "PF" },
+  { PERSON_ID: 1629029, PLAYER_NAME: "Devin Booker", TEAM_ID: 1610612756, TEAM_ABBREVIATION: "PHX", PTS: 27.8, REB: 4.5, AST: 6.9, STL: 0.8, BLK: 0.3, FG_PCT: 0.492, FG3_PCT: 0.351, FT_PCT: 0.873, POSITION: "SG" },
+  { PERSON_ID: 1641705, PLAYER_NAME: "Victor Wembanyama", TEAM_ID: 1610612759, TEAM_ABBREVIATION: "SAS", PTS: 21.4, REB: 10.6, AST: 3.9, STL: 1.2, BLK: 3.6, FG_PCT: 0.464, FG3_PCT: 0.339, FT_PCT: 0.791, POSITION: "C" },
+];
+
+export const FALLBACK_TEAMS = [
+  { id: 1610612737, full_name: "Atlanta Hawks", abbreviation: "ATL", nickname: "Hawks", city: "Atlanta" },
+  { id: 1610612738, full_name: "Boston Celtics", abbreviation: "BOS", nickname: "Celtics", city: "Boston" },
+  { id: 1610612739, full_name: "Cleveland Cavaliers", abbreviation: "CLE", nickname: "Cavaliers", city: "Cleveland" },
+  { id: 1610612740, full_name: "New Orleans Pelicans", abbreviation: "NOP", nickname: "Pelicans", city: "New Orleans" },
+  { id: 1610612741, full_name: "Chicago Bulls", abbreviation: "CHI", nickname: "Bulls", city: "Chicago" },
+  { id: 1610612742, full_name: "Dallas Mavericks", abbreviation: "DAL", nickname: "Mavericks", city: "Dallas" },
+  { id: 1610612743, full_name: "Denver Nuggets", abbreviation: "DEN", nickname: "Nuggets", city: "Denver" },
+  { id: 1610612744, full_name: "Golden State Warriors", abbreviation: "GSW", nickname: "Warriors", city: "Golden State" },
+  { id: 1610612745, full_name: "Houston Rockets", abbreviation: "HOU", nickname: "Rockets", city: "Houston" },
+  { id: 1610612746, full_name: "LA Clippers", abbreviation: "LAC", nickname: "Clippers", city: "LA" },
+  { id: 1610612747, full_name: "Los Angeles Lakers", abbreviation: "LAL", nickname: "Lakers", city: "Los Angeles" },
+  { id: 1610612748, full_name: "Miami Heat", abbreviation: "MIA", nickname: "Heat", city: "Miami" },
+  { id: 1610612749, full_name: "Milwaukee Bucks", abbreviation: "MIL", nickname: "Bucks", city: "Milwaukee" },
+  { id: 1610612750, full_name: "Minnesota Timberwolves", abbreviation: "MIN", nickname: "Timberwolves", city: "Minnesota" },
+  { id: 1610612751, full_name: "Brooklyn Nets", abbreviation: "BKN", nickname: "Nets", city: "Brooklyn" },
+  { id: 1610612752, full_name: "New York Knicks", abbreviation: "NYK", nickname: "Knicks", city: "New York" },
+  { id: 1610612753, full_name: "Orlando Magic", abbreviation: "ORL", nickname: "Magic", city: "Orlando" },
+  { id: 1610612754, full_name: "Indiana Pacers", abbreviation: "IND", nickname: "Pacers", city: "Indiana" },
+  { id: 1610612755, full_name: "Philadelphia 76ers", abbreviation: "PHI", nickname: "76ers", city: "Philadelphia" },
+  { id: 1610612756, full_name: "Phoenix Suns", abbreviation: "PHX", nickname: "Suns", city: "Phoenix" },
+  { id: 1610612757, full_name: "Portland Trail Blazers", abbreviation: "POR", nickname: "Trail Blazers", city: "Portland" },
+  { id: 1610612758, full_name: "Sacramento Kings", abbreviation: "SAC", nickname: "Kings", city: "Sacramento" },
+  { id: 1610612759, full_name: "San Antonio Spurs", abbreviation: "SAS", nickname: "Spurs", city: "San Antonio" },
+  { id: 1610612760, full_name: "Oklahoma City Thunder", abbreviation: "OKC", nickname: "Thunder", city: "Oklahoma City" },
+  { id: 1610612761, full_name: "Toronto Raptors", abbreviation: "TOR", nickname: "Raptors", city: "Toronto" },
+  { id: 1610612762, full_name: "Utah Jazz", abbreviation: "UTA", nickname: "Jazz", city: "Utah" },
+  { id: 1610612763, full_name: "Memphis Grizzlies", abbreviation: "MEM", nickname: "Grizzlies", city: "Memphis" },
+  { id: 1610612764, full_name: "Washington Wizards", abbreviation: "WAS", nickname: "Wizards", city: "Washington" },
+  { id: 1610612765, full_name: "Detroit Pistons", abbreviation: "DET", nickname: "Pistons", city: "Detroit" },
+  { id: 1610612766, full_name: "Charlotte Hornets", abbreviation: "CHA", nickname: "Hornets", city: "Charlotte" },
+];
+
+export const FALLBACK_PLAYERS = FALLBACK_TOP_PLAYERS.map(p => ({
+  id: p.PERSON_ID,
+  full_name: p.PLAYER_NAME,
+  is_active: true,
+  TEAM_ABBREVIATION: p.TEAM_ABBREVIATION,
+  TEAM_ID: p.TEAM_ID,
+  POSITION: p.POSITION,
+  PTS: p.PTS,
+  REB: p.REB,
+  AST: p.AST,
+}));

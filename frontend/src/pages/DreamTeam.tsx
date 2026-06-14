@@ -19,7 +19,9 @@ import {
   Crown,
   Dribbble,
   ArrowRight,
-  Check
+  Check,
+  ArrowLeftRight,
+  ListOrdered
 } from 'lucide-react';
 import {
   nbaApi,
@@ -27,13 +29,15 @@ import {
   getPlayerId,
   getPlayerName,
   type Player,
+  type Standing,
 } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 import { CURRENT_TEAM_VAULT } from './SeasonVaultData';
 
 type Position = 'PG' | 'SG' | 'SF' | 'PF' | 'C';
-type TeamKey = 'A' | 'B';
+type TeamKey = 'A' | 'B' | 'S';
 type ActivePick = { team: TeamKey; position: Position };
+type AppMode = 'versus' | 'solo';
 
 type PrimeStats = {
   season: string;
@@ -85,14 +89,17 @@ type SimulationResult = {
   scoreB: number;
   winner: TeamKey | 'OT';
   pace: number;
+  labelA?: string;
+  labelB?: string;
   teamA: PlayerLine[];
   teamB: PlayerLine[];
   notes: string[];
 };
 
 const POSITIONS: Position[] = ['PG', 'SG', 'SF', 'PF', 'C'];
-const TEAM_LABELS: Record<TeamKey, string> = { A: 'Team A', B: 'Team B' };
+const TEAM_LABELS: Record<TeamKey, string> = { A: 'Team A', B: 'Team B', S: 'My Team' };
 const STORAGE_KEY = 'nba_dream_team_matchup_v2';
+const SOLO_BENCHMARK_TEAM_ID = 1610612738;
 
 // Team Colors for the Spinning Wheel
 const TEAM_COLORS: Record<string, { primary: string; secondary: string; text: string }> = {
@@ -160,6 +167,10 @@ const TEAM_LEGENDS: Record<string, string[]> = {
   "1610612764": ["Wes Unseld", "Elvin Hayes", "John Wall", "Bradley Beal", "Gilbert Arenas", "Chris Webber", "Rod Strickland", "Gus Johnson", "Earl Monroe"],
   "1610612765": ["Isiah Thomas", "Joe Dumars", "Chauncey Billups", "Ben Wallace", "Dennis Rodman", "Bob Lanier", "Grant Hill", "Richard Hamilton", "Rasheed Wallace", "Dave Bing"],
   "1610612766": ["Kemba Walker", "Alonzo Mourning", "Larry Johnson", "Glen Rice", "LaMelo Ball", "Gerald Wallace", "Baron Davis", "Al Jefferson"],
+};
+
+const PLAYER_POSITION_OVERRIDES: Record<string, Position> = {
+  "Michael Jordan": "SG", "Kobe Bryant": "SG", "Dwyane Wade": "SG", "Allen Iverson": "SG", "James Harden": "SG", "Clyde Drexler": "SG", "Reggie Miller": "SG", "Ray Allen": "SG", "Vince Carter": "SG", "Devin Booker": "SG", "Donovan Mitchell": "SG", "Anthony Edwards": "SG", "Klay Thompson": "SG", "Manu Ginobili": "SG", "Joe Dumars": "SG", "Zach LaVine": "SG", "Jimmy Butler": "SF", "Scottie Pippen": "SF", "Larry Bird": "SF", "LeBron James": "SF", "Kevin Durant": "SF", "Kawhi Leonard": "SF", "Paul Pierce": "SF", "Jayson Tatum": "SF", "Carmelo Anthony": "SF", "Dominique Wilkins": "SF", "Elgin Baylor": "SF", "Julius Erving": "SF", "Grant Hill": "SF", "Bernard King": "SF", "Alex English": "SF", "Chris Mullin": "SF", "Brandon Ingram": "SF", "Paolo Banchero": "PF", "Giannis Antetokounmpo": "PF", "Tim Duncan": "PF", "Dirk Nowitzki": "PF", "Kevin Garnett": "PF", "Karl Malone": "PF", "Charles Barkley": "PF", "Anthony Davis": "PF", "Chris Webber": "PF", "Dennis Rodman": "PF", "Kevin McHale": "PF", "Pau Gasol": "PF", "Chris Bosh": "PF", "Zion Williamson": "PF", "Pascal Siakam": "PF", "Jaren Jackson Jr.": "PF", "LaMarcus Aldridge": "PF", "Amar'e Stoudemire": "PF", "Stephen Curry": "PG", "Magic Johnson": "PG", "Luka Doncic": "PG", "Oscar Robertson": "PG", "John Stockton": "PG", "Chris Paul": "PG", "Steve Nash": "PG", "Jason Kidd": "PG", "Isiah Thomas": "PG", "Russell Westbrook": "PG", "Damian Lillard": "PG", "Kyrie Irving": "PG", "Trae Young": "PG", "Ja Morant": "PG", "Shai Gilgeous-Alexander": "PG", "Tyrese Haliburton": "PG", "Jalen Brunson": "PG", "LaMelo Ball": "PG", "Kemba Walker": "PG", "Derrick Rose": "PG", "Kareem Abdul-Jabbar": "C", "Shaquille O'Neal": "C", "Wilt Chamberlain": "C", "Bill Russell": "C", "Hakeem Olajuwon": "C", "Nikola Jokic": "C", "Joel Embiid": "C", "Moses Malone": "C", "David Robinson": "C", "Dwight Howard": "C", "Patrick Ewing": "C", "Yao Ming": "C", "Alonzo Mourning": "C", "Dikembe Mutombo": "C", "Bob Lanier": "C", "Bill Walton": "C", "Artis Gilmore": "C", "Victor Wembanyama": "C", "Bam Adebayo": "C", "Domantas Sabonis": "C", "Marc Gasol": "C", "Rudy Gobert": "C", "Ben Wallace": "C"
 };
 
 const ALL_TEAMS = Object.values(CURRENT_TEAM_VAULT);
@@ -334,6 +345,7 @@ function Wheel({ teams, onSpinEnd, isSpinning, setIsSpinning, targetIndex, sound
   const rotationRef = useRef(0);
   const requestRef = useRef<number | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const logoImagesRef = useRef<Map<string, HTMLImageElement>>(new Map());
 
   const playTickSound = () => {
     if (!soundEnabled) return;
@@ -361,6 +373,14 @@ function Wheel({ teams, onSpinEnd, isSpinning, setIsSpinning, targetIndex, sound
   };
 
   useEffect(() => {
+    logoImagesRef.current.clear();
+    teams.forEach(team => {
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.onload = () => drawWheel();
+      image.src = `https://cdn.nba.com/logos/nba/${team.id}/global/L/logo.svg`;
+      logoImagesRef.current.set(String(team.id), image);
+    });
     drawWheel();
   }, [teams]);
 
@@ -372,17 +392,18 @@ function Wheel({ teams, onSpinEnd, isSpinning, setIsSpinning, targetIndex, sound
 
     const size = canvas.width;
     const center = size / 2;
-    const radius = center - 15;
+    const radius = center - 12;
     ctx.clearRect(0, 0, size, size);
 
-    const sliceAngle = (2 * Math.PI) / teams.length;
+    const n = teams.length;
+    const sliceAngle = (2 * Math.PI) / n;
 
-    // Draw background outer ring
+    // Outer ring
     ctx.beginPath();
     ctx.arc(center, center, radius + 8, 0, 2 * Math.PI);
-    ctx.fillStyle = '#27272a'; // zinc-800
+    ctx.fillStyle = '#27272a';
     ctx.fill();
-    ctx.strokeStyle = '#3f3f46'; // zinc-700
+    ctx.strokeStyle = '#3f3f46';
     ctx.lineWidth = 4;
     ctx.stroke();
 
@@ -397,59 +418,64 @@ function Wheel({ teams, onSpinEnd, isSpinning, setIsSpinning, targetIndex, sound
       ctx.arc(0, 0, radius, angle, angle + sliceAngle);
       ctx.closePath();
 
-      const colors = TEAM_COLORS[team.id] || { primary: "#3f3f46", secondary: "#18181b", text: "#ffffff" };
-      ctx.fillStyle = colors.primary;
+      const colors = TEAM_COLORS[team.id] || { primary: '#3f3f46', secondary: '#18181b', text: '#ffffff' };
+      // Alternate slight shade per slice for readability
+      ctx.fillStyle = i % 2 === 0 ? colors.primary : (colors.secondary || colors.primary);
       ctx.fill();
-
-      // Thin separator lines
-      ctx.strokeStyle = 'rgba(24, 24, 27, 0.4)';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Text label
+      // Label (abbr) — font size scales with team count
       ctx.save();
       ctx.rotate(angle + sliceAngle / 2);
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = colors.text;
-      ctx.font = 'bold 13px system-ui, sans-serif';
-      
-      // Shadow effect
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = 3;
-      
-      ctx.fillText(team.abbreviation, radius - 28, 0);
+      ctx.fillStyle = '#ffffff';
+      const fontSize = n <= 12 ? 11 : n <= 20 ? 9 : 7;
+      ctx.font = `bold ${fontSize}px system-ui, sans-serif`;
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 4;
+      const logo = logoImagesRef.current.get(String(team.id));
+      if (logo?.complete) {
+        ctx.save();
+        ctx.translate(radius - 48, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(logo, -7, -7, 14, 14);
+        ctx.restore();
+      }
+      const nickname = (team.nickname || team.name || team.full_name || '').split(' ').slice(-1)[0] || '';
+      const label = `${team.abbreviation || team.abbr || ''} ${nickname}`.trim();
+      ctx.fillText(label, radius - 16, 0, 60);
       ctx.restore();
     });
 
     ctx.restore();
 
-    // Draw center pin
+    // Center pin
     ctx.beginPath();
-    ctx.arc(center, center, 32, 0, 2 * Math.PI);
-    ctx.fillStyle = '#f97316'; // orange-500
+    ctx.arc(center, center, 28, 0, 2 * Math.PI);
+    ctx.fillStyle = '#f97316';
     ctx.fill();
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#ffffff';
     ctx.stroke();
-
-    // Center icon/text
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 11px system-ui, sans-serif';
+    ctx.font = 'bold 9px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('SPIN', center, center);
 
-    // Draw pointer at top (pointer points down)
+    // Pointer arrow at top
     ctx.beginPath();
-    ctx.moveTo(center - 12, 5);
-    ctx.lineTo(center + 12, 5);
-    ctx.lineTo(center, 25);
+    ctx.moveTo(center - 10, 4);
+    ctx.lineTo(center + 10, 4);
+    ctx.lineTo(center, 22);
     ctx.closePath();
-    ctx.fillStyle = '#f43f5e'; // rose-500
+    ctx.fillStyle = '#f43f5e';
     ctx.fill();
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.stroke();
   };
 
@@ -520,17 +546,22 @@ function Wheel({ teams, onSpinEnd, isSpinning, setIsSpinning, targetIndex, sound
 export default function DreamTeam() {
   const [allPlayers, setAllPlayers] = useState<any[]>([]);
   const [topPlayers, setTopPlayers] = useState<any[]>([]);
+  const [standings, setStandings] = useState<Standing[]>([]);
+  const [mode, setMode] = useState<AppMode>('versus');
   const [search, setSearch] = useState('');
   const [loadingList, setLoadingList] = useState(true);
   const [activePick, setActivePick] = useState<ActivePick | null>(null);
   const [loadingPrimeId, setLoadingPrimeId] = useState<number | null>(null);
   const [simResult, setSimResult] = useState<SimulationResult | null>(null);
+  const [swapFrom, setSwapFrom] = useState<Position>('PG');
+  const [swapTo, setSwapTo] = useState<Position>('SG');
   const [rosters, setRosters] = useState<Record<TeamKey, TeamRoster>>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : { A: emptyRoster(), B: emptyRoster() };
+      const parsed = saved ? JSON.parse(saved) : {};
+      return { A: parsed.A || emptyRoster(), B: parsed.B || emptyRoster(), S: parsed.S || emptyRoster() };
     } catch {
-      return { A: emptyRoster(), B: emptyRoster() };
+      return { A: emptyRoster(), B: emptyRoster(), S: emptyRoster() };
     }
   });
 
@@ -554,17 +585,19 @@ export default function DreamTeam() {
     Promise.all([
       nbaApi.getAllPlayers().catch(() => []),
       nbaApi.getTopPlayers().catch(() => []),
+      nbaApi.getStandings('2025-26', 'Regular Season').catch(() => []),
     ])
-      .then(([players, leaders]) => {
+      .then(([players, leaders, seasonStandings]) => {
         setAllPlayers(Array.isArray(players) ? players : []);
         setTopPlayers(Array.isArray(leaders) ? leaders : []);
+        setStandings(Array.isArray(seasonStandings) ? seasonStandings : []);
       })
       .finally(() => setLoadingList(false));
   }, []);
 
   const selectedIds = useMemo(() => {
     const ids = new Set<number>();
-    (['A', 'B'] as TeamKey[]).forEach(team => {
+    (['A', 'B', 'S'] as TeamKey[]).forEach(team => {
       POSITIONS.forEach(position => {
         const player = rosters[team][position];
         if (player) ids.add(player.id);
@@ -574,32 +607,33 @@ export default function DreamTeam() {
   }, [rosters]);
 
   const filteredPlayers = useMemo(() => {
-    if (!search.trim()) return [];
+    if (!search.trim() || !activePick) return [];
     const s = search.toLowerCase();
     return allPlayers
       .filter(player => {
         const id = getPlayerId(player);
         const name = getPlayerName(player).toLowerCase();
-        return id > 0 && name.includes(s) && !selectedIds.has(id);
+        return id > 0 && name.includes(s) && !selectedIds.has(id) && positionMatches(inferPlayerPosition(player), activePick.position);
       })
       .slice(0, 12);
-  }, [allPlayers, search, selectedIds]);
+  }, [allPlayers, search, selectedIds, activePick]);
 
   const teamScores = useMemo(() => ({
     A: rateTeam(Object.values(rosters.A).filter(Boolean) as DreamPlayer[]),
     B: rateTeam(Object.values(rosters.B).filter(Boolean) as DreamPlayer[]),
+    S: rateTeam(Object.values(rosters.S).filter(Boolean) as DreamPlayer[]),
   }), [rosters]);
 
-  const complete = POSITIONS.every(position => rosters.A[position] && rosters.B[position]);
-  const nextPick = getNextPick(rosters);
+  const activeTeams: TeamKey[] = mode === 'solo' ? ['S'] : ['A', 'B'];
+  const complete = activeTeams.every(team => POSITIONS.every(position => rosters[team][position]));
+  const nextPick = getNextPick(rosters, mode);
 
-  // Pick 10 random teams whenever activePick is loaded
+  // Use all 30 teams in wheel whenever activePick is loaded
   useEffect(() => {
     if (activePick) {
-      const shuffled = [...ALL_TEAMS].sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, 10);
-      setWheelTeams(selected);
-      setWheelTargetIndex(Math.floor(Math.random() * 10));
+      const allTeams = [...ALL_TEAMS];
+      setWheelTeams(allTeams);
+      setWheelTargetIndex(Math.floor(Math.random() * allTeams.length));
       setSelectedTeam(null);
       setPhase('spin');
       setCurrentRoster([]);
@@ -627,7 +661,7 @@ export default function DreamTeam() {
       setSimResult(null);
 
       // Advance automatically or close
-      const next = getNextPick(updatedRosters);
+      const next = getNextPick(updatedRosters, mode);
       if (next) {
         setActivePick(next);
       } else {
@@ -685,7 +719,13 @@ export default function DreamTeam() {
   }
 
   function clearRosters() {
-    setRosters({ A: emptyRoster(), B: emptyRoster() });
+    setRosters({ A: emptyRoster(), B: emptyRoster(), S: emptyRoster() });
+    setSimResult(null);
+  }
+
+  function handleModeChange(nextMode: AppMode) {
+    setMode(nextMode);
+    setActivePick(null);
     setSimResult(null);
   }
 
@@ -702,13 +742,13 @@ export default function DreamTeam() {
   };
 
   const filteredLegends = useMemo(() => {
-    if (!selectedTeam) return [];
+    if (!selectedTeam || !activePick) return [];
     const legends = getTeamLegendsForDraft(String(selectedTeam.id), allPlayers);
-    const unused = legends.filter(p => !selectedIds.has(p.id));
+    const unused = legends.filter(p => !selectedIds.has(p.id) && positionMatches(inferPlayerPosition(p), activePick.position));
     if (!playerSearch.trim()) return unused;
     const s = playerSearch.toLowerCase();
     return unused.filter(p => p.name.toLowerCase().includes(s));
-  }, [selectedTeam, allPlayers, playerSearch, selectedIds]);
+  }, [selectedTeam, allPlayers, playerSearch, selectedIds, activePick]);
 
   const filteredRoster = useMemo(() => {
     if (!selectedTeam || !currentRoster) return [];
@@ -716,27 +756,45 @@ export default function DreamTeam() {
     return currentRoster.filter(p => {
       const id = getPlayerId(p);
       const name = getPlayerName(p).toLowerCase();
-      const pos = (p.POSITION || p.position || '').toString().toUpperCase();
+      const pos = inferPlayerPosition(p);
       
       const matchesSearch = !playerSearch.trim() || name.includes(s);
-      const matchesPosition = showAllPositions || positionMatches(pos, activePick?.position || 'PG');
+      const matchesPosition = positionMatches(pos, activePick?.position || 'PG');
       const isUnused = !selectedIds.has(id);
       
       return matchesSearch && matchesPosition && isUnused;
     });
-  }, [selectedTeam, currentRoster, playerSearch, showAllPositions, activePick, selectedIds]);
+  }, [selectedTeam, currentRoster, playerSearch, activePick, selectedIds]);
 
   function autoAssignNext() {
     if (!nextPick) return;
     const used = new Set(selectedIds);
-    const candidate = pickRandomPlayer(topPlayers, used);
+    const positionPool = topPlayers.filter(player => positionMatches(inferPlayerPosition(player), nextPick.position));
+    const candidate = pickRandomPlayer(positionPool.length ? positionPool : topPlayers, used);
     if (!candidate) return;
     handleAddPlayer(candidate, nextPick);
   }
 
   function simulateMatch() {
     if (!complete) return;
-    setSimResult(simulate(rosters));
+    setSimResult(mode === 'solo' ? simulateSoloSeasonGame(rosters, topPlayers) : simulate(rosters));
+  }
+
+  function swapSlots(team: TeamKey, from: Position, to: Position) {
+    if (from === to) return;
+    setRosters(prev => {
+      const fromPlayer = prev[team][from];
+      const toPlayer = prev[team][to];
+      return {
+        ...prev,
+        [team]: {
+          ...prev[team],
+          [from]: toPlayer ? { ...toPlayer, position: from } : null,
+          [to]: fromPlayer ? { ...fromPlayer, position: to } : null,
+        },
+      };
+    });
+    setSimResult(null);
   }
 
   // Helper to trigger wheel modal on click "Spin Wheel Draft"
@@ -756,11 +814,28 @@ export default function DreamTeam() {
             Prime Dream Match
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-gray-500">
-            Build two starting fives by spinning the team wheel, selecting all-time legends, and simulating matches on a professional court engine.
+            Build a head-to-head matchup or create one solo roster, verify its season standing, and simulate the finished lineup.
           </p>
         </div>
 
-        <div className="relative z-10 flex flex-wrap gap-2.5">
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5">
+          <div className="flex rounded-xl border border-gray-800 bg-gray-950 p-1">
+            {([
+              ['versus', 'Versus'],
+              ['solo', 'Solo Player'],
+            ] as const).map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => handleModeChange(value)}
+                className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
+                  mode === value ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <button 
             onClick={startSpinDraft} 
             disabled={!nextPick || loadingList} 
@@ -784,7 +859,7 @@ export default function DreamTeam() {
             className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-red-400 hover:bg-red-500/10 transition-all"
           >
             <RefreshCw size={16} />
-            Reset Match
+            Reset Teams
           </button>
         </div>
       </div>
@@ -796,16 +871,27 @@ export default function DreamTeam() {
       ) : (
         <>
           {/* Main Draft Area */}
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px_1fr]">
+          <div className={`grid grid-cols-1 gap-6 ${mode === 'solo' ? 'xl:grid-cols-[1fr_420px]' : 'xl:grid-cols-[1fr_360px_1fr]'}`}>
             {/* Team A Panel */}
-            <TeamPanel 
-              team="A" 
-              roster={rosters.A} 
-              score={teamScores.A} 
-              activePick={activePick}
-              onPick={setActivePick} 
-              onRemove={removePlayer} 
-            />
+            {mode === 'solo' ? (
+              <TeamPanel
+                team="S"
+                roster={rosters.S}
+                score={teamScores.S}
+                activePick={activePick}
+                onPick={setActivePick}
+                onRemove={removePlayer}
+              />
+            ) : (
+              <TeamPanel 
+                team="A" 
+                roster={rosters.A} 
+                score={teamScores.A} 
+                activePick={activePick}
+                onPick={setActivePick} 
+                onRemove={removePlayer} 
+              />
+            )}
 
             {/* Simulation Controller Panel */}
             <div className="flex flex-col justify-center gap-5 rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-md relative overflow-hidden">
@@ -824,6 +910,38 @@ export default function DreamTeam() {
                   </span>
                 </div>
               </div>
+
+              {mode === 'solo' && (
+                <SoloStandingsPanel roster={rosters.S} score={teamScores.S} standings={standings} />
+              )}
+
+              {complete && (
+                <div className="space-y-3 rounded-xl border border-gray-800 bg-gray-950/60 p-4">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                    <ArrowLeftRight size={14} className="text-orange-500" />
+                    Swap Positions
+                  </div>
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                    <PositionSelect value={swapFrom} onChange={setSwapFrom} />
+                    <ArrowLeftRight size={16} className="text-gray-500" />
+                    <PositionSelect value={swapTo} onChange={setSwapTo} />
+                  </div>
+                  <button
+                    onClick={() => swapSlots(mode === 'solo' ? 'S' : 'A', swapFrom, swapTo)}
+                    className="w-full rounded-xl border border-gray-800 bg-gray-900 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-gray-300 transition hover:border-orange-500/40 hover:text-white"
+                  >
+                    Swap {mode === 'solo' ? 'My Team' : 'Team A'}
+                  </button>
+                  {mode === 'versus' && (
+                    <button
+                      onClick={() => swapSlots('B', swapFrom, swapTo)}
+                      className="w-full rounded-xl border border-gray-800 bg-gray-900 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-gray-300 transition hover:border-orange-500/40 hover:text-white"
+                    >
+                      Swap Team B
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2.5 bg-gray-900/40 p-4 rounded-xl border border-gray-800/40">
                 <div className="text-[10px] uppercase font-bold tracking-widest text-gray-500 text-center mb-1">Position Path</div>
@@ -852,30 +970,32 @@ export default function DreamTeam() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 text-sm uppercase tracking-widest transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-orange-600/10"
               >
                 <Sparkles size={18} />
-                Simulate Game
+                {mode === 'solo' ? 'Simulate Season Test' : 'Simulate Game'}
               </button>
 
               {!complete && (
                 <div className="flex items-start gap-3 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-3.5 text-xs text-yellow-500/90 leading-relaxed">
                   <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                  <span>Fill all five positions on both Team A and Team B to unlock the live court simulation.</span>
+                  <span>{mode === 'solo' ? 'Fill all five positions on My Team to unlock standings verification and simulation.' : 'Fill all five positions on both Team A and Team B to unlock the live court simulation.'}</span>
                 </div>
               )}
             </div>
 
             {/* Team B Panel */}
-            <TeamPanel 
-              team="B" 
-              roster={rosters.B} 
-              score={teamScores.B} 
-              activePick={activePick}
-              onPick={setActivePick} 
-              onRemove={removePlayer} 
-            />
+            {mode === 'versus' && (
+              <TeamPanel 
+                team="B" 
+                roster={rosters.B} 
+                score={teamScores.B} 
+                activePick={activePick}
+                onPick={setActivePick} 
+                onRemove={removePlayer} 
+              />
+            )}
           </div>
 
           {/* Quick Stats Bar */}
-          <Diagnostics rosters={rosters} scores={teamScores} />
+          {mode === 'versus' ? <Diagnostics rosters={rosters} scores={teamScores} /> : <SoloPlayerStats roster={rosters.S} />}
 
           {/* Simulation Output */}
           {simResult && <SimulationPanel result={simResult} />}
@@ -998,16 +1118,9 @@ export default function DreamTeam() {
                       className="w-full rounded-xl border border-gray-800 bg-gray-900 py-3 pl-10 pr-4 text-xs text-white outline-none focus:border-orange-500"
                     />
                   </div>
-                  <button
-                    onClick={() => setShowAllPositions(!showAllPositions)}
-                    className={`rounded-xl border px-3 py-3 text-xs font-semibold transition ${
-                      showAllPositions 
-                        ? 'border-orange-500/50 bg-orange-950/20 text-orange-400' 
-                        : 'border-gray-800 bg-gray-900 text-gray-500 hover:text-gray-500'
-                    }`}
-                  >
-                    {showAllPositions ? 'All Pos' : `Only ${activePick.position}`}
-                  </button>
+                  <div className="rounded-xl border border-orange-500/40 bg-orange-500/10 px-3 py-3 text-xs font-bold uppercase tracking-wider text-orange-400">
+                    {activePick.position} only
+                  </div>
                 </div>
 
                 {/* Scrollable Player Lists */}
@@ -1222,7 +1335,7 @@ export default function DreamTeam() {
       setSimResult(null);
 
       // Check if there is a next slot in turn
-      const next = getNextPick(nextRosters);
+      const next = getNextPick(nextRosters, mode);
       if (next) {
         setActivePick(next);
       } else {
@@ -1375,6 +1488,76 @@ function TeamPanel({ team, roster, score, activePick, onPick, onRemove }: {
   );
 }
 
+function PositionSelect({ value, onChange }: { value: Position; onChange: (position: Position) => void }) {
+  return (
+    <select
+      value={value}
+      onChange={event => onChange(event.target.value as Position)}
+      className="w-full rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white outline-none focus:border-orange-500"
+    >
+      {POSITIONS.map(position => (
+        <option key={position} value={position} className="bg-gray-900 text-white">
+          {position}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function SoloStandingsPanel({ roster, score, standings }: { roster: TeamRoster; score: ReturnType<typeof rateTeam>; standings: Standing[] }) {
+  const drafted = POSITIONS.filter(position => roster[position]).length;
+  const projectedWins = clamp(Math.round(24 + score.overall * 0.54), 18, 74);
+  const projectedLosses = 82 - projectedWins;
+  const ranked = [...standings].sort((a, b) => b.WinPCT - a.WinPCT);
+  const projectedRank = ranked.filter(team => team.Wins > projectedWins).length + 1;
+  const benchmark = standings.find(team => team.TeamID === SOLO_BENCHMARK_TEAM_ID) || ranked[0];
+  const benchmarkText = benchmark ? `${benchmark.TeamCity} ${benchmark.TeamName} (${benchmark.Wins}-${benchmark.Losses})` : 'league leader';
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-950/60 p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+          <ListOrdered size={14} className="text-orange-500" />
+          Season Standing
+        </div>
+        <span className="rounded-full bg-orange-500/10 px-2 py-1 text-[10px] font-bold text-orange-400">
+          {drafted}/5
+        </span>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <TinyGrade label="Wins" value={projectedWins} grade={projectedWins >= 50 ? 'A' : projectedWins >= 42 ? 'B' : 'C'} />
+        <TinyGrade label="Losses" value={projectedLosses} grade={projectedWins >= 50 ? 'A' : projectedWins >= 42 ? 'B' : 'C'} />
+        <TinyGrade label="Rank" value={projectedRank || 1} grade={projectedRank <= 4 ? 'A' : projectedRank <= 8 ? 'B' : 'C'} />
+      </div>
+      <p className="mt-3 text-xs leading-relaxed text-gray-500">
+        Projected against the current standings feed; benchmark: {benchmarkText}.
+      </p>
+    </div>
+  );
+}
+
+function SoloPlayerStats({ roster }: { roster: TeamRoster }) {
+  const players = POSITIONS.map(position => roster[position]).filter(Boolean) as DreamPlayer[];
+  const totals = players.reduce(
+    (acc, player) => ({
+      pts: acc.pts + player.prime.pts,
+      reb: acc.reb + player.prime.reb,
+      ast: acc.ast + player.prime.ast,
+      stocks: acc.stocks + player.prime.stl + player.prime.blk,
+    }),
+    { pts: 0, reb: 0, ast: 0, stocks: 0 }
+  );
+
+  return (
+    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <InfoTile icon={<BarChart3 size={20} />} label="Lineup PTS" value={players.length ? round(totals.pts, 1).toString() : '--'} />
+      <InfoTile icon={<Shield size={20} />} label="Rebounds" value={players.length ? round(totals.reb, 1).toString() : '--'} />
+      <InfoTile icon={<Sparkles size={20} />} label="Assists" value={players.length ? round(totals.ast, 1).toString() : '--'} />
+      <InfoTile icon={<Swords size={20} />} label="Stocks" value={players.length ? round(totals.stocks, 1).toString() : '--'} />
+    </section>
+  );
+}
+
 // Redesigned Diagnostics
 function Diagnostics({ rosters, scores }: { rosters: Record<TeamKey, TeamRoster>; scores: Record<TeamKey, ReturnType<typeof rateTeam>> }) {
   const teamA = Object.values(rosters.A).filter(Boolean) as DreamPlayer[];
@@ -1415,6 +1598,8 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
   const mostPtsPlayer = sorted[0];
   const mostRebPlayer = [...sorted].sort((a, b) => b.reb - a.reb)[0];
   const mostAstPlayer = [...sorted].sort((a, b) => b.ast - a.ast)[0];
+  const labelA = result.labelA || 'Team A';
+  const labelB = result.labelB || 'Team B';
 
   return (
     <section className="space-y-6 rounded-3xl border border-gray-800 bg-gray-900 p-6 shadow-xl relative overflow-hidden">
@@ -1429,7 +1614,7 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
           <div className="mt-3 flex items-center gap-6">
             <div className="flex flex-col">
               <span className="text-4xl sm:text-5xl font-black text-white tracking-tighter">
-                Team A <span className="text-orange-500">{result.scoreA}</span>
+                {labelA} <span className="text-orange-500">{result.scoreA}</span>
               </span>
             </div>
             
@@ -1437,7 +1622,7 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
             
             <div className="flex flex-col">
               <span className="text-4xl sm:text-5xl font-black text-white tracking-tighter">
-                <span className="text-orange-500">{result.scoreB}</span> Team B
+                <span className="text-orange-500">{result.scoreB}</span> {labelB}
               </span>
             </div>
           </div>
@@ -1445,7 +1630,7 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
           <p className="mt-2 text-sm text-gray-500">
             {result.winner === 'OT' 
               ? 'Dead even after regulation. Settled in sudden death Overtime.' 
-              : `Winner: ${TEAM_LABELS[result.winner]} (Tempo: ${result.pace} possessions).`
+              : `Winner: ${result.winner === 'A' ? labelA : result.winner === 'B' ? labelB : TEAM_LABELS[result.winner]} (Tempo: ${result.pace} possessions).`
             }
           </p>
         </div>
@@ -1466,8 +1651,8 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
 
       {/* Box Scores */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <BoxScore title="Team A Box Score" lines={result.teamA} />
-        <BoxScore title="Team B Box Score" lines={result.teamB} />
+        <BoxScore title={`${labelA} Box Score`} lines={result.teamA} />
+        <BoxScore title={`${labelB} Box Score`} lines={result.teamB} />
       </div>
 
       {/* Game MVP & Leaders Banner */}
@@ -1603,6 +1788,13 @@ function numberFrom(...values: any[]) {
   return 0;
 }
 
+function inferPlayerPosition(player: any): string {
+  const raw = (player?.POSITION || player?.position || player?.START_POSITION || '').toString().toUpperCase();
+  if (raw) return raw;
+  const name = getPlayerName(player);
+  return PLAYER_POSITION_OVERRIDES[name] || '';
+}
+
 function positionMatches(posRaw: string | undefined | null, target: Position) {
   const pos = (posRaw || '').toString().toUpperCase();
   if (!pos) return false;
@@ -1656,7 +1848,14 @@ function rateTeam(players: DreamPlayer[]) {
   return { offense, defense, fit, overall: Math.round((offense * 0.44 + defense * 0.36 + fit * 0.2)) };
 }
 
-function getNextPick(rosters: Record<TeamKey, TeamRoster>): ActivePick | null {
+function getNextPick(rosters: Record<TeamKey, TeamRoster>, mode: AppMode = 'versus'): ActivePick | null {
+  if (mode === 'solo') {
+    for (const position of POSITIONS) {
+      if (!rosters.S[position]) return { team: 'S', position };
+    }
+    return null;
+  }
+
   for (const position of POSITIONS) {
     if (!rosters.A[position]) return { team: 'A', position };
     if (!rosters.B[position]) return { team: 'B', position };
@@ -1701,6 +1900,39 @@ function simulate(rosters: Record<TeamKey, TeamRoster>): SimulationResult {
     teamA: linesA,
     teamB: linesB,
     notes: buildNotes(linesA, linesB, ratingA, ratingB),
+  };
+}
+
+function simulateSoloSeasonGame(rosters: Record<TeamKey, TeamRoster>, topPlayers: any[]): SimulationResult {
+  const used = new Set(Object.values(rosters.S).filter(Boolean).map(player => (player as DreamPlayer).id));
+  const opponentRoster = emptyRoster();
+
+  POSITIONS.forEach(position => {
+    const pool = topPlayers.filter(player => positionMatches(inferPlayerPosition(player), position) && !used.has(getPlayerId(player)));
+    const candidate = pool[0] || topPlayers.find(player => !used.has(getPlayerId(player)));
+    if (candidate) {
+      const id = getPlayerId(candidate);
+      opponentRoster[position] = {
+        id,
+        name: getPlayerName(candidate),
+        position,
+        teamAbbr: candidate.TEAM_ABBREVIATION || candidate.team_abbreviation || 'NBA',
+        teamId: Number(candidate.TEAM_ID || candidate.team_id || 0),
+        prime: fallbackPrime(candidate, position),
+      };
+      used.add(id);
+    }
+  });
+
+  const result = simulate({ ...rosters, A: rosters.S, B: opponentRoster });
+  return {
+    ...result,
+    labelA: 'My Team',
+    labelB: 'NBA Benchmark',
+    notes: [
+      ...result.notes.slice(0, 3),
+      result.scoreA >= result.scoreB ? 'My Team grades above the benchmark test.' : 'The benchmark lineup exposes a matchup gap to tune before the next sim.',
+    ],
   };
 }
 

@@ -49,13 +49,13 @@ http://127.0.0.1:5173
 Frontend:
 
 ```text
-VITE_API_BASE_URL=http://localhost:8000/api
+VITE_API_BASE_URL=https://basketball-hub-api.onrender.com/api
 ```
 
-For production, set it to your Render backend URL:
+For production, keep it pointed at the deployed Render backend:
 
 ```text
-VITE_API_BASE_URL=https://YOUR_RENDER_BACKEND_URL/api
+VITE_API_BASE_URL=https://basketball-hub-api.onrender.com/api
 ```
 
 ## Deployment

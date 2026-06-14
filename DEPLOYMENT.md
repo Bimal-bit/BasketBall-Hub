@@ -21,13 +21,13 @@ Create a GitHub repository and push this folder.
 6. After deploy, copy the backend URL. It will look like:
 
 ```text
-https://nba-live-api.onrender.com
+https://basketball-hub-api.onrender.com
 ```
 
 Your API base URL will be:
 
 ```text
-https://nba-live-api.onrender.com/api
+https://basketball-hub-api.onrender.com/api
 ```
 
 ## 3. Deploy The Frontend On Vercel
@@ -56,13 +56,13 @@ dist
 7. Add this environment variable in Vercel:
 
 ```text
-VITE_API_BASE_URL=https://YOUR_RENDER_BACKEND_URL/api
+VITE_API_BASE_URL=https://basketball-hub-api.onrender.com/api
 ```
 
 Example:
 
 ```text
-VITE_API_BASE_URL=https://nba-live-api.onrender.com/api
+VITE_API_BASE_URL=https://basketball-hub-api.onrender.com/api
 ```
 
 8. Click **Deploy**.
