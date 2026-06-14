@@ -248,7 +248,7 @@
   input[type='range'] {
     height: 4px;
     border-radius: 2px;
-    background: #374151;
+    background: var(--border-main);
     outline: none;
     cursor: pointer;
   }
@@ -262,8 +262,8 @@
   }
 
   select option {
-    background: #1f2937;
-    color: #f9fafb;
+    background: var(--bg-main);
+    color: var(--text-main);
   }
 
   body.modal-open {
@@ -272,3 +272,18 @@
     width: 100%;
   }
 }
+
+/* Custom overrides to scale up tiny arbitrary font sizes for accessibility and mobile legibility */
+.text-\[8px\] {
+  font-size: 11px !important;
+}
+.text-\[9px\] {
+  font-size: 11px !important;
+}
+.text-\[10px\] {
+  font-size: 12px !important;
+}
+.text-\[11px\] {
+  font-size: 13px !important;
+}
+

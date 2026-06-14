@@ -97,7 +97,7 @@ export default function InsightsLab() {
   const [teamBLogs, setTeamBLogs] = useState<TeamGame[]>([]);
   const [playerALogs, setPlayerALogs] = useState<PlayerGameLog[]>([]);
   const [playerBLogs, setPlayerBLogs] = useState<PlayerGameLog[]>([]);
-  const [teamRosters, setTeamRosters] = useState<Record<string, Player[]>>({});
+  const [teamRosters, setTeamRosters] = useState<Record<string, Player[]>>({} as Record<string, Player[]>);
   const [watchlist, setWatchlist] = useState<WatchItem[]>(() => readWatchlist());
   const [recap, setRecap] = useState('');
   const [recapLoading, setRecapLoading] = useState(false);
@@ -211,7 +211,7 @@ export default function InsightsLab() {
       if (cancelled) return;
 
       setTeamRosters(current => {
-        const next = { ...current };
+        const next: Record<string, Player[]> = { ...current };
         ids.forEach((id, index) => {
           if (next[String(id)]?.length) return;
           next[String(id)] = results[index].status === 'fulfilled' ? results[index].value : [];

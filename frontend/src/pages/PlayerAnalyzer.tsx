@@ -324,18 +324,18 @@ export default function PlayerAnalyzer() {
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center p-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px]">
          <div>
             <h1 className="text-base font-medium text-zinc-900 dark:text-white">Player analyzer</h1>
-            <p className="text-xs text-zinc-500">Comprehensive NBA database</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Comprehensive NBA database</p>
          </div>
          
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:max-w-2xl items-stretch sm:items-center">
              <div className="relative flex-1 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors" size={18} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 dark:text-zinc-400 group-focus-within:text-orange-500 transition-colors" size={18} />
                 <input 
                   type="text" 
                   placeholder="Search any NBA Player..." 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-full py-4 pl-12 pr-4 text-white focus:outline-none focus:border-orange-500 transition-all placeholder:text-gray-600 font-medium  uppercase text-xs shadow-none"
+                  className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-full py-4 pl-12 pr-4 text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500 transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600 font-medium  uppercase text-xs shadow-none"
                 />
              </div>
              
@@ -349,7 +349,7 @@ export default function PlayerAnalyzer() {
                  }
                }}
                className={`px-6 py-4 rounded-full font-medium uppercase text-xs  transition-all border shrink-0
-                 ${isComparing ? 'bg-orange-500 border-orange-400 text-white shadow-none' : 'bg-white/5 border-zinc-200 dark:border-zinc-800 border-[0.5px] text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                 ${isComparing ? 'bg-orange-500 border-orange-400 text-white shadow-none' : 'bg-zinc-100 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800 border-[0.5px] text-zinc-500 dark:text-zinc-450 hover:bg-zinc-200 dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-white'}`}
              >
                {isComparing ? 'Exit Comparison' : 'Compare Players'}
              </button>
@@ -360,15 +360,15 @@ export default function PlayerAnalyzer() {
         <div className="flex justify-center gap-6 animate-in slide-in-">
            <button 
              onClick={() => setSelectingSlot('p1')}
-             className={`px-6 py-3 rounded-2xl text-[10px] font-medium uppercase tracking-widest transition-all border
-               ${selectingSlot === 'p1' ? 'bg-orange-500 border-orange-400 text-white shadow-none scale-105' : 'bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 border-[0.5px] text-gray-500 hover:text-gray-300'}`}
+             className={`px-6 py-3 rounded-2xl text-[10px] font-medium uppercase tracking-widest tracking-widest transition-all border
+               ${selectingSlot === 'p1' ? 'bg-orange-500 border-orange-400 text-white shadow-none scale-105' : 'bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 border-[0.5px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
            >
              Selecting Player 1
            </button>
            <button 
              onClick={() => setSelectingSlot('p2')}
-             className={`px-6 py-3 rounded-2xl text-[10px] font-medium uppercase tracking-widest transition-all border
-               ${selectingSlot === 'p2' ? 'bg-blue-500 border-blue-400 text-white shadow-none scale-105' : 'bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 border-[0.5px] text-gray-500 hover:text-gray-300'}`}
+             className={`px-6 py-3 rounded-2xl text-[10px] font-medium uppercase tracking-widest tracking-widest transition-all border
+               ${selectingSlot === 'p2' ? 'bg-blue-500 border-blue-400 text-white shadow-none scale-105' : 'bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 border-[0.5px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'}`}
            >
              Selecting Player 2
            </button>
@@ -380,25 +380,25 @@ export default function PlayerAnalyzer() {
         <div className={`${selectedPlayer || isComparing ? 'order-2' : 'order-1'} xl:order-1 xl:col-span-4 bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl sm:rounded-[3.5rem] p-3 sm:p-4 flex flex-col backdrop- min-h-[320px] max-h-[48vh] xl:max-h-none xl:min-h-[800px] min-h-0`}>
           <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] mb-3 sm:mb-4 shrink-0">
              <div className="flex items-center justify-between mb-2">
-               <div className="text-xs font-medium text-gray-500 uppercase tracking-widest">Player Directory</div>
+               <div className="text-xs font-medium text-zinc-550 dark:text-zinc-400 uppercase tracking-widest">Player Directory</div>
                <div className="text-[10px] font-medium text-orange-500 uppercase bg-orange-500/10 px-3 py-1 rounded-full">{allPlayers.length} Total</div>
              </div>
              <div className="flex bg-white dark:bg-zinc-900 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px]">
                <button 
                  onClick={() => setStatusFilter('all')}
-                 className={`flex-1 text-[9px] font-medium uppercase py-2 rounded-xl transition-all ${statusFilter === 'all' ? 'bg-[#C9540A] text-white border-transparent shadow-none' : 'text-gray-500 hover:text-gray-300'}`}
+                 className={`flex-1 text-[9px] font-medium uppercase py-2 rounded-xl transition-all ${statusFilter === 'all' ? 'bg-[#C9540A] text-white border-transparent shadow-none' : 'text-zinc-500 dark:text-zinc-450 hover:text-zinc-900 dark:hover:text-white'}`}
                >
                  All ({allPlayers.length})
                </button>
                <button 
                  onClick={() => setStatusFilter('active')}
-                 className={`flex-1 text-[9px] font-medium uppercase py-2 rounded-xl transition-all ${statusFilter === 'active' ? 'bg-green-600 text-white shadow-none' : 'text-gray-500 hover:text-gray-300'}`}
+                 className={`flex-1 text-[9px] font-medium uppercase py-2 rounded-xl transition-all ${statusFilter === 'active' ? 'bg-green-600 text-white shadow-none' : 'text-zinc-500 dark:text-zinc-450 hover:text-zinc-900 dark:hover:text-white'}`}
                >
                  Active ({allPlayers.filter(p => p.is_active).length})
                </button>
                <button 
                  onClick={() => setStatusFilter('retired')}
-                 className={`flex-1 text-[9px] font-medium uppercase py-2 rounded-xl transition-all ${statusFilter === 'retired' ? 'bg-gray-600 text-white shadow-none' : 'text-gray-500 hover:text-gray-300'}`}
+                 className={`flex-1 text-[9px] font-medium uppercase py-2 rounded-xl transition-all ${statusFilter === 'retired' ? 'bg-gray-600 text-white shadow-none' : 'text-zinc-500 dark:text-zinc-450 hover:text-zinc-900 dark:hover:text-white'}`}
                >
                  Retired ({allPlayers.filter(p => !p.is_active).length})
                </button>
@@ -410,7 +410,7 @@ export default function PlayerAnalyzer() {
                 <BasketballLoader />
                 {slowLoading && (
                   <div className="mt-8 text-center animate-in fade-in duration-1000">
-                    <p className="text-gray-500 text-[10px] font-medium uppercase tracking-[0.3em]">Processing 4,500+ Player Profiles...</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-medium uppercase tracking-[0.3em]">Processing 4,500+ Player Profiles...</p>
                     <p className="text-orange-500/60 text-[9px] font-medium uppercase tracking-widest mt-2">Connecting to NBA Intelligence Grid</p>
                   </div>
                 )}
@@ -420,7 +420,7 @@ export default function PlayerAnalyzer() {
                 <p className="text-red-500 font-medium uppercase ">Access Denied to Player Database</p>
                 <button 
                   onClick={() => window.location.reload()}
-                  className="mt-6 px-6 py-2 bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl text-[10px] font-medium text-white uppercase tracking-widest hover:bg-orange-500/10 hover:border-orange-500/50"
+                  className="mt-6 px-6 py-2 bg-zinc-100 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl text-[10px] font-medium text-zinc-900 dark:text-white uppercase tracking-widest hover:bg-orange-500/10 hover:border-orange-500/50"
                 >
                   Re-Authenticate Connection
                 </button>
@@ -431,12 +431,12 @@ export default function PlayerAnalyzer() {
                   key={getPlayerId(p)}
                   onClick={() => handlePlayerSelect(p)}
                   className={`w-full flex items-center gap-3 sm:gap-5 p-3 sm:p-4 rounded-2xl sm:rounded-3xl transition-transform duration-200 hover:scale-105 border text-left group shadow-none hover:shadow-none
-                    ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'bg-orange-500/10 border-orange-500/50 shadow-none' : 'bg-white dark:bg-zinc-900 border-transparent hover:bg-white/5 hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}
+                    ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'bg-orange-500/10 border-orange-500/50 shadow-none' : 'bg-white dark:bg-zinc-900 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}
                 >
                    <div className="relative shrink-0">
                       <img 
                         src={getPlayerHeadshotUrl(getPlayerId(p))} 
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover bg-white dark:bg-zinc-900 shadow-none border border-zinc-200 dark:border-zinc-800 border-[0.5px]" 
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover bg-zinc-100 dark:bg-zinc-800 shadow-none border border-zinc-200 dark:border-zinc-800 border-[0.5px]" 
                         alt="" 
                         onError={(e: any) => {
                           e.target.src = '/assets/images/nba-6.svg'; // Fallback
@@ -447,10 +447,10 @@ export default function PlayerAnalyzer() {
                       {isComparing && getPlayerId(selectedPlayer2) === getPlayerId(p) && <div className="absolute -top-1 -right-1 bg-blue-500 text-[8px] font-medium px-1.5 py-0.5 rounded-full text-white border border-black">P2</div>}
                    </div>
                    <div className="flex-1 min-w-0">
-                     <div className={`text-base sm:text-lg font-medium uppercase  truncate ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'text-orange-400' : 'text-white group-hover:text-gray-300'}`}>{getPlayerName(p)}</div>
+                     <div className={`text-base sm:text-lg font-medium uppercase  truncate ${getPlayerId(selectedPlayer) === getPlayerId(p) || getPlayerId(selectedPlayer2) === getPlayerId(p) ? 'text-orange-400' : 'text-zinc-900 dark:text-white group-hover:text-orange-500'}`}>{getPlayerName(p)}</div>
                      <div className="flex items-center gap-2 mt-1">
-                       <span className={`w-2 h-2 rounded-full ${p.is_active ? 'bg-green-500' : 'bg-gray-600'}`} />
-                       <span className="text-[9px] font-medium text-gray-500 uppercase tracking-widest">{p.is_active ? 'Active' : 'Retired'}</span>
+                       <span className={`w-2 h-2 rounded-full ${p.is_active ? 'bg-green-500' : 'bg-zinc-400 dark:bg-zinc-650'}`} />
+                       <span className="text-[9px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{p.is_active ? 'Active' : 'Retired'}</span>
                      </div>
                    </div>
                 </button>
@@ -462,10 +462,10 @@ export default function PlayerAnalyzer() {
         {/* Right Column: Player Profile & Stats */}
         <div ref={detailRef} className={`${selectedPlayer || isComparing ? 'order-1' : 'order-2'} xl:order-2 xl:col-span-8`}>
           {!selectedPlayer && !isComparing ? (
-            <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[3.5rem] border-dashed text-gray-600">
-               <User size={80} className="mb-6 opacity-20" />
-               <h2 className="text-2xl font-medium uppercase tracking-widest">Select a Player</h2>
-               <p className="text-xs uppercase tracking-widest mt-2 opacity-50">To view comprehensive analytics</p>
+            <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[3.5rem] border-dashed text-zinc-500 dark:text-zinc-450">
+               <User size={80} className="mb-6 opacity-20 text-zinc-400 dark:text-zinc-600" />
+               <h2 className="text-2xl font-medium uppercase tracking-widest text-zinc-650 dark:text-zinc-300">Select a Player</h2>
+               <p className="text-xs uppercase tracking-widest mt-2 opacity-50 text-zinc-500 dark:text-zinc-400">To view comprehensive analytics</p>
             </div>
           ) : isComparing ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 animate-in fade-in duration-700">
@@ -527,10 +527,10 @@ export default function PlayerAnalyzer() {
                />
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[3.5rem] border-dashed text-gray-600">
-               <User size={80} className="mb-6 opacity-20" />
-               <h2 className="text-2xl font-medium uppercase tracking-widest">Select a Player</h2>
-               <p className="text-xs uppercase tracking-widest mt-2 opacity-50">To view comprehensive analytics</p>
+            <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[3.5rem] border-dashed text-zinc-500 dark:text-zinc-450">
+               <User size={80} className="mb-6 opacity-20 text-zinc-400 dark:text-zinc-600" />
+               <h2 className="text-2xl font-medium uppercase tracking-widest text-zinc-650 dark:text-zinc-300">Select a Player</h2>
+               <p className="text-xs uppercase tracking-widest mt-2 opacity-50 text-zinc-500 dark:text-zinc-400">To view comprehensive analytics</p>
             </div>
           )}
         </div>
@@ -557,13 +557,13 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
   return (
     <div className="space-y-6 sm:space-y-10">
       {/* Identity Card */}
-      <div className="bg-zinc-100 dark:bg-zinc-800   to-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-3xl sm:rounded-[4rem] p-5 sm:p-12 relative overflow-hidden shadow-none">
+      <div className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-3xl sm:rounded-[4rem] p-5 sm:p-12 relative overflow-hidden shadow-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/10 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3" />
         
         <div className="flex flex-col md:flex-row gap-5 sm:gap-12 relative z-10 items-center md:items-start">
            <img 
               src={getPlayerHeadshotUrl(playerId)} 
-              className="w-32 h-32 sm:w-56 sm:h-56 rounded-3xl sm:rounded-[3rem] object-cover bg-white dark:bg-zinc-900 border-4 sm:border-[6px] border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none shrink-0" 
+              className="w-32 h-32 sm:w-56 sm:h-56 rounded-3xl sm:rounded-[3rem] object-cover bg-zinc-100 dark:bg-zinc-800 border-4 sm:border-[6px] border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none shrink-0" 
               alt="" 
               onError={(e: any) => {
                 e.target.src = '/assets/images/nba-6.svg';
@@ -572,10 +572,10 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
            />
            <div className="flex-1 w-full text-center md:text-left space-y-5 sm:space-y-8">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-4">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-150 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-4">
                   {playerPosition}
                 </div>
-                <h2 className="text-3xl sm:text-6xl font-medium text-white  uppercase tracking-tighter leading-none break-words">{playerName}</h2>
+                <h2 className="text-3xl sm:text-6xl font-medium text-zinc-900 dark:text-white uppercase tracking-tighter leading-none break-words">{playerName}</h2>
               </div>
 
                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
@@ -601,19 +601,19 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-6 bg-white dark:bg-zinc-900/40 p-4 sm:p-6 rounded-3xl sm:rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 border-[0.5px]">
         <div className="flex items-center gap-4">
           <Calendar className="text-orange-500" size={24} />
-          <span className="text-sm font-medium text-white uppercase tracking-widest">Season Filter</span>
+          <span className="text-sm font-medium text-zinc-900 dark:text-white uppercase tracking-widest">Season Filter</span>
         </div>
         <div className="relative w-full sm:w-auto">
            <select 
              value={activeSeason} 
              onChange={(e) => handleSeasonSelect(playerId, e.target.value)}
-             className="w-full appearance-none bg-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-full py-4 pl-6 sm:pl-8 pr-14 sm:pr-16 text-white text-sm font-medium  focus:outline-none focus:border-orange-500 cursor-pointer shadow-none"
+             className="w-full appearance-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-full py-4 pl-6 sm:pl-8 pr-14 sm:pr-16 text-zinc-900 dark:text-white text-sm font-medium  focus:outline-none focus:border-orange-500 cursor-pointer shadow-none"
            >
              <option value="Lifetime">Lifetime Stats</option>
              {seasons.map((s: string) => <option key={s} value={s}>{s} Season</option>)}
              {seasons.length === 0 && <option value="Lifetime">No Seasons Found</option>}
            </select>
-           <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">▼</div>
+           <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 dark:text-zinc-400">▼</div>
         </div>
       </div>
 
@@ -629,7 +629,7 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
            <div className="bg-white dark:bg-zinc-900/30 rounded-3xl sm:rounded-[3rem] p-4 sm:p-10 border border-zinc-200 dark:border-zinc-800 border-[0.5px] space-y-6 sm:space-y-8">
              <div className="flex items-center gap-4">
                <TrendingUp className="text-orange-500" size={20} />
-               <h3 className="text-lg font-medium text-white uppercase tracking-widest">Season Averages</h3>
+               <h3 className="text-lg font-medium text-zinc-900 dark:text-white uppercase tracking-widest">Season Averages</h3>
              </div>
              {seasonStats ? (
                <>
@@ -653,7 +653,7 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
                  </div>
                </>
              ) : (
-               <div className="text-center py-10 text-gray-600 font-medium uppercase tracking-widest">No stats recorded for this season.</div>
+               <div className="text-center py-10 text-zinc-550 dark:text-zinc-400 font-medium uppercase tracking-widest">No stats recorded for this season.</div>
              )}
            </div>
 
@@ -663,36 +663,36 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
              <div className="bg-white dark:bg-zinc-900/30 rounded-3xl sm:rounded-[3rem] p-4 sm:p-10 border border-zinc-200 dark:border-zinc-800 border-[0.5px] space-y-6 sm:space-y-8">
                <div className="flex items-center gap-4">
                  <Trophy className="text-orange-500" size={20} />
-                 <h3 className="text-lg font-medium text-white uppercase tracking-widest">Achievements</h3>
+                 <h3 className="text-lg font-medium text-zinc-900 dark:text-white uppercase tracking-widest">Achievements</h3>
                </div>
                {seasonAwards.length > 0 ? (
                  <div className="space-y-4">
                    {seasonAwards.map((a: any, i: number) => (
-                     <div key={i} className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:bg-white/10 transition-colors">
+                     <div key={i} className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
                        <Star className="text-orange-400 shrink-0" size={16} />
                        <div>
-                         <div className="text-sm font-medium text-white uppercase ">{a.DESCRIPTION || a.TYPE || 'Official NBA Award'}</div>
-                         <div className="text-[9px] font-medium text-gray-500 uppercase tracking-widest mt-1">{a.SEASON || activeSeason}</div>
+                         <div className="text-sm font-medium text-zinc-900 dark:text-white uppercase ">{a.DESCRIPTION || a.TYPE || 'Official NBA Award'}</div>
+                         <div className="text-[9px] font-medium text-zinc-500 dark:text-zinc-450 uppercase tracking-widest mt-1">{a.SEASON || activeSeason}</div>
                        </div>
                      </div>
                    ))}
                  </div>
                ) : (
-                 <div className="text-center py-10 text-gray-600 font-medium uppercase tracking-widest">No official NBA awards found for this selection.</div>
+                 <div className="text-center py-10 text-zinc-550 dark:text-zinc-400 font-medium uppercase tracking-widest">No official NBA awards found for this selection.</div>
                )}
              </div>
 
              <div className="bg-white dark:bg-zinc-900/30 rounded-3xl sm:rounded-[3rem] p-4 sm:p-10 border border-zinc-200 dark:border-zinc-800 border-[0.5px] space-y-6 sm:space-y-8 relative overflow-hidden">
                <div className="flex items-center gap-4 relative z-10">
                  <DollarSign className="text-green-500" size={20} />
-                 <h3 className="text-lg font-medium text-white uppercase tracking-widest">Contract Status</h3>
+                 <h3 className="text-lg font-medium text-zinc-900 dark:text-white uppercase tracking-widest">Contract Status</h3>
                </div>
                <div className="relative z-10 flex flex-col items-center justify-center py-12 text-center space-y-4">
-                  <div className="text-5xl font-medium text-gray-700  blur-[2px] select-none">$15,000,000</div>
+                  <div className="text-5xl font-medium text-zinc-300 dark:text-zinc-700 blur-[2px] select-none">$15,000,000</div>
                   <div className="inline-block px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-[10px] font-medium text-orange-500 uppercase tracking-widest shadow-none">
                     Data Restricted
                   </div>
-                  <p className="text-[10px] font-medium text-gray-500 uppercase tracking-widest max-w-[200px]">Contract details are not publicly available in this dataset.</p>
+                  <p className="text-[10px] font-medium text-zinc-550 dark:text-zinc-450 uppercase tracking-widest max-w-[200px]">Contract details are not publicly available in this dataset.</p>
                </div>
              </div>
 
@@ -703,18 +703,18 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
              <div className="flex items-center justify-between gap-4">
                <div className="flex items-center gap-4">
                  <Activity className="text-orange-500" size={20} />
-                 <h3 className="text-lg font-medium text-white uppercase tracking-widest">Seasonal Match Journey</h3>
+                 <h3 className="text-lg font-medium text-zinc-900 dark:text-white uppercase tracking-widest">Seasonal Match Journey</h3>
                </div>
-               <div className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">{Array.isArray(detailedStats) ? detailedStats.length : 0} Games</div>
+               <div className="text-[10px] font-medium text-zinc-550 dark:text-zinc-400 uppercase tracking-widest">{Array.isArray(detailedStats) ? detailedStats.length : 0} Games</div>
              </div>
              
              {Array.isArray(detailedStats) && detailedStats.length > 0 ? (
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  {detailedStats.slice(0, 20).map((log: any, i: number) => (
-                   <div key={i} className="flex items-center justify-between gap-3 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px] transition-all group">
+                   <div key={i} className="flex items-center justify-between gap-3 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:hover:border-zinc-800 border-[0.5px] transition-all group">
                      <div className="space-y-1 min-w-0">
-                       <div className="text-[9px] font-medium text-gray-600 uppercase tracking-widest">{log.GAME_DATE}</div>
-                       <div className="text-xs sm:text-sm font-medium text-white uppercase  group-hover:text-orange-400 transition-colors truncate">{log.MATCHUP}</div>
+                       <div className="text-[9px] font-medium text-zinc-550 dark:text-zinc-450 uppercase tracking-widest">{log.GAME_DATE}</div>
+                       <div className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white uppercase group-hover:text-orange-400 transition-colors truncate">{log.MATCHUP}</div>
                      </div>
                      <div className="flex items-center gap-3 sm:gap-6 shrink-0">
                        <MiniStat val={log.PTS} label="PTS" />
@@ -724,13 +724,13 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
                    </div>
                  ))}
                  {detailedStats.length > 20 && (
-                   <div className="col-span-full text-center py-4 text-[10px] font-medium text-gray-600 uppercase tracking-widest">
+                   <div className="col-span-full text-center py-4 text-[10px] font-medium text-zinc-550 dark:text-zinc-400 uppercase tracking-widest">
                      Showing last 20 games of the season
                    </div>
                  )}
                </div>
              ) : (
-               <div className="text-center py-10 text-gray-600 font-medium uppercase tracking-widest">No detailed game logs available.</div>
+               <div className="text-center py-10 text-zinc-550 dark:text-zinc-400 font-medium uppercase tracking-widest">No detailed game logs available.</div>
              )}
            </div>
         </div>
@@ -742,9 +742,9 @@ function PlayerFullView({ profile, seasonStats, seasonAwards, detailedStats, sel
 function InsightCard({ label, value, note }: { label: string; value: string; note: string }) {
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-center">
-      <div className="text-xl sm:text-2xl font-medium text-cyan-300 ">{value}</div>
-      <div className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mt-2">{label}</div>
-      <div className="text-[8px] font-medium text-gray-600 uppercase tracking-[0.2em] mt-1">{note}</div>
+      <div className="text-xl sm:text-2xl font-medium text-cyan-600 dark:text-cyan-300 ">{value}</div>
+      <div className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-2">{label}</div>
+      <div className="text-[8px] font-medium text-zinc-550 dark:text-zinc-400 uppercase tracking-[0.2em] mt-1">{note}</div>
     </div>
   );
 }
@@ -773,16 +773,16 @@ function PlayerColumn({
     <div 
       onClick={onSelect}
       className={`space-y-6 sm:space-y-8 p-4 sm:p-6 rounded-3xl sm:rounded-[3.5rem] border transition-transform duration-200 hover:scale-[1.02] cursor-pointer relative shadow-none hover:shadow-none
-        ${isActive ? `bg-white/[0.03] ${accentBorder} shadow-none` : 'bg-white dark:bg-zinc-900/10 border-zinc-200 dark:border-zinc-800 border-[0.5px] opacity-80 hover:opacity-100'}`}
+        ${isActive ? `bg-zinc-100 dark:bg-zinc-900/20 ${accentBorder} shadow-none` : 'bg-white dark:bg-zinc-900/30 border-zinc-200 dark:border-zinc-800 border-[0.5px] opacity-80 hover:opacity-100'}`}
     >
        <div className="flex items-center justify-between">
-          <div className={`px-6 py-2 rounded-2xl ${accentBg} border ${accentBorder} inline-block text-[10px] font-medium text-white uppercase tracking-widest`}>
+          <div className={`px-6 py-2 rounded-2xl ${accentBg} border ${accentBorder} inline-block text-[10px] font-medium text-zinc-900 dark:text-white uppercase tracking-widest`}>
             {label}
           </div>
           {player && (
             <button 
               onClick={(e) => { e.stopPropagation(); onCancel(); }}
-              className="w-8 h-8 rounded-full bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center justify-center text-gray-500 hover:bg-red-500/20 hover:text-red-500 transition-all"
+              className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:bg-red-500/20 hover:text-red-500 transition-all"
             >
               <Search className="rotate-45" size={14} />
             </button>
@@ -791,8 +791,8 @@ function PlayerColumn({
 
        {!player ? (
          <div className="py-40 text-center space-y-4 opacity-30">
-            <User size={60} className="mx-auto" />
-            <div className="text-xs font-medium uppercase tracking-widest">Select Player for {label}</div>
+            <User size={60} className="mx-auto text-zinc-400 dark:text-zinc-650" />
+            <div className="text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Select Player for {label}</div>
          </div>
         ) : !profile && !error ? (
           <div className="py-40 flex justify-center">
@@ -809,7 +809,7 @@ function PlayerColumn({
             <div className="flex items-center gap-4 sm:gap-6">
                <img 
                   src={getPlayerHeadshotUrl(playerId)} 
-                  className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl object-cover bg-white dark:bg-zinc-900 border-4 border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none shrink-0" 
+                  className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl object-cover bg-zinc-100 dark:bg-zinc-850 border-4 border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none shrink-0" 
                   alt="" 
                   onError={(e: any) => {
                     e.target.src = '/assets/images/nba-6.svg';
@@ -817,11 +817,11 @@ function PlayerColumn({
                   }}
                />
                <div className="min-w-0">
-                  <h3 className="text-2xl sm:text-3xl font-medium text-white  uppercase tracking-tighter truncate leading-none">{profile.name}</h3>
+                  <h3 className="text-2xl sm:text-3xl font-medium text-zinc-900 dark:text-white uppercase tracking-tighter truncate leading-none">{profile.name}</h3>
                   <div className="flex items-center gap-2 mt-3">
-                    <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">{profile.position}</span>
-                    <span className="w-1 h-1 rounded-full bg-gray-700" />
-                    <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">{profile.height}</span>
+                    <span className="text-[10px] font-medium text-zinc-550 dark:text-zinc-400 uppercase tracking-widest">{profile.position}</span>
+                    <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                    <span className="text-[10px] font-medium text-zinc-550 dark:text-zinc-400 uppercase tracking-widest">{profile.height}</span>
                   </div>
                </div>
             </div>
@@ -831,12 +831,12 @@ function PlayerColumn({
                <select 
                  value={selectedSeason} 
                  onChange={(e) => onSeasonChange(e.target.value)}
-                 className="w-full appearance-none bg-black border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl py-4 px-6 text-white text-xs font-medium  focus:outline-none focus:border-white cursor-pointer hover:bg-white/5 transition-all"
+                 className="w-full appearance-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl py-4 px-6 text-zinc-900 dark:text-white text-xs font-medium  focus:outline-none focus:border-white cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
                >
                  <option value="Lifetime">Career Lifetime</option>
                  {(profile.seasons || []).map((s: string) => <option key={s} value={s}>{s} Season</option>)}
                </select>
-               <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">▼</div>
+               <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 dark:text-zinc-400">▼</div>
             </div>
 
             {/* Comparison Stats */}
@@ -870,16 +870,16 @@ function PlayerColumn({
                    </div>
                    <div className="grid grid-cols-3 gap-3 text-center">
                      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-3 rounded-xl">
-                       <div className="text-lg font-medium text-white">{stats.FGM}/{stats.FGA}</div>
-                       <div className="text-[8px] font-medium text-gray-600 uppercase tracking-widest">FG</div>
+                       <div className="text-lg font-medium text-zinc-900 dark:text-white">{stats.FGM}/{stats.FGA}</div>
+                       <div className="text-[8px] font-medium text-zinc-555 dark:text-zinc-400 uppercase tracking-widest">FG</div>
                      </div>
                      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-3 rounded-xl">
-                       <div className="text-lg font-medium text-white">{stats.FG3M}/{stats.FG3A}</div>
-                       <div className="text-[8px] font-medium text-gray-600 uppercase tracking-widest">3PT</div>
+                       <div className="text-lg font-medium text-zinc-900 dark:text-white">{stats.FG3M}/{stats.FG3A}</div>
+                       <div className="text-[8px] font-medium text-zinc-555 dark:text-zinc-400 uppercase tracking-widest">3PT</div>
                      </div>
                      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-3 rounded-xl">
-                       <div className="text-lg font-medium text-white">{stats.FTM}/{stats.FTA}</div>
-                       <div className="text-[8px] font-medium text-gray-600 uppercase tracking-widest">FT</div>
+                       <div className="text-lg font-medium text-zinc-900 dark:text-white">{stats.FTM}/{stats.FTA}</div>
+                       <div className="text-[8px] font-medium text-zinc-555 dark:text-zinc-400 uppercase tracking-widest">FT</div>
                      </div>
                    </div>
                    <div className="grid grid-cols-2 gap-4">
@@ -895,10 +895,10 @@ function PlayerColumn({
             {/* Mini Awards */}
             {awards.length > 0 && (
                <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800 border-[0.5px]">
-                  <div className="text-[9px] font-medium text-gray-600 uppercase tracking-widest">Achievements</div>
+                  <div className="text-[9px] font-medium text-zinc-555 dark:text-zinc-400 uppercase tracking-widest">Achievements</div>
                   <div className="flex flex-wrap gap-2">
                      {awards.slice(0, 3).map((a: any, i: number) => (
-                        <div key={i} className="px-3 py-1 rounded-full bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-[8px] font-medium text-gray-400 uppercase ">
+                        <div key={i} className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-[8px] font-medium text-zinc-500 dark:text-zinc-400 uppercase ">
                            {a.DESCRIPTION || a.TYPE || 'Official NBA Award'} {a.SEASON ? `(${a.SEASON})` : ''}
                         </div>
                      ))}
@@ -914,10 +914,10 @@ function PlayerColumn({
 function CompareStat({ label, val, highlight }: any) {
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-4 rounded-2xl text-center">
-       <div className={`text-2xl font-medium  leading-none ${highlight === 'orange' ? 'text-orange-500' : highlight === 'blue' ? 'text-blue-500' : 'text-white'}`}>
+       <div className={`text-2xl font-medium  leading-none ${highlight === 'orange' ? 'text-orange-500' : highlight === 'blue' ? 'text-blue-500' : 'text-zinc-900 dark:text-white'}`}>
          {val ?? '-'}
        </div>
-       <div className="text-[8px] font-medium text-gray-600 uppercase tracking-widest mt-2">{label}</div>
+       <div className="text-[8px] font-medium text-zinc-555 dark:text-zinc-400 uppercase tracking-widest mt-2">{label}</div>
     </div>
   );
 }
@@ -927,17 +927,17 @@ function CompareStat({ label, val, highlight }: any) {
 function InfoBox({ label, value }: { label: string, value: string }) {
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center text-center min-w-0">
-      <div className="text-[9px] font-medium text-gray-500 uppercase tracking-widest mb-1">{label}</div>
-      <div className="text-xs sm:text-sm font-medium text-white uppercase  truncate max-w-full">{value || '-'}</div>
+      <div className="text-[9px] font-medium text-zinc-500 dark:text-zinc-450 uppercase tracking-widest mb-1">{label}</div>
+      <div className="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white uppercase  truncate max-w-full">{value || '-'}</div>
     </div>
   );
 }
 
 function StatCard({ label, val }: any) {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-3 sm:p-6 rounded-2xl sm:rounded-3xl text-center shadow-none group hover:bg-white/5 transition-colors">
-      <div className="text-2xl sm:text-4xl font-medium text-white  group-hover:text-orange-500 transition-colors">{val ?? '-'}</div>
-      <div className="text-[10px] font-medium text-gray-600 uppercase tracking-widest mt-2">{label}</div>
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] p-3 sm:p-6 rounded-2xl sm:rounded-3xl text-center shadow-none group hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+      <div className="text-2xl sm:text-4xl font-medium text-zinc-900 dark:text-white  group-hover:text-orange-500 transition-colors">{val ?? '-'}</div>
+      <div className="text-[10px] font-medium text-zinc-555 dark:text-zinc-400 uppercase tracking-widest mt-2">{label}</div>
     </div>
   );
 }
@@ -950,8 +950,8 @@ function PctCard({ label, val, made, att }: any) {
       <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800  to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       <div className="relative z-10">
         <div className="text-3xl sm:text-4xl font-medium text-orange-500  drop-shadow-none">{displayPct}</div>
-        <div className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mt-3 mb-1">{label}</div>
-        <div className="text-[8px] font-medium text-gray-600 uppercase tracking-[0.2em]">{made !== undefined ? `${made}/${att} M/A` : ''}</div>
+        <div className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-3 mb-1">{label}</div>
+        <div className="text-[8px] font-medium text-zinc-555 dark:text-zinc-400 uppercase tracking-[0.2em]">{made !== undefined ? `${made}/${att} M/A` : ''}</div>
       </div>
     </div>
   );
@@ -960,8 +960,8 @@ function PctCard({ label, val, made, att }: any) {
 function MiniStat({ val, label }: { val: any, label: string }) {
   return (
     <div className="text-center min-w-8 sm:min-w-[40px]">
-      <div className="text-base sm:text-lg font-medium text-white ">{val ?? 0}</div>
-      <div className="text-[8px] text-gray-700 font-medium uppercase tracking-tighter">{label}</div>
+      <div className="text-base sm:text-lg font-medium text-zinc-900 dark:text-white">{val ?? 0}</div>
+      <div className="text-[8px] text-zinc-500 dark:text-zinc-450 font-medium uppercase tracking-tighter">{label}</div>
     </div>
   );
 }

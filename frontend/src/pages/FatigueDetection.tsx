@@ -322,7 +322,7 @@ function FatigueRow({ player, teams, selected, onClick }: {
 }
 
 
-function FatigueBar({ score }: { score: number }) {
+function FatigueBar({ score }: { score: number; risk?: string }) {
   const getFillColor = (s: number) => {
     if (s < 40) return 'bg-green-600';
     if (s < 70) return 'bg-amber-500';
@@ -339,11 +339,10 @@ function FatigueBar({ score }: { score: number }) {
 }
 
 
-
-function PlayerFace({ player }: { player: any }) {
+function PlayerFace({ player, sizeClass }: { player: any; teamId?: number; sizeClass?: string }) {
   const name = player.PLAYER_NAME || player.PLAYER || player.full_name || 'Player';
   return (
-    <div className="w-7 h-7 rounded-full bg-[#FEF0E8] text-[#C9540A] text-[10px] font-medium flex items-center justify-center shrink-0">
+    <div className={`${sizeClass || 'w-7 h-7'} rounded-full bg-[#FEF0E8] text-[#C9540A] text-[10px] font-medium flex items-center justify-center shrink-0`}>
       {getInitials(name)}
     </div>
   );

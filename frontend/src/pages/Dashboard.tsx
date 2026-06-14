@@ -394,7 +394,6 @@ export default function Dashboard() {
 
   return (
     <div className="w-full max-w-full space-y-0 overflow-hidden">
-      <LiveTicker games={games} />
       <div className="w-full max-w-full p-2 sm:p-4 lg:p-6 space-y-8 sm:space-y-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] gap-4">
         <div>
@@ -424,7 +423,7 @@ export default function Dashboard() {
                 className={`shrink-0 rounded-2xl border px-3 sm:px-5 py-2 sm:py-3 text-left transition-all ${
                   active
                     ? 'border-orange-500/50 bg-orange-500/10 text-orange-400 shadow-none shadow-none'
-                    : 'border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 text-gray-500 hover:border-orange-500/30 hover:text-white'
+                    : 'border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 hover:border-orange-500/30 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
                 <div className="text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.2em]">{date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
@@ -438,7 +437,7 @@ export default function Dashboard() {
         <SectionTitle title="Games" action="Standings" onAction={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'standings' }))} />
         <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featuredGames.length === 0 && (
-            <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 p-8 text-center text-gray-500">
+            <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 p-8 text-center text-zinc-500 dark:text-zinc-400">
               No NBA games returned for {scoreboardLabel}.
             </div>
           )}
@@ -453,9 +452,9 @@ export default function Dashboard() {
             />
           ))}
         </div>
-        <div className="flex max-w-full flex-col gap-1 text-xs font-medium uppercase tracking-[0.12em] text-gray-500 sm:flex-row sm:items-center sm:gap-2 sm:tracking-[0.18em]">
+        <div className="flex max-w-full flex-col gap-1 text-xs font-medium uppercase tracking-[0.12em] text-zinc-500 dark:text-zinc-400 sm:flex-row sm:items-center sm:gap-2 sm:tracking-[0.18em]">
           Official NBA Data
-          <span className="self-start rounded-full bg-gray-700 px-2 py-0.5 text-[10px] text-slate-950">check</span>
+          <span className="self-start rounded-full bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 text-[10px] text-zinc-700 dark:text-zinc-300">check</span>
           <span className="sm:ml-auto">Updated {formatIndianTime(lastUpdated)} IST</span>
         </div>
       </section>
@@ -465,7 +464,7 @@ export default function Dashboard() {
         <SectionTitle title="Daily Match Leaders" />
         <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {gameLeaders.length === 0 && (
-            <div className="col-span-full rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 p-8 text-center text-gray-500">
+            <div className="col-span-full rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 p-8 text-center text-zinc-500 dark:text-zinc-400">
               No player boxscore leaders are available yet for {scoreboardLabel}.
             </div>
           )}
@@ -513,8 +512,8 @@ export default function Dashboard() {
 function SectionTitle({ title, action, onAction }: { title: string; action?: string, onAction?: () => void }) {
   return (
     <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-      <h2 className="min-w-0 shrink text-lg font-medium text-gray-300 sm:text-xl">{title}</h2>
-      <div className="h-px flex-1 bg-white dark:bg-zinc-900" />
+      <h2 className="min-w-0 shrink text-lg font-medium text-zinc-800 dark:text-zinc-200 sm:text-xl">{title}</h2>
+      <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
       {action && (
         <button 
           onClick={onAction}
@@ -559,11 +558,11 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
         <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
-            <div className="text-xl font-medium  uppercase leading-none tracking-tighter text-white transition-colors group-hover:text-orange-400">
+            <div className="text-xl font-medium  uppercase leading-none tracking-tighter text-zinc-900 dark:text-white transition-colors group-hover:text-orange-400">
               {game.away_team_abbreviation || 'AWAY'} @ {game.home_team_abbreviation || 'HOME'}
             </div>
           </div>
-          {!isClose && <Trophy className="shrink-0 text-gray-700" size={24} />}
+          {!isClose && <Trophy className="shrink-0 text-zinc-400 dark:text-zinc-600" size={24} />}
         </div>
         
         <div className="space-y-3 sm:space-y-4">
@@ -573,19 +572,19 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
 
         {game.status !== 'scheduled' && (
           <div className="mt-6 space-y-2">
-            <div className="flex justify-between text-[8px] font-medium uppercase tracking-widest text-gray-500">
+            <div className="flex justify-between text-[8px] font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
               <span>{100 - homeProb}% Chance</span>
               <span>Win Probability</span>
               <span>{homeProb}% Chance</span>
             </div>
-            <div className="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden flex">
+            <div className="h-1.5 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden flex">
               <div className="h-full bg-orange-500/40 transition-all duration-1000" style={{ width: `${100 - homeProb}%` }} />
               <div className="h-full bg-blue-500/40 transition-all duration-1000" style={{ width: `${homeProb}%` }} />
             </div>
           </div>
         )}
 
-        <div className="mt-4 flex min-w-0 items-center justify-between gap-4 text-[10px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-gray-500">
+        <div className="mt-4 flex min-w-0 items-center justify-between gap-4 text-[10px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
           <span className="min-w-0 truncate">{game.arena || 'Arena TBD'}</span>
           <span className="shrink-0">{game.status === 'scheduled' ? 'Scheduled' : seriesText(game)}</span>
         </div>
@@ -594,9 +593,9 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
           <div className="mt-4 pt-4 sm:mt-6 sm:pt-6 border-t border-zinc-200 dark:border-zinc-800 border-[0.5px] grid grid-cols-2 gap-4">
              {game.away_leader && (
                <div className="flex items-center gap-2">
-                  <img src={getPlayerHeadshotUrl(game.away_leader.personId)} onError={(e) => { e.currentTarget.src = getTeamLogoUrl(game.away_team_id); e.currentTarget.classList.add('p-1', 'object-contain'); }} className="h-8 w-8 rounded-lg object-cover bg-gray-800" alt="" />
+                  <img src={getPlayerHeadshotUrl(game.away_leader.personId)} onError={(e) => { e.currentTarget.src = getTeamLogoUrl(game.away_team_id); e.currentTarget.classList.add('p-1', 'object-contain'); }} className="h-8 w-8 rounded-lg object-cover bg-zinc-200 dark:bg-zinc-800" alt="" />
                   <div className="min-w-0">
-                     <div className="text-[10px] font-medium text-white truncate uppercase">{game.away_leader.name.split(' ').pop()}</div>
+                     <div className="text-[10px] font-medium text-zinc-900 dark:text-white truncate uppercase">{game.away_leader.name.split(' ').pop()}</div>
                      <div className="text-[9px] font-medium text-orange-500 uppercase">{game.away_leader.points} PTS</div>
                   </div>
                </div>
@@ -604,10 +603,10 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
              {game.home_leader && (
                <div className="flex items-center gap-2 justify-end text-right">
                   <div className="min-w-0">
-                     <div className="text-[10px] font-medium text-white truncate uppercase">{game.home_leader.name.split(' ').pop()}</div>
+                     <div className="text-[10px] font-medium text-zinc-900 dark:text-white truncate uppercase">{game.home_leader.name.split(' ').pop()}</div>
                      <div className="text-[9px] font-medium text-orange-500 uppercase">{game.home_leader.points} PTS</div>
                   </div>
-                  <img src={getPlayerHeadshotUrl(game.home_leader.personId)} onError={(e) => { e.currentTarget.src = getTeamLogoUrl(game.home_team_id); e.currentTarget.classList.add('p-1', 'object-contain'); }} className="h-8 w-8 rounded-lg object-cover bg-gray-800" alt="" />
+                  <img src={getPlayerHeadshotUrl(game.home_leader.personId)} onError={(e) => { e.currentTarget.src = getTeamLogoUrl(game.home_team_id); e.currentTarget.classList.add('p-1', 'object-contain'); }} className="h-8 w-8 rounded-lg object-cover bg-zinc-200 dark:bg-zinc-800" alt="" />
                </div>
              )}
           </div>
@@ -623,10 +622,10 @@ function TeamScore({ teamId, name, score, active }: { teamId: number; name: stri
     <div className="flex min-w-0 items-center justify-between gap-2 text-lg font-medium tabular-nums sm:gap-4 sm:text-2xl">
       <img src={getTeamLogoUrl(teamId)} alt={name} className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 object-contain drop-shadow-none" />
       <div className="min-w-0 flex-1">
-        <div className="max-w-[120px] truncate text-sm font-medium text-gray-400 sm:max-w-none sm:text-base">{name}</div>
-        <div className="text-[8px] font-medium uppercase text-gray-500">Team</div>
+        <div className="max-w-[180px] xs:max-w-[240px] truncate text-sm font-medium text-zinc-500 dark:text-zinc-400 sm:max-w-none sm:text-base">{name}</div>
+        <div className="text-[8px] font-medium uppercase text-zinc-500 dark:text-zinc-400">Team</div>
       </div>
-      <div className={`shrink-0 font-medium  leading-none ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
+      <div className={`shrink-0 font-medium  leading-none ${active ? 'text-zinc-900 dark:text-white' : 'text-zinc-500 dark:text-zinc-400'}`}>{score || '-'}</div>
     </div>
   );
 }
@@ -643,15 +642,15 @@ function PlayerLeaderCard({ player, rank, onClick }: { player: DashboardPlayer &
         <div className="mb-4 flex items-start justify-between">
           <div>
             <div className="mb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-orange-500">#{rank} Leader</div>
-            <div className="text-xl font-medium  uppercase leading-none tracking-tighter text-white transition-colors group-hover:text-orange-400">
+            <div className="text-xl font-medium  uppercase leading-none tracking-tighter text-zinc-900 dark:text-white transition-colors group-hover:text-orange-400">
               {playerName}
             </div>
-            <div className="mt-2 text-[9px] font-medium uppercase tracking-widest text-gray-500">{player.GAME_LABEL || player.TEAM_ABBREVIATION}</div>
+            <div className="mt-2 text-[9px] font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{player.GAME_LABEL || player.TEAM_ABBREVIATION}</div>
           </div>
-          <Trophy className="text-gray-700" size={24} />
+          <Trophy className="text-zinc-400 dark:text-zinc-650" size={24} />
         </div>
         <div className="mt-6 flex items-center gap-4">
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-gray-800 transition-colors group-hover:border-orange-500">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-zinc-200 dark:bg-zinc-800 transition-colors group-hover:border-orange-500">
             <img src={getPlayerHeadshotUrl(playerId)} className="h-full w-full object-cover object-top scale-125 translate-y-2" alt={playerName} />
           </div>
           <div className="flex-1 min-w-0">
@@ -673,8 +672,8 @@ function PlayerLeaderCard({ player, rank, onClick }: { player: DashboardPlayer &
 function MiniStat({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="shrink-0">
-      <div className="text-lg font-medium text-white">{value ?? '-'}</div>
-      <div className="text-[8px] font-medium uppercase text-gray-500">{label}</div>
+      <div className="text-lg font-medium text-zinc-900 dark:text-white">{value ?? '-'}</div>
+      <div className="text-[8px] font-medium uppercase text-zinc-500 dark:text-zinc-400">{label}</div>
     </div>
   );
 }
@@ -717,13 +716,13 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
 
   return (
     <div id="game-details-modal" className={`fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-white dark:bg-zinc-900 p-0 sm:p-6 backdrop-blur-xl transition-all duration-500 ${collapsed ? 'lg:left-16' : 'lg:left-64'}`}>
-      <div className="relative mx-auto min-h-dvh w-full max-w-6xl flex flex-col rounded-none border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-black text-slate-100 shadow-none backdrop- sm:min-h-0 sm:rounded-[2rem]">
+      <div className="relative mx-auto min-h-dvh w-full max-w-6xl flex flex-col rounded-none border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-none backdrop- sm:min-h-0 sm:rounded-[2rem]">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute right-6 top-6 z-[60] rounded-full bg-white dark:bg-zinc-900/90 p-2 transition-all hover:bg-orange-500 hover:scale-110 active:scale-95 cursor-pointer shadow-none border border-zinc-200 dark:border-zinc-800 border-[0.5px]"
           aria-label="Close"
         >
-          <X className="text-white" size={20} />
+          <X className="text-zinc-900 dark:text-white" size={20} />
         </button>
         <div className="border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] p-3 sm:p-6">
           <div className="mb-4 sm:mb-5 flex gap-2 sm:gap-3 overflow-x-auto pr-12 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -732,11 +731,11 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
                 key={item.game_id}
                 onClick={() => onGameSelect(item)}
                 className={`min-w-36 sm:min-w-44 rounded-2xl border px-3 sm:px-4 py-2 sm:py-3 text-left transition-all shrink-0 ${
-                  item.game_id === game.game_id ? 'border-orange-500/50 bg-orange-500/10 text-orange-400' : 'border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/50 text-gray-500 hover:border-orange-500/30 hover:text-white'
+                  item.game_id === game.game_id ? 'border-orange-500/50 bg-orange-500/10 text-orange-400' : 'border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 hover:border-orange-500/30 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
                 <div className="text-[10px] font-medium uppercase tracking-[0.2em]">{statusText(item)}</div>
-                <div className="mt-1 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-white">
+                <div className="mt-1 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">
                   <img src={getTeamLogoUrl(item.away_team_id)} className="h-4 w-4 sm:h-5 sm:w-5 object-contain" alt="" />
                   {item.away_score || '-'}-{item.home_score || '-'}
                   <img src={getTeamLogoUrl(item.home_team_id)} className="h-4 w-4 sm:h-5 sm:w-5 object-contain" alt="" />
@@ -749,18 +748,18 @@ function GameDetails({ game, games, teamsById, boxScore, teamStats, teamShots, p
             <GameHeroTeam teamId={game.away_team_id} name={awayName} score={game.away_score} align="left" />
             <div className="text-center px-2">
               <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
-              <div className="mt-1 text-xs text-gray-400 hidden sm:block">{new Date(game.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-              <div className="mt-1 sm:mt-3 text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500 hidden sm:block">{game.arena || 'Arena TBD'}</div>
+              <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 hidden sm:block">{new Date(game.game_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div className="mt-1 sm:mt-3 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 hidden sm:block">{game.arena || 'Arena TBD'}</div>
             </div>
             <GameHeroTeam teamId={game.home_team_id} name={homeName} score={game.home_score} align="right" />
           </div>
         </div>
 
-        <div className="flex w-full overflow-x-auto border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-black px-1 sm:px-5 py-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex w-full overflow-x-auto border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 px-1 sm:px-5 py-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => onTabChange(tab.id)}
               className={`shrink-0 flex-1 min-w-[60px] border-b-2 px-2 sm:px-5 py-3 sm:py-4 text-[10px] sm:text-xs font-medium uppercase tracking-[0.1em] sm:tracking-[0.2em] transition-all ${
-                activeTab === tab.id ? 'border-orange-500 text-orange-400' : 'border-transparent text-gray-400 hover:text-white'
+                activeTab === tab.id ? 'border-orange-500 text-orange-400' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
               {tab.label}
@@ -807,7 +806,7 @@ function GameHeroTeam({ teamId, name, score, align }: { teamId: number; name: st
       />
       <div className="min-w-0">
         <div className="text-3xl sm:text-5xl font-medium  text-white leading-none tabular-nums">{score ?? '-'}</div>
-        <div className="text-xs sm:text-base font-medium  uppercase tracking-tighter text-gray-400 mt-0.5 truncate max-w-[100px] sm:max-w-none">{name}</div>
+        <div className="text-xs sm:text-base font-medium  uppercase tracking-tighter text-gray-400 mt-0.5 truncate max-w-[180px] sm:max-w-none">{name}</div>
       </div>
     </div>
   );
@@ -1049,13 +1048,13 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
   return (
     <div id="player-detail-modal" className={`fixed inset-0 z-[100] overflow-y-auto bg-white dark:bg-zinc-900 p-0 backdrop-blur-xl sm:p-6 transition-all duration-500 ${collapsed ? 'lg:left-16' : 'lg:left-64'}`}>
       <div className="flex min-h-full items-end sm:items-center justify-center">
-        <div className="relative flex w-full max-w-5xl flex-col rounded-none border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/95 text-slate-100 shadow-none backdrop- sm:rounded-[2rem]">
+        <div className="relative flex w-full max-w-5xl flex-col rounded-none border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-none backdrop- sm:rounded-[2rem]">
         <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }} 
           className="absolute top-4 right-4 z-[110] p-2 bg-white dark:bg-zinc-900/90 hover:bg-orange-500 rounded-full transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-none border border-zinc-200 dark:border-zinc-800 border-[0.5px]"
           aria-label="Close"
         >
-           <X className="text-white" size={20} />
+           <X className="text-zinc-900 dark:text-white" size={20} />
         </button>
 
         <div className="relative shrink-0 h-56 sm:h-72 md:h-80 overflow-hidden bg-white dark:bg-zinc-900/40">
@@ -1522,11 +1521,11 @@ function ComparisonRow({ row }: { row: { label: string; away: string | number; a
   return (
     <div>
       <div className="mb-2 grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
-        <div className="text-left text-xl font-medium text-white">{row.away} <span className="text-sm text-gray-500">{row.awayPct}</span></div>
-        <div className="text-sm font-medium uppercase tracking-[0.18em] text-gray-500">{row.label}</div>
-        <div className="text-right text-xl font-medium text-white"><span className="text-sm text-gray-500">{row.homePct}</span> {row.home}</div>
+        <div className="text-left text-xl font-medium text-zinc-900 dark:text-white">{row.away} <span className="text-sm text-zinc-500 dark:text-zinc-400">{row.awayPct}</span></div>
+        <div className="text-sm font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{row.label}</div>
+        <div className="text-right text-xl font-medium text-zinc-900 dark:text-white"><span className="text-sm text-zinc-500 dark:text-zinc-400">{row.homePct}</span> {row.home}</div>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-rose-950">
+      <div className="h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
         <div className="h-full bg-orange-500/50" style={{ width: `${awayWidth}%` }} />
       </div>
     </div>
