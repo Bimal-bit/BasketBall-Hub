@@ -74,7 +74,7 @@ export default function SalaryCapHub() {
           <h2 className="text-lg font-medium text-white mb-1">Contract & Salary Cap Hub</h2>
           <p className="text-sm text-gray-400">All NBA teams from `nba_api`, with roster-driven cap estimates and contract pressure.</p>
         </div>
-        <select value={teamId} onChange={event => setTeamId(Number(event.target.value))} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 w-full sm:w-auto">
+        <select value={teamId} onChange={event => setTeamId(Number(event.target.value))} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 w-full sm:w-auto">
           {teams.map(option => <option key={option.id} value={option.id}>{option.full_name}</option>)}
         </select>
       </div>
@@ -95,7 +95,7 @@ export default function SalaryCapHub() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+        <div className="xl:col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-4">
           <div className="flex items-center gap-3 mb-4">
             <img src={getTeamLogoUrl(team.id)} alt={team.abbr} className="h-10 w-10 object-contain" />
             <div>
@@ -107,7 +107,7 @@ export default function SalaryCapHub() {
             {rosterContracts.map(({ player, salary, years, status }) => (
               <div key={getPlayerId(player)} className="flex flex-wrap sm:grid sm:grid-cols-[1fr_80px_70px_92px] items-center gap-2 sm:gap-3 rounded-lg bg-gray-800/40 p-3 hover:scale-[1.01] hover:bg-gray-800/60 transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
-                  <img src={getPlayerHeadshotUrl(getPlayerId(player))} alt="" className="h-9 w-9 rounded-full object-cover object-top bg-white dark:bg-zinc-900 shrink-0" />
+                  <img src={getPlayerHeadshotUrl(getPlayerId(player))} alt="" className="h-9 w-9 rounded-full object-cover object-top bg-gray-900 shrink-0" />
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-white truncate">{getPlayerName(player)}</div>
                     <div className="text-xs text-gray-500">{player.POSITION || 'G/F'} / {player.TEAM_ABBREVIATION}</div>
@@ -150,7 +150,7 @@ function CapGauge({ team }: { team: CapTeam }) {
   ];
   const pct = Math.min(100, (team.payroll / SECOND_APRON) * 100);
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
       <h3 className="text-sm font-medium text-white mb-4">Apron Tracker</h3>
       <div className="h-3 bg-gray-800 rounded-full overflow-hidden mb-3">
         <div className={`h-full ${team.apron === 'second' ? 'bg-red-500' : team.apron === 'first' ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${pct}%` }} />
@@ -172,11 +172,11 @@ function CapGauge({ team }: { team: CapTeam }) {
 }
 
 function Metric({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
-  return <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-none hover:shadow-none">{icon}<div className="text-2xl font-medium text-white truncate">{value}</div><div className="text-xs text-gray-400">{label}</div></div>;
+  return <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center hover:scale-105 transition-transform duration-200 shadow-none hover:shadow-none">{icon}<div className="text-2xl font-medium text-white truncate">{value}</div><div className="text-xs text-gray-400">{label}</div></div>;
 }
 
 function ListPanel({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
-  return <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4"><h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">{icon}{title}</h3><div className="space-y-2">{children}</div></div>;
+  return <div className="bg-gray-900 border border-gray-800 rounded-xl p-4"><h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">{icon}{title}</h3><div className="space-y-2">{children}</div></div>;
 }
 
 function ListRow({ primary, secondary, value }: { primary: string; secondary: string; value: string }) {

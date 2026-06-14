@@ -176,20 +176,20 @@ export default function ClutchMoments() {
         <div className="flex flex-wrap items-center gap-2 overflow-x-auto">
           <Filter size={14} className="text-gray-500 flex-shrink-0" />
           {(['all', 'clutch', 'live', 'final'] as GameFilter[]).map(mode => (
-            <button key={mode} onClick={() => setFilter(mode)} className={`text-xs px-3 py-1.5 rounded border capitalize flex-shrink-0 ${filter === mode ? 'bg-orange-500/15 text-orange-300 border-orange-500/40' : 'bg-white dark:bg-zinc-900 text-gray-400 border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}>
+            <button key={mode} onClick={() => setFilter(mode)} className={`text-xs px-3 py-1.5 rounded border capitalize flex-shrink-0 ${filter === mode ? 'bg-orange-500/15 text-orange-300 border-orange-500/40' : 'bg-gray-900 text-gray-400 border-gray-800 hover:border-gray-800'}`}>
               {mode}
             </button>
           ))}
-          <select value={teamFilter} onChange={event => setTeamFilter(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="text-xs bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded px-3 py-1.5 text-gray-300 outline-none focus:border-orange-500/40">
+          <select value={teamFilter} onChange={event => setTeamFilter(event.target.value === 'all' ? 'all' : Number(event.target.value))} className="text-xs bg-gray-900 border border-gray-800 rounded px-3 py-1.5 text-gray-300 outline-none focus:border-orange-500/40">
             <option value="all">All teams</option>
             {teams.map(team => <option key={team.id} value={team.id}>{team.abbreviation}</option>)}
           </select>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <select value={selectedGame?.game.game_id ?? ''} onChange={event => setSelectedGame(clutchGames.find(game => game.game.game_id === event.target.value) ?? null)} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded px-3 py-2 text-xs text-gray-300 outline-none focus:border-orange-500/40">
+          <select value={selectedGame?.game.game_id ?? ''} onChange={event => setSelectedGame(clutchGames.find(game => game.game.game_id === event.target.value) ?? null)} className="bg-gray-900 border border-gray-800 rounded px-3 py-2 text-xs text-gray-300 outline-none focus:border-orange-500/40">
             {clutchGames.map(game => <option key={game.game.game_id} value={game.game.game_id}>{game.game.away_team_abbreviation} @ {game.game.home_team_abbreviation} / {formatIndianDate(new Date(`${game.game.game_date}T12:00:00`), { month: 'short', day: 'numeric' })}</option>)}
           </select>
-          <select value={sortMode} onChange={event => setSortMode(event.target.value as SortMode)} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded px-3 py-2 text-xs text-gray-300 outline-none focus:border-orange-500/40">
+          <select value={sortMode} onChange={event => setSortMode(event.target.value as SortMode)} className="bg-gray-900 border border-gray-800 rounded px-3 py-2 text-xs text-gray-300 outline-none focus:border-orange-500/40">
             <option value="pressure">Sort by pressure</option>
             <option value="performer">Sort by top performer</option>
             <option value="score">Sort by total score</option>
@@ -206,7 +206,7 @@ export default function ClutchMoments() {
           <h3 className="text-sm font-medium text-white">Recent Games</h3>
           <div className="max-h-64 space-y-2 overflow-y-auto pr-1 lg:max-h-none">
           {filteredGames.map(clutchGame => (
-            <button key={clutchGame.game.game_id} onClick={() => setSelectedGame(clutchGame)} className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-transform duration-200 hover:scale-105 text-left shadow-none hover:shadow-none ${selectedGame?.game.game_id === clutchGame.game.game_id ? 'bg-gray-800 border-orange-500/40 shadow-none' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}>
+            <button key={clutchGame.game.game_id} onClick={() => setSelectedGame(clutchGame)} className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-transform duration-200 hover:scale-105 text-left shadow-none hover:shadow-none ${selectedGame?.game.game_id === clutchGame.game.game_id ? 'bg-gray-800 border-orange-500/40 shadow-none' : 'bg-gray-900 border-gray-800 hover:border-gray-800'}`}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   {clutchGame.isClutch && <Flame size={10} className="text-orange-400 flex-shrink-0" />}
@@ -225,13 +225,13 @@ export default function ClutchMoments() {
             </button>
           ))}
           </div>
-          {filteredGames.length === 0 && <div className="text-center py-8 text-xs text-gray-500 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl">No recent games found from NBA API</div>}
+          {filteredGames.length === 0 && <div className="text-center py-8 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">No recent games found from NBA API</div>}
         </div>
 
         <div className="order-1 lg:order-2 lg:col-span-2 space-y-3 sm:space-y-4">
           {selectedGame ? (
             <>
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                   <div>
                     <div className="text-base font-medium text-white">{selectedGame.game.away_team_name} @ {selectedGame.game.home_team_name}</div>
@@ -265,7 +265,7 @@ export default function ClutchMoments() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-3 sm:p-4">
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
                 <h4 className="text-sm font-medium text-white mb-3">Late-Game Moment Feed</h4>
                 <div className="max-h-56 space-y-2 overflow-y-auto pr-1 sm:max-h-none">
                   {selectedGame.keyMoments.map((moment, index) => (
@@ -284,7 +284,7 @@ export default function ClutchMoments() {
               </div>
 
               {selectedGame.topPerformers.length > 0 && (
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+                <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                   <h4 className="text-sm font-medium text-white mb-3">Official Boxscore Impact</h4>
                   <div className="space-y-3">
                     {selectedGame.topPerformers.map((performer, index) => <PerformerRow key={`${performer.playerId}-${index}`} performer={performer} rank={index + 1} />)}
@@ -298,7 +298,7 @@ export default function ClutchMoments() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-3 sm:p-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
         <h3 className="text-sm font-medium text-white mb-4 flex items-center gap-2"><Award size={14} className="text-yellow-400" />Clutch Leaderboard</h3>
         <div className="grid gap-2 sm:hidden">
           {allTopPerformers.slice(0, 5).map((performer, index) => (
@@ -308,7 +308,7 @@ export default function ClutchMoments() {
         <div className="overflow-x-auto w-full rounded-xl">
           <table className="w-full min-w-[600px] text-left text-xs sm:text-sm">
             <thead>
-              <tr className="text-xs text-gray-400 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px]">
+              <tr className="text-xs text-gray-400 border-b border-gray-800">
                 <th className="text-left pb-2 font-medium">Player</th>
                 <th className="text-center pb-2 font-medium">Score</th>
                 <th className="text-center pb-2 font-medium hidden sm:table-cell">Grade</th>
@@ -320,7 +320,7 @@ export default function ClutchMoments() {
             </thead>
             <tbody>
               {allTopPerformers.map((performer, index) => (
-                <tr key={`${performer.playerId}-${index}`} className="border-b border-zinc-200 dark:border-zinc-800 border-[0.5px]/50 hover:bg-gray-800/30 transition-colors">
+                <tr key={`${performer.playerId}-${index}`} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
                   <td className="py-2.5 text-xs font-medium text-white">{index + 1}. {performer.playerName}<div className="text-xs text-gray-500">{performer.teamAbbreviation}</div></td>
                   <td className="text-center py-2.5 text-xs font-medium text-orange-400">{performer.clutchScore.toFixed(1)}</td>
                   <td className="text-center py-2.5 text-xs font-medium text-cyan-300 hidden sm:table-cell">{performer.grade}</td>
@@ -469,7 +469,7 @@ function buildLeaderBoxScore(game: Game): BoxScorePlayer[] {
 
 function MetricCard({ icon, value, label }: { icon: ReactNode; value: string | number; label: string }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-2 text-center sm:p-4 min-w-0 transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none">
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-2 text-center sm:p-4 min-w-0 transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none">
       {icon}
       <div className="text-base sm:text-2xl font-medium text-white truncate">{value}</div>
       <div className="text-[10px] sm:text-xs text-gray-400 truncate">{label}</div>

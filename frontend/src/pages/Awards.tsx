@@ -205,7 +205,7 @@ export default function Awards() {
 
   return (
     <div className="p-4 lg:p-6 space-y-12 pb-20 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-zinc-900/40 p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 border-[0.5px] backdrop-blur-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-950 p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] border border-gray-800 backdrop-blur-xl">
         <div>
           <h1 className="text-2xl sm:text-4xl font-medium text-white  uppercase tracking-tighter">Award Records</h1>
           <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium uppercase tracking-[0.3em] sm:tracking-[0.5em] mt-2 sm:mt-3">NBA Official Historical Vault</p>
@@ -218,7 +218,7 @@ export default function Awards() {
              placeholder="Search Season (e.g. 1996)" 
              value={searchTerm}
              onChange={(e) => setSearchTerm(e.target.value)}
-             className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-2xl sm:rounded-3xl py-4 sm:py-5 pl-12 sm:pl-14 pr-6 text-white focus:outline-none focus:border-orange-500 transition-all placeholder:text-gray-600 font-medium  uppercase text-[10px] sm:text-xs"
+             className="w-full bg-gray-900 border border-gray-800 rounded-2xl sm:rounded-3xl py-4 sm:py-5 pl-12 sm:pl-14 pr-6 text-white focus:outline-none focus:border-orange-500 transition-all placeholder:text-gray-600 font-medium  uppercase text-[10px] sm:text-xs"
            />
         </div>
       </div>
@@ -238,7 +238,7 @@ export default function Awards() {
         )}
 
         {!loadingAwards && !awardsError && filteredAwards.length === 0 && (
-          <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white/[0.02] p-10 text-center">
+          <div className="rounded-3xl border border-gray-800 bg-white/[0.02] p-10 text-center">
             <p className="text-sm font-medium text-gray-500 uppercase tracking-widest">No award records found</p>
           </div>
         )}
@@ -247,7 +247,7 @@ export default function Awards() {
           <div key={idx} className="space-y-6 sm:space-y-12">
             <div className="flex items-center gap-4 sm:gap-10">
               <h2 className="text-4xl sm:text-7xl font-medium text-orange-500  uppercase tracking-tighter leading-none">{seasonData.season}</h2>
-              <div className="h-px flex-1 bg-zinc-100 dark:bg-zinc-800  to-transparent" />
+              <div className="h-px flex-1 bg-gray-900 bg-gray-900  to-transparent" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-10">
@@ -264,14 +264,14 @@ export default function Awards() {
       </div>
 
       {selectedPlayer && (
-        <div id="awards-player-modal" className="fixed inset-0 z-[100] overflow-y-auto bg-white dark:bg-zinc-900 backdrop-blur-3xl p-2 sm:p-6 animate-in fade-in duration-500">
+        <div id="awards-player-modal" className="fixed inset-0 z-[100] overflow-y-auto bg-gray-900 backdrop-blur-3xl p-2 sm:p-6 animate-in fade-in duration-500">
           <div className="flex min-h-full items-end sm:items-center justify-center">
-            <div className="relative bg-white dark:bg-zinc-900 w-full max-w-6xl rounded-3xl sm:rounded-[3rem] border border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none flex flex-col lg:grid lg:grid-cols-[300px_1fr]">
-            <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 z-[110] w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center bg-white/10 hover:bg-orange-500/20 text-white rounded-full transition-all border border-zinc-200 dark:border-zinc-800 border-[0.5px]"><X size={22} /></button>
+            <div className="relative bg-gray-900 w-full max-w-6xl rounded-3xl sm:rounded-[3rem] border border-gray-800 shadow-none flex flex-col lg:grid lg:grid-cols-[300px_1fr]">
+            <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 z-[110] w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center bg-white/10 hover:bg-orange-500/20 text-white rounded-full transition-all border border-gray-800"><X size={22} /></button>
 
-            <div className="relative min-h-28 shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800    sm:min-h-32 lg:min-h-0">
+            <div className="relative min-h-28 shrink-0 overflow-hidden bg-gray-900 bg-gray-900    sm:min-h-32 lg:min-h-0">
                <div className="absolute inset-0 flex items-center p-3 sm:p-5 gap-3 pr-16 lg:flex-col lg:items-start lg:justify-end lg:p-8">
-                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-16 h-16 sm:w-20 sm:h-20 lg:w-52 lg:h-52 rounded-2xl sm:rounded-[2rem] object-cover bg-white dark:bg-zinc-900 border-4 border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none" alt="" />
+                  <img src={getPlayerHeadshotUrl(selectedPlayer.id)} className="w-16 h-16 sm:w-20 sm:h-20 lg:w-52 lg:h-52 rounded-2xl sm:rounded-[2rem] object-cover bg-gray-900 border-4 border-gray-800 shadow-none" alt="" />
                   <div className="min-w-0">
                     <div className="inline-flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2 rounded-2xl bg-orange-500/10 text-orange-400 text-[9px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.4em] mb-1 sm:mb-2 lg:mb-6 border border-orange-500/20 shadow-none max-w-full">
                        <Trophy size={14} />
@@ -317,7 +317,7 @@ export default function Awards() {
                         <div className="flex items-center gap-3 sm:gap-6"><div className="text-[9px] sm:text-[10px] font-medium text-orange-500 uppercase tracking-[0.18em] sm:tracking-[0.6em]">Seasonal Match Journey</div><div className="h-px flex-1 bg-white/5" /><div className="text-[9px] sm:text-[10px] text-gray-500 font-medium uppercase tracking-widest shrink-0">{playerStats.length} Games</div></div>
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
                            {playerStats.map((log, i) => (
-                              <button key={i} onClick={() => handleGameClick(log)} className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-orange-500/50 hover:bg-white/[0.05] transition-all group text-left">
+                              <button key={i} onClick={() => handleGameClick(log)} className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-gray-800 hover:border-orange-500/50 hover:bg-white/[0.05] transition-all group text-left">
                                  <div className="space-y-1 sm:space-y-2 min-w-0">
                                     <div className="text-[9px] font-medium text-gray-600 uppercase tracking-[0.2em]">{log.GAME_DATE}</div>
                                     <div className="text-sm sm:text-lg font-medium text-white uppercase group-hover:text-orange-400  tracking-tight truncate">{log.MATCHUP}</div>
@@ -380,10 +380,10 @@ function AwardCard({ label, player, onClick, isCoach }: any) {
   return (
     <div 
       onClick={isClickable ? onClick : undefined} 
-      className={`bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-[2.5rem] overflow-hidden group transition-all duration-500 relative ${isClickable ? 'hover:border-orange-500/50 cursor-pointer hover:bg-white dark:bg-zinc-900/60 hover:shadow-none' : ''}`}
+      className={`bg-gray-900/30 border border-gray-800 rounded-[2.5rem] overflow-hidden group transition-all duration-500 relative ${isClickable ? 'hover:border-orange-500/50 cursor-pointer hover:bg-gray-950 hover:shadow-none' : ''}`}
     >
       <div className="p-5 sm:p-6 relative z-10 flex items-center gap-5 sm:gap-6">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[1.5rem] bg-black overflow-hidden border border-zinc-200 dark:border-zinc-800 border-[0.5px] group-hover:border-orange-500/50 transition-all shadow-none shrink-0">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[1.5rem] bg-black overflow-hidden border border-gray-800 group-hover:border-orange-500/50 transition-all shadow-none shrink-0">
            <img 
              src={getPlayerHeadshotUrl(player?.id || 0)} 
              className="w-full h-full object-cover scale-125 translate-y-3 group-hover:scale-135 transition-transform" 
@@ -410,7 +410,7 @@ function AwardCard({ label, player, onClick, isCoach }: any) {
           )}
         </div>
         {isClickable && (
-          <div className="w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-800 border-[0.5px] flex items-center justify-center text-gray-800 group-hover:text-orange-500 group-hover:border-orange-500 transition-all shrink-0">
+          <div className="w-8 h-8 rounded-full border border-gray-800 flex items-center justify-center text-gray-800 group-hover:text-orange-500 group-hover:border-orange-500 transition-all shrink-0">
             <BarChart3 size={14} />
           </div>
         )}
@@ -424,7 +424,7 @@ function StatBox({ label, value }: any) {
     ? (typeof value === 'string' ? value : Number(value).toFixed(1)) 
     : '0.0';
   return (
-    <div className="p-2 sm:p-8 rounded-xl sm:rounded-[2.5rem] bg-white/[0.02] border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center group hover:bg-white/[0.04] transition-colors shadow-none min-w-0">
+    <div className="p-2 sm:p-8 rounded-xl sm:rounded-[2.5rem] bg-white/[0.02] border border-gray-800 text-center group hover:bg-white/[0.04] transition-colors shadow-none min-w-0">
       <div className="text-base sm:text-4xl font-medium text-white  group-hover:text-orange-500 transition-colors tabular-nums truncate">
         {displayValue}
       </div>
@@ -436,7 +436,7 @@ function StatBox({ label, value }: any) {
 function PctBox({ label, value }: any) {
   const displayVal = value !== undefined && value !== null && !isNaN(value) ? (value * 100).toFixed(1) + '%' : '0.0%';
   return (
-    <div className="p-3 sm:p-10 rounded-xl sm:rounded-[3rem] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center shadow-none group min-w-0">
+    <div className="p-3 sm:p-10 rounded-xl sm:rounded-[3rem] bg-gray-900 border border-gray-800 text-center shadow-none group min-w-0">
        <div className="text-lg sm:text-4xl font-medium text-orange-500 drop-shadow-none truncate">{displayVal}</div>
        <div className="text-[7px] sm:text-[10px] font-medium text-gray-700 uppercase tracking-widest mt-1 sm:mt-3 truncate">{label}</div>
     </div>
@@ -461,13 +461,13 @@ function BoxScoreModal({ game, boxScore, loading, onPlayerClick, onClose }: any)
   }, [game?.GAME_ID]);
 
   return (
-    <div id="awards-box-score-modal" className="fixed inset-0 z-[120] overflow-y-auto bg-white dark:bg-zinc-900 backdrop-blur-3xl p-2 sm:p-4 animate-in slide-in- duration-500">
+    <div id="awards-box-score-modal" className="fixed inset-0 z-[120] overflow-y-auto bg-gray-900 backdrop-blur-3xl p-2 sm:p-4 animate-in slide-in- duration-500">
       <div className="flex min-h-full items-end sm:items-center justify-center">
-        <div className="relative w-full max-w-7xl rounded-3xl sm:rounded-[3rem] border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 flex flex-col shadow-none">
-          <div className="p-4 sm:p-10 bg-white dark:bg-zinc-900/40 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] flex flex-col items-center">
+        <div className="relative w-full max-w-7xl rounded-3xl sm:rounded-[3rem] border border-gray-800 bg-gray-900 flex flex-col shadow-none">
+          <div className="p-4 sm:p-10 bg-gray-950 border-b border-gray-800 flex flex-col items-center">
             <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-gray-500 hover:text-white"><X size={28} /></button>
             <div className="pr-10 text-3xl sm:text-6xl font-medium text-white  uppercase tracking-tighter mb-4 sm:mb-8 drop-shadow-none text-center truncate max-w-full">{game.MATCHUP}</div>
-            <div className="flex max-w-full gap-2 overflow-x-auto p-2 bg-white dark:bg-zinc-900 rounded-2xl sm:rounded-[3rem] border border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none">
+            <div className="flex max-w-full gap-2 overflow-x-auto p-2 bg-gray-900 rounded-2xl sm:rounded-[3rem] border border-gray-800 shadow-none">
               {teamIds.map(tid => (
                 <button key={tid} onClick={() => setTeamFilter(tid)} className={`flex shrink-0 items-center gap-3 px-4 sm:px-8 py-3 sm:py-5 rounded-xl sm:rounded-[2.5rem] transition-all ${teamFilter === tid ? 'bg-orange-500 text-white shadow-none' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
                   <img src={getTeamLogoUrl(tid)} className="w-9 h-9 sm:w-14 sm:h-14 object-contain" alt="" />
@@ -479,8 +479,8 @@ function BoxScoreModal({ game, boxScore, loading, onPlayerClick, onClose }: any)
           <div className="flex-1 p-3 sm:p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {loading ? <div className="col-span-full py-40 flex justify-center"><Loader2 className="w-20 h-20 text-orange-500 animate-spin" /></div> :
               filtered.map((p: any) => (
-                <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white/[0.03] hover:border-orange-500/40 hover:bg-white/5 transition-all text-left group">
-                  <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-[2rem] object-cover bg-white dark:bg-zinc-900 shadow-none group-hover:scale-110 transition-transform" alt="" />
+                <button key={p.PLAYER_ID} onClick={() => onPlayerClick(p)} className="flex items-center gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-gray-800 bg-white/[0.03] hover:border-orange-500/40 hover:bg-white/5 transition-all text-left group">
+                  <img src={getPlayerHeadshotUrl(p.PLAYER_ID)} className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-[2rem] object-cover bg-gray-900 shadow-none group-hover:scale-110 transition-transform" alt="" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm sm:text-lg font-medium text-white uppercase truncate group-hover:text-orange-400">{p.PLAYER_NAME}</div>
                     <div className="text-[10px] text-gray-700 font-medium uppercase mt-2 tracking-widest">{p.START_POSITION || 'BENCH'}</div>
@@ -507,12 +507,12 @@ function PlayerOverlay({ player, season, onClose }: any) {
   }, [player?.PLAYER_ID]);
 
   return (
-    <div id="awards-player-overlay" className="fixed inset-0 z-[130] overflow-y-auto bg-white dark:bg-zinc-900 backdrop-blur-3xl p-2 sm:p-4 animate-in zoom-in-95 duration-300">
+    <div id="awards-player-overlay" className="fixed inset-0 z-[130] overflow-y-auto bg-gray-900 backdrop-blur-3xl p-2 sm:p-4 animate-in zoom-in-95 duration-300">
       <div className="flex min-h-full items-end sm:items-center justify-center">
-        <div className="relative w-full max-w-3xl rounded-3xl sm:rounded-[4rem] border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 shadow-none flex flex-col">
-          <div className="h-36 sm:h-72 bg-zinc-100 dark:bg-zinc-800  to-transparent relative p-4 sm:p-12 flex items-end gap-4 sm:gap-10 pr-14">
+        <div className="relative w-full max-w-3xl rounded-3xl sm:rounded-[4rem] border border-gray-800 bg-gray-900 shadow-none flex flex-col">
+          <div className="h-36 sm:h-72 bg-gray-900 bg-gray-900  to-transparent relative p-4 sm:p-12 flex items-end gap-4 sm:gap-10 pr-14">
             <button onClick={onClose} className="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-orange-500 transition-colors"><X size={28} /></button>
-            <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-24 h-24 sm:w-56 sm:h-56 rounded-2xl sm:rounded-[4rem] object-cover bg-white dark:bg-zinc-900 border-4 sm:border-8 border-zinc-200 dark:border-zinc-800 border-[0.5px] shadow-none translate-y-8 sm:translate-y-24" alt="" />
+            <img src={getPlayerHeadshotUrl(player.PLAYER_ID)} className="w-24 h-24 sm:w-56 sm:h-56 rounded-2xl sm:rounded-[4rem] object-cover bg-gray-900 border-4 sm:border-8 border-gray-800 shadow-none translate-y-8 sm:translate-y-24" alt="" />
             <h2 className="text-2xl sm:text-6xl font-medium text-white  uppercase tracking-tighter pb-2 sm:pb-6 leading-none drop-shadow-none truncate">{player.PLAYER_NAME}</h2>
           </div>
           <div className="flex-1 p-3 sm:p-12 pt-10 sm:pt-32 space-y-6 sm:space-y-12">
@@ -523,11 +523,11 @@ function PlayerOverlay({ player, season, onClose }: any) {
                <Pill val={player.STL} label="Steals" />
             </div>
             <div className="space-y-4 sm:space-y-8">
-              <h3 className="text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-[0.2em] sm:tracking-[0.6em] border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] pb-4 sm:pb-6">Historical Log Feed</h3>
+              <h3 className="text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-[0.2em] sm:tracking-[0.6em] border-b border-gray-800 pb-4 sm:pb-6">Historical Log Feed</h3>
               <div className="space-y-2 sm:space-y-4">
                 {loading ? <div className="py-20 flex justify-center"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div> :
                   stats.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between gap-3 p-3 sm:p-6 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.03] border border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:bg-white/[0.06] transition-all">
+                    <div key={i} className="flex items-center justify-between gap-3 p-3 sm:p-6 rounded-2xl sm:rounded-[2.5rem] bg-white/[0.03] border border-gray-800 hover:bg-white/[0.06] transition-all">
                       <div className="text-[9px] sm:text-[10px] text-gray-600 w-20 sm:w-28 uppercase font-medium tracking-widest shrink-0">{s.GAME_DATE}</div>
                       <div className="text-xs sm:text-sm font-medium text-white flex-1 uppercase  tracking-tight truncate">{s.MATCHUP}</div>
                       <div className="text-2xl sm:text-3xl font-medium text-orange-500  tabular-nums">{s.PTS} <span className="text-[10px] sm:text-sm uppercase tracking-normal">PTS</span></div>
@@ -545,7 +545,7 @@ function PlayerOverlay({ player, season, onClose }: any) {
 
 function Pill({ val, label }: any) {
   return (
-    <div className="p-2 sm:p-6 rounded-xl sm:rounded-[2.5rem] bg-white/5 border border-zinc-200 dark:border-zinc-800 border-[0.5px] text-center shadow-none min-w-0">
+    <div className="p-2 sm:p-6 rounded-xl sm:rounded-[2.5rem] bg-white/5 border border-gray-800 text-center shadow-none min-w-0">
       <div className="text-xl sm:text-4xl font-medium text-white  drop-shadow-none tabular-nums">{val || 0}</div>
       <div className="text-[8px] sm:text-[10px] font-medium text-gray-700 uppercase mt-1 sm:mt-3 tracking-widest truncate">{label}</div>
     </div>

@@ -132,9 +132,9 @@ export default function FatigueDetection() {
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px]">
-          <h1 className="text-base font-medium text-zinc-900 dark:text-white">Fatigue detection</h1>
-          <p className="text-xs text-zinc-500">Official NBA workload model using recent player stats, rest, and back-to-backs</p>
+        <div className="p-4 border-b border-gray-800">
+          <h1 className="text-base font-medium text-gray-500 text-white">Fatigue detection</h1>
+          <p className="text-xs text-gray-500">Official NBA workload model using recent player stats, rest, and back-to-backs</p>
         </div>
         <div className="text-xs text-gray-500">
           {season && <span>{season}</span>}
@@ -157,7 +157,7 @@ export default function FatigueDetection() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search player, position, or team"
-            className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50 placeholder:text-gray-600"
+            className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50 placeholder:text-gray-600"
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -166,7 +166,7 @@ export default function FatigueDetection() {
             onChange={(event) => {
               setTeamFilter(event.target.value === 'all' ? 'all' : Number(event.target.value));
             }}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
           >
             <option value="all">All NBA teams</option>
             {teamOptions.map(team => <option key={team.id} value={team.id}>{team.abbreviation} - {team.full_name}</option>)}
@@ -174,7 +174,7 @@ export default function FatigueDetection() {
           <select
             value={selected ? getPlayerId(selected) : ''}
             onChange={(event) => setSelected(players.find(player => getPlayerId(player) === Number(event.target.value)) ?? null)}
-            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
           >
             {filtered.map(player => <option key={getPlayerId(player)} value={getPlayerId(player)}>{getPlayerName(player)}</option>)}
             {filtered.length === 0 && <option value="">No players</option>}
@@ -184,7 +184,7 @@ export default function FatigueDetection() {
             <select
               value={sortMode}
               onChange={(event) => setSortMode(event.target.value as SortMode)}
-              className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
+              className="flex-1 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-orange-500/50"
             >
               <option value="risk">Sort by risk</option>
               <option value="minutes">Sort by minutes</option>
@@ -214,7 +214,7 @@ export default function FatigueDetection() {
             />
           ))}
           {filtered.length === 0 && (
-            <div className="text-center py-12 text-xs text-gray-500 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl">
+            <div className="text-center py-12 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">
               No players match this fatigue view
             </div>
           )}
@@ -222,7 +222,7 @@ export default function FatigueDetection() {
 
         {selected && (
           <div ref={detailRef} className="space-y-4">
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <div className="flex items-center gap-3 mb-4">
                 <PlayerFace player={selected} teamId={selectedTeam?.id ?? Number(selected.TEAM_ID)} sizeClass="w-10 h-10" />
                 <div>
@@ -253,7 +253,7 @@ export default function FatigueDetection() {
               <MicroMetric label="Trend" value={(selected.fatigue?.performance_drop ?? 0) > 8 ? 'Down' : 'Stable'} />
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <h4 className="text-sm font-medium text-white mb-3">Workload Factors</h4>
               <FactorBar label="Minutes Load" value={Math.min(100, Math.round(((selected.fatigue?.minutes_last_3 ?? 0) / 110) * 100))} />
               <FactorBar label="Schedule Stress" value={Math.min(100, Math.round(((selected.fatigue?.games_last_7 ?? 0) / 5) * 100))} />
@@ -265,7 +265,7 @@ export default function FatigueDetection() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <h4 className="text-sm font-medium text-white mb-3">Fatigue History (7 days)</h4>
               <MiniLineChart
                 data={generateFatigueTrend(selected.fatigue?.fatigue_score ?? 40)}
@@ -279,7 +279,7 @@ export default function FatigueDetection() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <h4 className="text-sm font-medium text-white mb-2">AI Recommendation</h4>
               <p className="text-xs text-gray-300 leading-relaxed">
                 {getRecommendation(selected.fatigue?.risk_level ?? 'low', getPlayerName(selected), getMinutesCap(selected))}
@@ -303,7 +303,7 @@ function FatigueRow({ player, teams, selected, onClick }: {
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-transform duration-200 hover:scale-[1.02] text-left shadow-none hover:shadow-none ${
-        selected ? 'bg-gray-800 border-orange-500/40' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'
+        selected ? 'bg-gray-800 border-orange-500/40' : 'bg-gray-900 border-gray-800 hover:border-gray-800'
       }`}
     >
       <PlayerFace player={player} teamId={team?.id ?? Number(player.TEAM_ID)} sizeClass="w-9 h-9" />
@@ -330,10 +330,10 @@ function FatigueBar({ score }: { score: number; risk?: string }) {
   };
   return (
     <div className="flex items-center gap-2">
-      <div className="h-[5px] w-[60px] bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden shrink-0">
+      <div className="h-[5px] w-[60px] bg-gray-900 bg-gray-900 rounded-full overflow-hidden shrink-0">
         <div className={`h-full rounded-full transition-all duration-700 ${getFillColor(score)}`} style={{ width: `${score}%` }} />
       </div>
-      <span className="text-[11px] font-medium w-8 text-right text-zinc-500">{Math.round(score)}</span>
+      <span className="text-[11px] font-medium w-8 text-right text-gray-500">{Math.round(score)}</span>
     </div>
   );
 }
@@ -398,7 +398,7 @@ function RiskButton({ active, icon, value, label, color, onClick }: {
   return (
     <button
       onClick={onClick}
-      className={`bg-white dark:bg-zinc-900 border rounded-xl p-4 text-center transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${active ? border : 'border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}
+      className={`bg-gray-900 border rounded-xl p-4 text-center transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${active ? border : 'border-gray-800 hover:border-gray-800'}`}
     >
       {icon}
       <div className={`text-2xl font-medium ${text}`}>{value}</div>
@@ -409,7 +409,7 @@ function RiskButton({ active, icon, value, label, color, onClick }: {
 
 function MetricCard({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 text-center">
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
       {icon}
       <div className="text-2xl font-medium text-white">{value}</div>
       <div className="text-xs text-gray-400">{label}</div>
@@ -463,7 +463,7 @@ function getQuarterRisk(score: number): string {
 
 function MicroMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-3 text-center">
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
       <div className="text-sm font-medium text-white">{value}</div>
       <div className="text-[10px] text-gray-500">{label}</div>
     </div>

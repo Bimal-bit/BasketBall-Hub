@@ -749,13 +749,13 @@ export default function DreamTeam() {
   return (
     <div className="p-4 lg:p-6 space-y-6 max-w-[1600px] mx-auto">
       {/* Header Panel */}
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between shadow-xl">
         <div className="relative z-10">
           <h2 className="flex items-center gap-3 text-2xl sm:text-4xl font-semibold text-white tracking-tight uppercase">
             <Trophy className="text-orange-500 animate-pulse" size={36} />
             Prime Dream Match
           </h2>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+          <p className="mt-2 max-w-2xl text-sm text-gray-500">
             Build two starting fives by spinning the team wheel, selecting all-time legends, and simulating matches on a professional court engine.
           </p>
         </div>
@@ -773,7 +773,7 @@ export default function DreamTeam() {
           <button 
             onClick={autoAssignNext} 
             disabled={!nextPick || loadingList} 
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-300 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-800 border-gray-800 bg-gray-900 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500  hover:bg-gray-900  transition-all disabled:opacity-40"
           >
             <Dice5 size={16} />
             Quick Pick
@@ -808,16 +808,16 @@ export default function DreamTeam() {
             />
 
             {/* Simulation Controller Panel */}
-            <div className="flex flex-col justify-center gap-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-6 shadow-md relative overflow-hidden">
+            <div className="flex flex-col justify-center gap-5 rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-md relative overflow-hidden">
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-500" />
               
               <div className="text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/10 text-orange-500">
                   <Swords size={30} />
                 </div>
-                <div className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">Draft Status</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Draft Status</div>
                 
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+                <div className="mt-3 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm bg-gray-900 border border-gray-800">
                   <div className={`h-2.5 w-2.5 rounded-full ${nextPick ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
                   <span className="font-medium text-white">
                     {nextPick ? `${TEAM_LABELS[nextPick.team]} - ${nextPick.position} Slot` : 'Lineups Finished'}
@@ -825,8 +825,8 @@ export default function DreamTeam() {
                 </div>
               </div>
 
-              <div className="space-y-2.5 bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/40">
-                <div className="text-[10px] uppercase font-bold tracking-widest text-zinc-500 text-center mb-1">Position Path</div>
+              <div className="space-y-2.5 bg-gray-900/40 p-4 rounded-xl border border-gray-800/40">
+                <div className="text-[10px] uppercase font-bold tracking-widest text-gray-500 text-center mb-1">Position Path</div>
                 <div className="grid grid-cols-5 gap-1.5">
                   {POSITIONS.map(position => {
                     const isDrafted = rosters.A[position] && rosters.B[position];
@@ -836,7 +836,7 @@ export default function DreamTeam() {
                         className={`rounded-lg py-2.5 text-center text-xs font-semibold transition-all ${
                           isDrafted 
                             ? 'bg-orange-950/20 text-orange-400 border border-orange-500/20' 
-                            : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border border-transparent'
+                            : 'bg-gray-900 text-gray-500 border border-transparent'
                         }`}
                       >
                         {position}
@@ -885,12 +885,12 @@ export default function DreamTeam() {
       {/* SPIN WHEEL DRAFT MODAL */}
       {activePick && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-          <div className="relative flex max-h-[92vh] w-full max-w-lg flex-col rounded-3xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl overflow-hidden">
+          <div className="relative flex max-h-[92vh] w-full max-w-lg flex-col rounded-3xl border border-gray-800 bg-gray-900 p-6 shadow-2xl overflow-hidden">
             {/* Confetti Explosion Canvas */}
             {phase === 'select' && <LandingConfetti />}
 
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-zinc-900 pb-4 mb-4 z-10">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-4 mb-4 z-10">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-orange-500">
                   Draft Selector - {TEAM_LABELS[activePick.team]}
@@ -903,14 +903,14 @@ export default function DreamTeam() {
                 {/* Audio controls */}
                 <button
                   onClick={() => setSoundEnabled(!soundEnabled)}
-                  className="rounded-lg p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 transition"
+                  className="rounded-lg p-2 bg-gray-900 hover:bg-gray-900 text-gray-500 transition"
                   title="Toggle Wheel Sound"
                 >
                   {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
                 </button>
                 <button
                   onClick={() => { setActivePick(null); }}
-                  className="rounded-lg p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition"
+                  className="rounded-lg p-2 bg-gray-900 hover:bg-gray-900 text-gray-500 hover:text-white transition"
                 >
                   <X size={18} />
                 </button>
@@ -921,7 +921,7 @@ export default function DreamTeam() {
             {phase === 'spin' && (
               <div className="flex-1 flex flex-col justify-between items-center py-4 z-10">
                 <div className="text-center mb-2">
-                  <p className="text-sm text-zinc-400">Spin the wheel to lock in a random team. You must draft a player from that team roster.</p>
+                  <p className="text-sm text-gray-500">Spin the wheel to lock in a random team. You must draft a player from that team roster.</p>
                 </div>
 
                 <Wheel
@@ -949,7 +949,7 @@ export default function DreamTeam() {
                   <button
                     disabled={isSpinning}
                     onClick={() => setPhase('search')}
-                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-zinc-300 transition"
+                    className="w-full rounded-xl border border-gray-800 bg-gray-900 hover:bg-gray-900 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-500 transition"
                   >
                     Bypass Wheel & Search League
                   </button>
@@ -975,13 +975,13 @@ export default function DreamTeam() {
                       className="h-14 w-14 drop-shadow-md"
                     />
                     <div>
-                      <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">WHEEL LANDED ON</div>
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">WHEEL LANDED ON</div>
                       <div className="text-lg font-bold text-white uppercase">{selectedTeam.full_name}</div>
                     </div>
                   </div>
                   <button
                     onClick={() => setPhase('spin')}
-                    className="rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1.5 text-xs text-zinc-400 transition"
+                    className="rounded-lg bg-gray-900 hover:bg-gray-900 border border-gray-800 px-3 py-1.5 text-xs text-gray-500 transition"
                   >
                     Spin Again
                   </button>
@@ -990,12 +990,12 @@ export default function DreamTeam() {
                 {/* Filter and Search Bar */}
                 <div className="relative mb-3 flex items-center gap-2">
                   <div className="relative flex-1">
-                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                     <input
                       value={playerSearch}
                       onChange={e => setPlayerSearch(e.target.value)}
                       placeholder="Search team roster..."
-                      className="w-full rounded-xl border border-zinc-800 bg-zinc-900 py-3 pl-10 pr-4 text-xs text-white outline-none focus:border-orange-500"
+                      className="w-full rounded-xl border border-gray-800 bg-gray-900 py-3 pl-10 pr-4 text-xs text-white outline-none focus:border-orange-500"
                     />
                   </div>
                   <button
@@ -1003,7 +1003,7 @@ export default function DreamTeam() {
                     className={`rounded-xl border px-3 py-3 text-xs font-semibold transition ${
                       showAllPositions 
                         ? 'border-orange-500/50 bg-orange-950/20 text-orange-400' 
-                        : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-zinc-300'
+                        : 'border-gray-800 bg-gray-900 text-gray-500 hover:text-gray-500'
                     }`}
                   >
                     {showAllPositions ? 'All Pos' : `Only ${activePick.position}`}
@@ -1022,13 +1022,13 @@ export default function DreamTeam() {
                             key={player.id}
                             disabled={loadingPrimeId !== null}
                             onClick={() => selectPlayerForDraft(player)}
-                            className="group flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900 p-2.5 transition hover:border-orange-500/40 text-left"
+                            className="group flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/40 hover:bg-gray-900 p-2.5 transition hover:border-orange-500/40 text-left"
                           >
                             <div className="flex items-center gap-3">
                               <img
                                 src={getPlayerHeadshotUrl(player.id)}
                                 alt=""
-                                className="h-10 w-10 rounded-full bg-zinc-800 object-cover border border-zinc-700"
+                                className="h-10 w-10 rounded-full bg-gray-900 object-cover border border-gray-800"
                                 onError={(e) => {
                                   // Fallback generic photo if headshot not found
                                   (e.target as HTMLImageElement).src = 'https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png';
@@ -1038,7 +1038,7 @@ export default function DreamTeam() {
                                 <div className="text-sm font-semibold text-white group-hover:text-orange-400 transition-colors">
                                   {player.name}
                                 </div>
-                                <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+                                <div className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
                                   Legendary Season Lookup
                                 </div>
                               </div>
@@ -1046,13 +1046,13 @@ export default function DreamTeam() {
                             {loadingPrimeId === player.id ? (
                               <RefreshCw size={15} className="animate-spin text-orange-500" />
                             ) : (
-                              <ArrowRight size={14} className="text-zinc-500 group-hover:text-orange-400 transition" />
+                              <ArrowRight size={14} className="text-gray-500 group-hover:text-orange-400 transition" />
                             )}
                           </button>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-xs text-zinc-600 uppercase font-semibold">No Matching Legends</div>
+                      <div className="text-center py-4 text-xs text-gray-500 uppercase font-semibold">No Matching Legends</div>
                     )}
                   </div>
 
@@ -1072,13 +1072,13 @@ export default function DreamTeam() {
                               key={id}
                               disabled={loadingPrimeId !== null}
                               onClick={() => selectPlayerForDraft(player)}
-                              className="group flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900 p-2.5 transition hover:border-orange-500/40 text-left"
+                              className="group flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/40 hover:bg-gray-900 p-2.5 transition hover:border-orange-500/40 text-left"
                             >
                               <div className="flex items-center gap-3">
                                 <img
                                   src={getPlayerHeadshotUrl(id)}
                                   alt=""
-                                  className="h-10 w-10 rounded-full bg-zinc-800 object-cover border border-zinc-700"
+                                  className="h-10 w-10 rounded-full bg-gray-900 object-cover border border-gray-800"
                                   onError={(e) => {
                                     (e.target as HTMLImageElement).src = 'https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png';
                                   }}
@@ -1087,7 +1087,7 @@ export default function DreamTeam() {
                                   <div className="text-sm font-semibold text-white group-hover:text-orange-400 transition-colors">
                                     {getPlayerName(player)}
                                   </div>
-                                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+                                  <div className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
                                     {(player.POSITION || player.position || 'N/A')} &bull; PTS: {player.PTS || 0}
                                   </div>
                                 </div>
@@ -1095,14 +1095,14 @@ export default function DreamTeam() {
                               {loadingPrimeId === id ? (
                                 <RefreshCw size={15} className="animate-spin text-orange-500" />
                               ) : (
-                                <ArrowRight size={14} className="text-zinc-500 group-hover:text-orange-400 transition" />
+                                <ArrowRight size={14} className="text-gray-500 group-hover:text-orange-400 transition" />
                               )}
                             </button>
                           );
                         })}
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-xs text-zinc-600 uppercase font-semibold">No Matching Roster Players</div>
+                      <div className="text-center py-4 text-xs text-gray-500 uppercase font-semibold">No Matching Roster Players</div>
                     )}
                   </div>
                 </div>
@@ -1113,17 +1113,17 @@ export default function DreamTeam() {
             {phase === 'search' && (
               <div className="flex-1 flex flex-col min-h-0 z-10">
                 <div className="mb-4">
-                  <p className="text-xs text-zinc-400">Search the entire league database to draft any player directly.</p>
+                  <p className="text-xs text-gray-500">Search the entire league database to draft any player directly.</p>
                 </div>
 
                 <label className="relative block mb-4">
-                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                   <input
                     autoFocus
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Search player name..."
-                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900 py-3 pl-11 pr-4 text-xs text-white outline-none focus:border-orange-500"
+                    className="w-full rounded-xl border border-gray-800 bg-gray-900 py-3 pl-11 pr-4 text-xs text-white outline-none focus:border-orange-500"
                   />
                 </label>
 
@@ -1135,12 +1135,12 @@ export default function DreamTeam() {
                         key={id}
                         onClick={() => selectPlayerForDraft(player)}
                         disabled={loadingPrimeId !== null}
-                        className="group flex w-full items-center justify-between rounded-xl border border-zinc-850 bg-zinc-900/30 p-2.5 text-left transition hover:border-orange-500/40 hover:bg-zinc-900"
+                        className="group flex w-full items-center justify-between rounded-xl border border-gray-800 bg-gray-900/30 p-2.5 text-left transition hover:border-orange-500/40 hover:bg-gray-900"
                       >
                         <div className="flex items-center gap-3">
                           <img
                             src={getPlayerHeadshotUrl(id)}
-                            className="h-10 w-10 rounded-full bg-zinc-800 object-cover border border-zinc-700"
+                            className="h-10 w-10 rounded-full bg-gray-900 object-cover border border-gray-800"
                             alt=""
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = 'https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png';
@@ -1150,7 +1150,7 @@ export default function DreamTeam() {
                             <div className="text-sm font-semibold text-white group-hover:text-orange-400 transition-colors">
                               {getPlayerName(player)}
                             </div>
-                            <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+                            <div className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
                               {player.TEAM_ABBREVIATION || 'NBA'} &bull; Career Prime season lookup
                             </div>
                           </div>
@@ -1158,20 +1158,20 @@ export default function DreamTeam() {
                         {loadingPrimeId === id ? (
                           <RefreshCw size={15} className="animate-spin text-orange-500" />
                         ) : (
-                          <ArrowRight size={14} className="text-zinc-500 group-hover:text-orange-400 transition" />
+                          <ArrowRight size={14} className="text-gray-500 group-hover:text-orange-400 transition" />
                         )}
                       </button>
                     );
                   })}
 
                   {search.trim() && filteredPlayers.length === 0 && (
-                    <div className="py-12 text-center text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                    <div className="py-12 text-center text-xs font-semibold uppercase tracking-widest text-gray-500">
                       No matching players found
                     </div>
                   )}
 
                   {!search.trim() && (
-                    <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-xs text-zinc-500">
+                    <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-xs text-gray-500">
                       <User size={32} className="opacity-30" />
                       Search a player, then the app will auto-locate their prime stats.
                     </div>
@@ -1180,7 +1180,7 @@ export default function DreamTeam() {
 
                 <button
                   onClick={() => setPhase('spin')}
-                  className="mt-4 w-full rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-400 transition"
+                  className="mt-4 w-full rounded-xl bg-gray-900 hover:bg-gray-900 border border-gray-800 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 transition"
                 >
                   Return to Spinning Wheel
                 </button>
@@ -1271,11 +1271,11 @@ function TeamPanel({ team, roster, score, activePick, onPick, onRemove }: {
   return (
     <section className="space-y-4">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gray-900/60 border border-gray-800">
         <div>
           <h3 className="text-xl font-bold uppercase tracking-tight text-white">{TEAM_LABELS[team]}</h3>
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-[11px] text-zinc-400 uppercase tracking-widest font-semibold">POWER rating</span>
+            <span className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold">POWER rating</span>
             <div className={`px-2 py-0.5 rounded text-xs font-bold border ${gradeColorClass}`}>
               {score.overall} ({overallGrade})
             </div>
@@ -1297,12 +1297,12 @@ function TeamPanel({ team, roster, score, activePick, onPick, onRemove }: {
           return player && player.prime ? (
             <div 
               key={position} 
-              className="group relative flex items-center gap-3.5 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-3.5 transition hover:border-orange-500/50"
+              className="group relative flex items-center gap-3.5 rounded-2xl border border-gray-800 bg-gray-900/30 p-3.5 transition hover:border-orange-500/50"
             >
               {/* Trash button */}
               <button
                 onClick={() => onRemove(team, position)}
-                className="absolute right-2.5 top-2.5 rounded-lg p-1.5 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-400"
+                className="absolute right-2.5 top-2.5 rounded-lg p-1.5 text-gray-500 transition hover:bg-red-500/10 hover:text-red-400"
                 aria-label={`Remove ${player.name}`}
               >
                 <Trash2 size={14} />
@@ -1313,12 +1313,12 @@ function TeamPanel({ team, roster, score, activePick, onPick, onRemove }: {
                 <img 
                   src={getPlayerHeadshotUrl(player.id)} 
                   alt="" 
-                  className="h-16 w-16 rounded-xl bg-zinc-800 object-cover border border-zinc-700" 
+                  className="h-16 w-16 rounded-xl bg-gray-900 object-cover border border-gray-800" 
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png';
                   }}
                 />
-                <span className="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-bold text-orange-400 border border-zinc-700">
+                <span className="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-[10px] font-bold text-orange-400 border border-gray-800">
                   {position}
                 </span>
               </div>
@@ -1330,7 +1330,7 @@ function TeamPanel({ team, roster, score, activePick, onPick, onRemove }: {
                     {player.prime.season}
                   </span>
                   {player.prime.estimated && (
-                    <span className="text-[8px] font-semibold text-zinc-500 uppercase tracking-wider px-1 bg-zinc-800 rounded">
+                    <span className="text-[8px] font-semibold text-gray-500 uppercase tracking-wider px-1 bg-gray-900 rounded">
                       EST.
                     </span>
                   )}
@@ -1340,15 +1340,15 @@ function TeamPanel({ team, roster, score, activePick, onPick, onRemove }: {
                 </div>
                 
                 {/* Stats row */}
-                <div className="mt-1.5 grid grid-cols-3 gap-2 text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-                  <div className="bg-zinc-900/40 px-2 py-0.5 rounded text-center">
-                    <span className="text-zinc-500 mr-0.5">P:</span> {player.prime.pts || 0}
+                <div className="mt-1.5 grid grid-cols-3 gap-2 text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
+                  <div className="bg-gray-900/40 px-2 py-0.5 rounded text-center">
+                    <span className="text-gray-500 mr-0.5">P:</span> {player.prime.pts || 0}
                   </div>
-                  <div className="bg-zinc-900/40 px-2 py-0.5 rounded text-center">
-                    <span className="text-zinc-500 mr-0.5">R:</span> {player.prime.reb || 0}
+                  <div className="bg-gray-900/40 px-2 py-0.5 rounded text-center">
+                    <span className="text-gray-500 mr-0.5">R:</span> {player.prime.reb || 0}
                   </div>
-                  <div className="bg-zinc-900/40 px-2 py-0.5 rounded text-center">
-                    <span className="text-zinc-500 mr-0.5">A:</span> {player.prime.ast || 0}
+                  <div className="bg-gray-900/40 px-2 py-0.5 rounded text-center">
+                    <span className="text-gray-500 mr-0.5">A:</span> {player.prime.ast || 0}
                   </div>
                 </div>
               </div>
@@ -1360,10 +1360,10 @@ function TeamPanel({ team, roster, score, activePick, onPick, onRemove }: {
               className={`flex min-h-[92px] flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center transition ${
                 isActiveDrafting
                   ? 'border-orange-500 bg-orange-950/5 text-orange-400 scale-[1.01] shadow-lg shadow-orange-500/5'
-                  : 'border-zinc-800 bg-zinc-950/20 text-zinc-500 hover:border-zinc-700 hover:bg-zinc-900/40'
+                  : 'border-gray-800 bg-gray-900/20 text-gray-500 hover:border-gray-800 hover:bg-gray-900/40'
               }`}
             >
-              <Plus size={20} className={`mb-1.5 transition-transform ${isActiveDrafting ? 'animate-bounce text-orange-500' : 'text-zinc-500'}`} />
+              <Plus size={20} className={`mb-1.5 transition-transform ${isActiveDrafting ? 'animate-bounce text-orange-500' : 'text-gray-500'}`} />
               <span className="text-[10px] font-bold uppercase tracking-[0.25em]">
                 {isActiveDrafting ? 'SELECTING...' : `+ ${position}`}
               </span>
@@ -1417,9 +1417,9 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
   const mostAstPlayer = [...sorted].sort((a, b) => b.ast - a.ast)[0];
 
   return (
-    <section className="space-y-6 rounded-3xl border border-zinc-800 bg-zinc-950 p-6 shadow-xl relative overflow-hidden">
+    <section className="space-y-6 rounded-3xl border border-gray-800 bg-gray-900 p-6 shadow-xl relative overflow-hidden">
       {/* Broadcast Scoreboard Header */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-zinc-900 pb-6">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-gray-800 pb-6">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-950/30 border border-rose-500/20 text-rose-400 text-[10px] uppercase font-bold tracking-widest">
             <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
@@ -1433,7 +1433,7 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
               </span>
             </div>
             
-            <div className="text-zinc-600 text-3xl font-extralight">&mdash;</div>
+            <div className="text-gray-500 text-3xl font-extralight">&mdash;</div>
             
             <div className="flex flex-col">
               <span className="text-4xl sm:text-5xl font-black text-white tracking-tighter">
@@ -1442,7 +1442,7 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
             </div>
           </div>
           
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-gray-500">
             {result.winner === 'OT' 
               ? 'Dead even after regulation. Settled in sudden death Overtime.' 
               : `Winner: ${TEAM_LABELS[result.winner]} (Tempo: ${result.pace} possessions).`
@@ -1452,10 +1452,10 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
 
         {/* Live Commentary Notes */}
         <div className="w-full lg:max-w-md space-y-2.5">
-          <div className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Match Analysis</div>
-          <div className="grid grid-cols-1 gap-2 text-xs text-zinc-300">
+          <div className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Match Analysis</div>
+          <div className="grid grid-cols-1 gap-2 text-xs text-gray-500">
             {result.notes.map((note, idx) => (
-              <div key={idx} className="flex gap-2 rounded-xl bg-zinc-900/50 border border-zinc-850 p-3 leading-normal">
+              <div key={idx} className="flex gap-2 rounded-xl bg-gray-900/50 border border-gray-800 p-3 leading-normal">
                 <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5" />
                 <span>{note}</span>
               </div>
@@ -1471,8 +1471,8 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
       </div>
 
       {/* Game MVP & Leaders Banner */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
-        <div className="mb-4 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Game Leaders & MVP</div>
+      <div className="rounded-2xl border border-gray-800 bg-gray-900/20 p-5">
+        <div className="mb-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Game Leaders & MVP</div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <LeaderCard label="Points Leader" line={mostPtsPlayer} value={mostPtsPlayer?.pts} valueSuffix="PTS" />
           <LeaderCard label="Rebounds Leader" line={mostRebPlayer} value={mostRebPlayer?.reb} valueSuffix="REB" />
@@ -1486,11 +1486,11 @@ function SimulationPanel({ result }: { result: SimulationResult }) {
 // Redesigned BoxScore Table
 function BoxScore({ title, lines }: { title: string; lines: PlayerLine[] }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/20">
-      <div className="border-b border-zinc-800 bg-zinc-900/60 px-4 py-3 text-xs font-bold uppercase tracking-widest text-zinc-400">{title}</div>
+    <div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/20">
+      <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-3 text-xs font-bold uppercase tracking-widest text-gray-500">{title}</div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[700px] text-left text-xs">
-          <thead className="border-b border-zinc-850 text-[10px] uppercase font-bold tracking-widest text-zinc-500">
+          <thead className="border-b border-gray-800 text-[10px] uppercase font-bold tracking-widest text-gray-500">
             <tr>
               <th className="px-4 py-3.5">Player</th>
               <th>MIN</th>
@@ -1508,19 +1508,19 @@ function BoxScore({ title, lines }: { title: string; lines: PlayerLine[] }) {
           </thead>
           <tbody className="divide-y divide-zinc-900/60 font-medium">
             {lines.map(line => (
-              <tr key={line.player.id} className="hover:bg-zinc-900/20 transition-colors">
+              <tr key={line.player.id} className="hover:bg-gray-900/20 transition-colors">
                 <td className="px-4 py-3.5 font-bold text-white">{line.player.name}</td>
-                <td className="text-zinc-400">{line.min}</td>
+                <td className="text-gray-500">{line.min}</td>
                 <td className="font-extrabold text-orange-500 text-sm">{line.pts}</td>
-                <td className="text-zinc-300">{line.reb}</td>
-                <td className="text-zinc-300">{line.ast}</td>
-                <td className="text-zinc-400">{line.stl}</td>
-                <td className="text-zinc-400">{line.blk}</td>
-                <td className="text-zinc-500">{line.tov}</td>
-                <td className="text-zinc-400">{line.fgm}-{line.fga}</td>
-                <td className="text-zinc-400">{line.fg3m}-{line.fg3a}</td>
-                <td className="text-zinc-400">{line.ftm}-{line.fta}</td>
-                <td className={`pr-4 font-bold ${line.plusMinus > 0 ? 'text-emerald-500' : line.plusMinus < 0 ? 'text-rose-500' : 'text-zinc-500'}`}>
+                <td className="text-gray-500">{line.reb}</td>
+                <td className="text-gray-500">{line.ast}</td>
+                <td className="text-gray-500">{line.stl}</td>
+                <td className="text-gray-500">{line.blk}</td>
+                <td className="text-gray-500">{line.tov}</td>
+                <td className="text-gray-500">{line.fgm}-{line.fga}</td>
+                <td className="text-gray-500">{line.fg3m}-{line.fg3a}</td>
+                <td className="text-gray-500">{line.ftm}-{line.fta}</td>
+                <td className={`pr-4 font-bold ${line.plusMinus > 0 ? 'text-emerald-500' : line.plusMinus < 0 ? 'text-rose-500' : 'text-gray-500'}`}>
                   {line.plusMinus > 0 ? `+${line.plusMinus}` : line.plusMinus}
                 </td>
               </tr>
@@ -1541,12 +1541,12 @@ function TinyGrade({ label, value, grade }: { label: string; value: number; grad
     return 'text-red-400';
   };
   return (
-    <div className="rounded-xl bg-zinc-900 border border-zinc-800 px-3 py-2.5">
+    <div className="rounded-xl bg-gray-900 border border-gray-800 px-3 py-2.5">
       <div className="flex items-baseline justify-center gap-1">
         <span className="text-sm font-bold text-white">{value}</span>
         <span className={`text-[10px] font-black ${getGradeColor(grade)}`}>{grade}</span>
       </div>
-      <div className="text-[9px] font-semibold uppercase tracking-widest text-zinc-500 mt-0.5">{label}</div>
+      <div className="text-[9px] font-semibold uppercase tracking-widest text-gray-500 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -1554,12 +1554,12 @@ function TinyGrade({ label, value, grade }: { label: string; value: number; grad
 // Redesigned InfoTile
 function InfoTile({ icon, label, value }: { icon: JSX.Element; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4 hover:border-zinc-700 transition-colors">
+    <div className="flex items-center gap-4 rounded-2xl border border-gray-800 bg-gray-900/30 p-4 hover:border-gray-800 transition-colors">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-600/10 text-orange-500 border border-orange-500/15">
         {icon}
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">{label}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">{label}</div>
         <div className="truncate text-base font-bold text-white mt-0.5 uppercase tracking-tight">{value}</div>
       </div>
     </div>
@@ -1569,26 +1569,26 @@ function InfoTile({ icon, label, value }: { icon: JSX.Element; label: string; va
 // Redesigned LeaderCard with Player Headshot support
 function LeaderCard({ label, line, value, valueSuffix }: { label: string; line?: PlayerLine; value?: number; valueSuffix: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-zinc-850 bg-zinc-900/60 p-3.5">
+    <div className="flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900/60 p-3.5">
       {line?.player.id ? (
         <img 
           src={getPlayerHeadshotUrl(line.player.id)} 
           alt="" 
-          className="h-12 w-12 rounded-full object-cover bg-zinc-800 border border-zinc-700 shrink-0"
+          className="h-12 w-12 rounded-full object-cover bg-gray-900 border border-gray-800 shrink-0"
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://cdn.nba.com/headshots/nba/latest/260x190/fallback.png';
           }}
         />
       ) : (
-        <div className="h-12 w-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
-          <User size={20} className="text-zinc-600" />
+        <div className="h-12 w-12 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center shrink-0">
+          <User size={20} className="text-gray-500" />
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <div className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">{label}</div>
+        <div className="text-[9px] font-bold uppercase tracking-widest text-gray-500">{label}</div>
         <div className="truncate text-sm font-bold text-white uppercase mt-0.5">{line?.player.name || '--'}</div>
         <div className="text-base font-black text-orange-500 mt-0.5">
-          {value ?? 0} <span className="text-[10px] text-zinc-500 font-bold">{valueSuffix}</span>
+          {value ?? 0} <span className="text-[10px] text-gray-500 font-bold">{valueSuffix}</span>
         </div>
       </div>
     </div>

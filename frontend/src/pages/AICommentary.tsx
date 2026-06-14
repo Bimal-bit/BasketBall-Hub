@@ -125,7 +125,7 @@ export default function AICommentary() {
           <h3 className="text-sm font-medium text-white mb-3">Generated Summaries</h3>
           <div className="space-y-3">
             {commentaries.map(c => (
-              <div key={c.gameId} className="bg-white dark:bg-zinc-900 border border-orange-500/20 rounded-xl p-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
+              <div key={c.gameId} className="bg-gray-900 border border-orange-500/20 rounded-xl p-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-md bg-orange-500/10 flex items-center justify-center">
@@ -177,7 +177,7 @@ export default function AICommentary() {
             const topName = topStat ? players.get(topStat.player_id)?.name : undefined;
 
             return (
-              <div key={game.game_id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
+              <div key={game.game_id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <TeamBadge team={away} />
@@ -212,7 +212,7 @@ export default function AICommentary() {
       </div>
 
       {/* Example templates */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-xl p-4">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
         <h3 className="text-sm font-medium text-white mb-3">Commentary Templates</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[

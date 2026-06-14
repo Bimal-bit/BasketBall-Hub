@@ -7,8 +7,11 @@ export default {
       colors: {
         'nba-navy': '#0A1628',
         'nba-navy-mid': '#1A2E4A',
-        'nba-orange': '#C9540A',
+        'nba-orange': '#F97316', // Update brand orange to #F97316
         'nba-orange-light': '#FEF0E8',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
       },
     },
   },

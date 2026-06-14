@@ -83,15 +83,15 @@ export default function TradeMachine() {
 
   return (
     <div className="w-full space-y-5 sm:space-y-6">
-      <div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900/40 p-4 sm:p-6">
+      <div className="rounded-3xl border border-gray-800 bg-gray-950 p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 border-[0.5px] mb-4">
-          <h1 className="text-base font-medium text-zinc-900 dark:text-white">Trade tools</h1>
-          <p className="text-xs text-zinc-500">Build two-team trades with live rosters, salary checks, and asset estimates</p>
+        <div className="p-4 border-b border-gray-800 mb-4">
+          <h1 className="text-base font-medium text-gray-500 text-white">Trade tools</h1>
+          <p className="text-xs text-gray-500">Build two-team trades with live rosters, salary checks, and asset estimates</p>
         </div>
         <div className="relative w-full lg:w-72">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search roster" className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50" />
+          <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search roster" className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50" />
         </div>
       </div>
       </div>
@@ -99,7 +99,7 @@ export default function TradeMachine() {
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px_minmax(0,1fr)] gap-4 items-start">
         <TeamTradePanel team={leftTeam} teams={teamOptions} selectedTeamId={leftTeamId} onTeamChange={setLeftTeamId} roster={filteredLeft} selected={leftSelected} onToggle={id => toggleSelected(id, leftSelected, setLeftSelected)} picks={draftPicks[leftTeamId] || []} selectedPicks={leftPicks} onTogglePick={id => toggleSelected(id, leftPicks, setLeftPicks)} />
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-3xl p-4 space-y-4 order-first xl:order-none xl:sticky xl:top-24">
+        <div className="bg-gray-900 border border-gray-800 rounded-3xl p-4 space-y-4 order-first xl:order-none xl:sticky xl:top-24">
           <div className="flex items-center justify-center">
             <div className="h-12 w-12 rounded-full bg-orange-500/15 text-orange-300 flex items-center justify-center border border-orange-500/30">
               <ArrowLeftRight size={22} />
@@ -134,22 +134,22 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
   team: TeamOption; teams: TeamOption[]; selectedTeamId: number; onTeamChange: (id: number) => void; roster: Player[]; selected: number[]; onToggle: (id: number) => void; picks: DraftPick[]; selectedPicks: string[]; onTogglePick: (id: string) => void;
 }) {
   return (
-    <div className="min-w-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-3xl p-4 sm:p-5">
+    <div className="min-w-0 bg-gray-900 border border-gray-800 rounded-3xl p-4 sm:p-5">
       <div className="flex items-center gap-3 mb-4">
-        <div className="h-12 w-12 rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-white dark:bg-zinc-900 p-1.5 shrink-0">
+        <div className="h-12 w-12 rounded-2xl border border-gray-800 bg-gray-900 p-1.5 shrink-0">
           <img src={getTeamLogoUrl(team.id)} alt={team.abbr} className="h-full w-full object-contain" />
         </div>
-        <select value={selectedTeamId} onChange={event => onTeamChange(Number(event.target.value))} className="w-full min-w-0 flex-1 rounded-lg border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-gray-800 px-3 py-2 text-sm text-white outline-none focus:border-orange-500">
+        <select value={selectedTeamId} onChange={event => onTeamChange(Number(event.target.value))} className="w-full min-w-0 flex-1 rounded-lg border border-gray-800 bg-gray-800 px-3 py-2 text-sm text-white outline-none focus:border-orange-500">
           {teams.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
         </select>
       </div>
-      <div className="mb-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 border-[0.5px] bg-gray-800/30 p-3">
+      <div className="mb-4 rounded-2xl border border-gray-800 bg-gray-800/30 p-3">
         <div className="text-xs font-medium text-white mb-2 flex items-center gap-2"><Ticket size={13} className="text-orange-400" />Draft Picks</div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
           {picks.map(pick => {
             const checked = selectedPicks.includes(pick.id);
             return (
-              <button key={pick.id} onClick={() => onTogglePick(pick.id)} className={`w-full min-w-0 flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${checked ? 'bg-orange-500/10 border-orange-500/40 shadow-none' : 'bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}>
+              <button key={pick.id} onClick={() => onTogglePick(pick.id)} className={`w-full min-w-0 flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${checked ? 'bg-orange-500/10 border-orange-500/40 shadow-none' : 'bg-gray-900/50 border-gray-800 hover:border-gray-800'}`}>
                 <div>
                   <div className="text-xs font-medium text-white">{pick.label}</div>
                   <div className="text-[10px] text-gray-500">{pick.protection}</div>
@@ -166,8 +166,8 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
           const playerId = getPlayerId(player);
           const checked = selected.includes(playerId);
           return (
-            <button key={`${team.id}-${playerId}`} onClick={() => onToggle(playerId)} className={`w-full min-w-0 flex items-center gap-3 p-3 rounded-2xl border text-left transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${checked ? 'bg-orange-500/10 border-orange-500/40 shadow-none' : 'bg-gray-800/40 border-zinc-200 dark:border-zinc-800 border-[0.5px] hover:border-zinc-200 dark:border-zinc-800 border-[0.5px]'}`}>
-              <img src={getPlayerHeadshotUrl(playerId)} alt="" className="h-10 w-10 rounded-full object-cover object-top bg-white dark:bg-zinc-900" />
+            <button key={`${team.id}-${playerId}`} onClick={() => onToggle(playerId)} className={`w-full min-w-0 flex items-center gap-3 p-3 rounded-2xl border text-left transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${checked ? 'bg-orange-500/10 border-orange-500/40 shadow-none' : 'bg-gray-800/40 border-gray-800 hover:border-gray-800'}`}>
+              <img src={getPlayerHeadshotUrl(playerId)} alt="" className="h-10 w-10 rounded-full object-cover object-top bg-gray-900" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-white truncate">{getPlayerName(player)}</div>
                 <div className="text-xs text-gray-500">{player.POSITION || 'G/F'} / ${getSalary(player).toFixed(1)}M<span className="text-[10px] ml-1 text-gray-400">*</span></div>
@@ -187,7 +187,7 @@ function TeamTradePanel({ team, teams, selectedTeamId, onTeamChange, roster, sel
 
 function PackageSummary({ title, players, picks, salary, impact }: { title: string; players: Player[]; picks: DraftPick[]; salary: number; impact: number }) {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 border-[0.5px] rounded-3xl p-4">
+    <div className="bg-gray-900 border border-gray-800 rounded-3xl p-4">
       <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2"><Repeat2 size={14} className="text-orange-400" />{title}</h3>
       <div className="grid grid-cols-3 gap-2 mb-3">
         <MiniStat label="Assets" value={players.length + picks.length} />
