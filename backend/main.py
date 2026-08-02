@@ -13,6 +13,8 @@ import numpy as np
 import requests
 from nba_api.stats.library.http import NBAStatsHTTP
 
+NBA_API_TIMEOUT = int(os.getenv("NBA_API_TIMEOUT", "12"))
+
 # NBA Stats Headers to avoid 403 Forbidden
 NBA_HEADERS = {
     "Host": "stats.nba.com",
@@ -27,11 +29,12 @@ NBA_HEADERS = {
 class DefaultTimeoutSession(requests.Session):
     def request(self, method, url, *args, **kwargs):
         if 'timeout' not in kwargs or kwargs['timeout'] is None:
-            kwargs['timeout'] = 10  # default 10 seconds timeout
+            kwargs['timeout'] = NBA_API_TIMEOUT
         return super().request(method, url, *args, **kwargs)
 
 # Apply headers and custom session globally to all nba_api requests
 NBAStatsHTTP.default_headers = NBA_HEADERS
+NBAStatsHTTP.timeout = NBA_API_TIMEOUT
 NBAStatsHTTP.set_session(DefaultTimeoutSession())
 
 app = FastAPI(title="NBA Intelligence API")
@@ -149,7 +152,61 @@ def risk_level_from_score(score):
         return "medium"
     return "low"
 
-def cached(duration=60, ttl=None):
+EAST_TEAM_IDS = {
+    1610612737, 1610612738, 1610612739, 1610612741,
+    1610612748, 1610612749, 1610612751, 1610612752, 1610612753,
+    1610612754, 1610612755, 1610612761, 1610612764, 1610612765,
+    1610612766,
+}
+
+def fallback_standings():
+    rows = []
+    for team in nba_teams.get_teams():
+        team_id = team.get("id")
+        rows.append({
+            "TeamID": team_id,
+            "TeamCity": team.get("city", ""),
+            "TeamName": team.get("nickname", ""),
+            "Conference": "East" if team_id in EAST_TEAM_IDS else "West",
+            "Wins": 0,
+            "Losses": 0,
+            "WinPCT": 0,
+            "L10Rec": "0-0",
+            "Strk": "",
+            "source": "fallback",
+        })
+    return rows
+
+def fallback_player_info(player_id):
+    player = nba_players.find_player_by_id(player_id) or {}
+    return {
+        "PERSON_ID": player_id,
+        "DISPLAY_FIRST_LAST": player.get("full_name", "Unknown Player"),
+        "FROM_YEAR": None,
+        "TO_YEAR": None,
+        "source": "fallback",
+    }
+
+def fallback_player_profile(player_id):
+    player = nba_players.find_player_by_id(player_id) or {}
+    return {
+        "id": player_id,
+        "name": player.get("full_name", "Unknown Player"),
+        "height": "N/A",
+        "weight": "N/A",
+        "school": "N/A",
+        "country": "N/A",
+        "draft_year": "N/A",
+        "draft_round": "N/A",
+        "draft_pick": "N/A",
+        "position": "N/A",
+        "from_year": "N/A",
+        "to_year": "N/A",
+        "seasons": [],
+        "source": "fallback",
+    }
+
+def cached(duration=60, ttl=None, fallback=None):
     if ttl is not None:
         duration = ttl
 
@@ -183,6 +240,14 @@ def cached(duration=60, ttl=None):
                 print(f"Error in {func.__name__}: {e}")
                 if key in cache:
                     return cache[key]["data"]
+                if fallback is not None:
+                    data = fallback(*args, **kwargs) if callable(fallback) else fallback
+                    cache[key] = {
+                        "data": data,
+                        "expiry": now + min(duration, 300)
+                    }
+                    save_persistent_cache(cache)
+                    return data
                 raise HTTPException(status_code=500, detail=str(e))
         return wrapper
     return decorator
@@ -1024,31 +1089,35 @@ async def get_awards():
     return NBA_AWARDS_DATA
 
 @app.get("/api/standings")
-@cached(duration=3600) # Cache for 1 hour
+@cached(duration=3600, fallback=lambda *_, **__: fallback_standings()) # Cache for 1 hour
 def get_standings(season: str = None, season_type: str = "Regular Season"):
-    target_season = season or current_nba_season()
-    # Sanitize season string
-    clean_season = target_season.split(' (')[0]
-    
-    # `leaguestandingsv3` does not reliably support a Playoffs season_type.
-    # Use regular-season standings data for bracket rendering in the frontend.
-    api_season_type = "Regular Season" if season_type == "Playoffs" else season_type
-    
-    s = leaguestandingsv3.LeagueStandingsV3(season=clean_season, season_type=api_season_type)
-    data = s.get_dict()['resultSets'][0]['rowSet']
-    headers = s.get_dict()['resultSets'][0]['headers']
-    df = pd.DataFrame(data, columns=headers)
-    
-    # Map headers to match frontend expectations
-    rename_map = {
-        'WINS': 'Wins',
-        'LOSSES': 'Losses',
-        'L10': 'L10Rec',
-        'strCurrentStreak': 'Strk'
-    }
-    df = df.rename(columns=rename_map)
-    
-    return clean_df(df)
+    try:
+        target_season = season or current_nba_season()
+        # Sanitize season string
+        clean_season = target_season.split(' (')[0]
+        
+        # `leaguestandingsv3` does not reliably support a Playoffs season_type.
+        # Use regular-season standings data for bracket rendering in the frontend.
+        api_season_type = "Regular Season" if season_type == "Playoffs" else season_type
+        
+        s = leaguestandingsv3.LeagueStandingsV3(season=clean_season, season_type=api_season_type, timeout=NBA_API_TIMEOUT)
+        data = s.get_dict()['resultSets'][0]['rowSet']
+        headers = s.get_dict()['resultSets'][0]['headers']
+        df = pd.DataFrame(data, columns=headers)
+        
+        # Map headers to match frontend expectations
+        rename_map = {
+            'WINS': 'Wins',
+            'LOSSES': 'Losses',
+            'L10': 'L10Rec',
+            'strCurrentStreak': 'Strk'
+        }
+        df = df.rename(columns=rename_map)
+        
+        return clean_df(df)
+    except Exception as e:
+        print(f"Standings upstream error; serving fallback: {e}")
+        return fallback_standings()
 
 @app.get("/api/players/top")
 @cached(duration=3600) # Cache for 1 hour
@@ -1137,7 +1206,8 @@ async def get_fatigue_report(team_id: int = None, season: str = None):
                 log = leaguegamelog.LeagueGameLog(
                     season=clean_season,
                     season_type_all_star=season_type,
-                    player_or_team_abbreviation='P'
+                    player_or_team_abbreviation='P',
+                    timeout=NBA_API_TIMEOUT
                 )
                 log_df = log.get_data_frames()[0]
                 if not log_df.empty:
@@ -1256,10 +1326,10 @@ async def search_players(query: str):
     return results[:10]
 
 @app.get("/api/player/{player_id}")
-@cached(duration=86400)
+@cached(duration=86400, fallback=lambda player_id: fallback_player_info(player_id))
 async def get_player_info(player_id: int):
     try:
-        info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+        info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, timeout=NBA_API_TIMEOUT)
         data = info.get_dict()['resultSets'][0]
         headers = data['headers']
         row = data['rowSet'][0]
@@ -1348,24 +1418,26 @@ def get_game_team_stats(game_id: str):
 def get_player_shots(player_id: int, game_id: str):
     try:
         # We need team_id for shotchartdetail, or use 0 for all
-        shots = shotchartdetail.ShotChartDetail(player_id=player_id, game_id_nullable=game_id, team_id=0, context_measure_simple='FGA', timeout=30)
+        shots = shotchartdetail.ShotChartDetail(player_id=player_id, game_id_nullable=game_id, team_id=0, context_measure_simple='FGA', timeout=NBA_API_TIMEOUT)
         data = shots.shot_chart_detail.get_dict()
         headers = data['headers']
         rows = data['data']
         return [dict(zip(headers, r)) for r in rows]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Player shots upstream error; serving fallback: {e}")
+        return []
 
 @app.get("/api/team/{team_id}/shots/{game_id}")
 def get_team_shots(team_id: int, game_id: str):
     try:
-        shots = shotchartdetail.ShotChartDetail(player_id=0, game_id_nullable=game_id, team_id=team_id, context_measure_simple='FGA', timeout=30)
+        shots = shotchartdetail.ShotChartDetail(player_id=0, game_id_nullable=game_id, team_id=team_id, context_measure_simple='FGA', timeout=NBA_API_TIMEOUT)
         data = shots.shot_chart_detail.get_dict()
         headers = data['headers']
         rows = data['data']
         return [dict(zip(headers, r)) for r in rows]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Team shots upstream error; serving fallback: {e}")
+        return []
 
 @app.get("/api/player/{player_id}/averages")
 @cached(ttl=3600)
@@ -1374,7 +1446,7 @@ def get_player_averages(player_id: int, season: str = None):
         from nba_api.stats.endpoints import playercareerstats, playergamelogs
         
         if season == "Lifetime":
-            career = playercareerstats.PlayerCareerStats(player_id=player_id)
+            career = playercareerstats.PlayerCareerStats(player_id=player_id, timeout=NBA_API_TIMEOUT)
             df = career.career_totals_regular_season.get_data_frame()
             if df.empty: return {}
             row = df.iloc[0].to_dict()
@@ -1406,7 +1478,7 @@ def get_player_averages(player_id: int, season: str = None):
         
         # Try Game Logs first for "Actual" current numbers
         try:
-            logs = playergamelogs.PlayerGameLogs(player_id_nullable=player_id, season_nullable=clean_season, season_type_nullable='Regular Season')
+            logs = playergamelogs.PlayerGameLogs(player_id_nullable=player_id, season_nullable=clean_season, season_type_nullable='Regular Season', timeout=NBA_API_TIMEOUT)
             df_logs = logs.get_data_frames()[0]
             if not df_logs.empty:
                 gp = len(df_logs)
@@ -1436,7 +1508,7 @@ def get_player_averages(player_id: int, season: str = None):
             print(f"Log aggregation failed: {e}")
 
         # Fallback to Career Stats
-        career = playercareerstats.PlayerCareerStats(player_id=player_id)
+        career = playercareerstats.PlayerCareerStats(player_id=player_id, timeout=NBA_API_TIMEOUT)
         df = career.get_data_frames()[0]
         season_df = df[df['SEASON_ID'] == clean_season]
         if season_df.empty: 
@@ -1502,7 +1574,7 @@ def get_player_detailed_stats(player_id: int, season: str = None):
         if not season:
             # Try to get the player's last active season
             try:
-                info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+                info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, timeout=NBA_API_TIMEOUT)
                 df_info = info.get_data_frames()[0]
                 if not df_info.empty:
                     to_year = str(df_info.iloc[0]['TO_YEAR'])
@@ -1548,7 +1620,7 @@ def get_all_players():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/profile")
-@cached(ttl=86400)
+@cached(ttl=86400, fallback=lambda player_id: fallback_player_profile(player_id))
 def get_player_profile(player_id: int):
     try:
         from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
@@ -1565,7 +1637,7 @@ def get_player_profile(player_id: int):
 
         info_df = pd.DataFrame()
         try:
-            info = commonplayerinfo.CommonPlayerInfo(player_id=player_id)
+            info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, timeout=NBA_API_TIMEOUT)
             info_df = info.get_data_frames()[0]
         except Exception as e:
             print(f"CommonPlayerInfo error for {player_id}: {e}")
@@ -1573,7 +1645,7 @@ def get_player_profile(player_id: int):
         row = info_df.iloc[0].to_dict() if not info_df.empty else {}
         
         try:
-            career = playercareerstats.PlayerCareerStats(player_id=player_id)
+            career = playercareerstats.PlayerCareerStats(player_id=player_id, timeout=NBA_API_TIMEOUT)
             career_df = career.get_data_frames()[0]
             if not career_df.empty:
                 player_seasons = set(career_df['SEASON_ID'].unique().tolist())
@@ -1656,7 +1728,8 @@ async def get_historical_games(season: str = None, season_type: str = "Regular S
         log = leaguegamelog.LeagueGameLog(
             season=clean_season,
             season_type_all_star=season_type,
-            player_or_team_abbreviation='T'
+            player_or_team_abbreviation='T',
+            timeout=NBA_API_TIMEOUT
         )
         df = log.get_data_frames()[0]
         if df.empty:
@@ -1720,18 +1793,18 @@ async def get_historical_games(season: str = None, season_type: str = "Regular S
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/playoffs")
-@cached(duration=86400) # Playoff structure changes rarely
+@cached(duration=86400, fallback=[]) # Playoff structure changes rarely
 async def get_playoffs(season: str = None):
     try:
         from nba_api.stats.endpoints import commonplayoffseries, leaguegamelog
         clean_season = (season or current_nba_season()).split(' (')[0]
         
         # 1. Get series structure
-        series_endpoint = commonplayoffseries.CommonPlayoffSeries(season=clean_season)
+        series_endpoint = commonplayoffseries.CommonPlayoffSeries(season=clean_season, timeout=NBA_API_TIMEOUT)
         series_df = series_endpoint.get_data_frames()[0]
         
         # 2. Get game results
-        log_endpoint = leaguegamelog.LeagueGameLog(season=clean_season, season_type_all_star='Playoffs')
+        log_endpoint = leaguegamelog.LeagueGameLog(season=clean_season, season_type_all_star='Playoffs', timeout=NBA_API_TIMEOUT)
         log_df = log_endpoint.get_data_frames()[0]
         
         # 3. Aggregate wins per series
@@ -1745,8 +1818,8 @@ async def get_playoffs(season: str = None):
         # Convert back to dict for cleaning
         return clean_df(merged)
     except Exception as e:
-        print(f"Playoffs error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Playoffs upstream error; serving fallback: {e}")
+        return []
 
 @app.get("/api/game/{game_id}/player/{player_id}/impact")
 @cached(duration=3600)
@@ -2016,7 +2089,7 @@ async def get_team_history(team_id: int, season: str):
             print(f"Player dashboard error (non-fatal): {pe}")
         
         # 4. Standings for rank
-        standings = leaguestandingsv3.LeagueStandingsV3(season=clean_season)
+        standings = leaguestandingsv3.LeagueStandingsV3(season=clean_season, timeout=NBA_API_TIMEOUT)
         standings_df = standings.get_data_frames()[0]
         team_standing = standings_df[standings_df['TeamID'] == team_id]
         

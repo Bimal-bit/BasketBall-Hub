@@ -8,6 +8,7 @@ import {
 } from './offlineFallback';
 
 const LOCAL_API_BASE_URL = 'http://127.0.0.1:8000/api';
+const LEGACY_TEMPLATE_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
 
 const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
@@ -19,8 +20,8 @@ let _lastReachabilityCheck = 0;
 const REACHABILITY_TTL = 30_000; // re-check every 30s
 
 function resolveApiBaseUrl() {
-  const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim();
-  if (configured) return configured.replace(/\/$/, '');
+  const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+  if (configured && configured !== LEGACY_TEMPLATE_API_BASE_URL) return configured;
   return import.meta.env.DEV ? LOCAL_API_BASE_URL : '';
 }
 
