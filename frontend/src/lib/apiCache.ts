@@ -8,17 +8,26 @@ const inFlight = new Map<string, Promise<unknown>>();
 
 const RETRY_DELAY_MS = 800;
 const MAX_RETRIES = 2;
+const DEFAULT_TIMEOUT_MS = 8_000;
+
+type CachedFetchOptions = RequestInit & {
+  timeoutMs?: number;
+};
 
 function delay(ms: number) {
   return new Promise(resolve => window.setTimeout(resolve, ms));
 }
 
-async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
+async function fetchJson<T>(url: string, options?: CachedFetchOptions): Promise<T> {
   let networkRetries = 0;
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, ...fetchOptions } = options || {};
 
   while (true) {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
     try {
-      const response = await fetch(url, options);
+      const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -31,11 +40,13 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
       return await response.json() as T;
     } catch (error) {
-      const isNetworkError = error instanceof TypeError;
+      const isNetworkError = error instanceof TypeError || (error instanceof DOMException && error.name === 'AbortError');
       if (!isNetworkError || networkRetries >= MAX_RETRIES) throw error;
 
       networkRetries += 1;
       await delay(RETRY_DELAY_MS);
+    } finally {
+      window.clearTimeout(timeout);
     }
   }
 }
@@ -43,7 +54,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 export async function cachedFetch<T>(
   url: string,
   ttlMs: number,
-  options?: RequestInit
+  options?: CachedFetchOptions
 ): Promise<T> {
   const method = options?.method?.toUpperCase() || 'GET';
   const cacheKey = `${method}:${url}`;

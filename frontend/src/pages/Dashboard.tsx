@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, RefreshCw, Trophy, X, Zap, Activity } from 'lucide-react';
+import { ChevronRight, Pin, RefreshCw, Trophy, X, Zap, Activity } from 'lucide-react';
 import {
   nbaApi,
   getPlayerHeadshotUrl,
@@ -55,6 +55,16 @@ type DashboardPlayer = {
 type DetailTab = 'Feed' | 'Game' | 'away' | 'home';
 
 const dayOffsets = [-1, 0, 1, 2, 3, 4];
+const PINNED_GAMES_KEY = 'nba-live-pinned-games';
+
+function readPinnedGames() {
+  try {
+    const raw = localStorage.getItem(PINNED_GAMES_KEY);
+    return raw ? JSON.parse(raw) as string[] : [];
+  } catch {
+    return [];
+  }
+}
 
 function LiveTicker({ games }: { games: Game[] }) {
   if (games.length === 0) return null;
@@ -118,6 +128,7 @@ export default function Dashboard() {
   const [playerImpact, setPlayerImpact] = useState<PlayerImpact | null>(null);
   const [playByPlay, setPlayByPlay] = useState<PlayByPlay[]>([]);
   const [dailyLeaders, setDailyLeaders] = useState<DashboardPlayer[]>([]);
+  const [pinnedGameIds, setPinnedGameIds] = useState<string[]>(() => readPinnedGames());
 
   const loadData = useCallback(async () => {
     setRefreshing(true);
@@ -138,6 +149,10 @@ export default function Dashboard() {
     const interval = window.setInterval(loadData, 5000);
     return () => window.clearInterval(interval);
   }, [loadData]);
+
+  useEffect(() => {
+    localStorage.setItem(PINNED_GAMES_KEY, JSON.stringify(pinnedGameIds));
+  }, [pinnedGameIds]);
 
   useEffect(() => {
     let cancelled = false;
@@ -317,6 +332,14 @@ export default function Dashboard() {
     }
   }
 
+  function togglePinnedGame(gameId: string) {
+    setPinnedGameIds(current => (
+      current.includes(gameId)
+        ? current.filter(id => id !== gameId)
+        : [gameId, ...current]
+    ));
+  }
+
   const teamsById = useMemo(() => Object.fromEntries(standings.map(team => [team.TeamID, team])), [standings]);
 
   // Body scroll lock when any modal is open
@@ -344,8 +367,15 @@ export default function Dashboard() {
   }, [games]);
 
   const featuredGames = useMemo(() => {
-    return [...filteredGames].sort((a, b) => statusOrder(a.status) - statusOrder(b.status)).slice(0, 6);
-  }, [filteredGames]);
+    const pinnedSet = new Set(pinnedGameIds);
+    const ordered = [...filteredGames].sort((a, b) => {
+      const pinnedDiff = Number(pinnedSet.has(b.game_id)) - Number(pinnedSet.has(a.game_id));
+      if (pinnedDiff !== 0) return pinnedDiff;
+      return statusOrder(a.status) - statusOrder(b.status);
+    });
+    const visibleCount = Math.max(6, ordered.filter(game => pinnedSet.has(game.game_id)).length);
+    return ordered.slice(0, visibleCount);
+  }, [filteredGames, pinnedGameIds]);
 
   const gameLeaders = useMemo(() => {
     if (dailyLeaders.length > 0) return dailyLeaders;
@@ -449,6 +479,8 @@ export default function Dashboard() {
               homeTeamName={game.home_team_name || teamsById[game.home_team_id]?.TeamName || game.home_team_abbreviation || 'Home'}
               onClick={() => handleGameClick(game)}
               isSelected={selectedGame?.game_id === game.game_id}
+              isPinned={pinnedGameIds.includes(game.game_id)}
+              onTogglePin={() => togglePinnedGame(game.game_id)}
             />
           ))}
         </div>
@@ -526,12 +558,14 @@ function SectionTitle({ title, action, onAction }: { title: string; action?: str
   );
 }
 
-function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
+function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected, isPinned, onTogglePin }: {
   game: Game;
   awayTeamName: string;
   homeTeamName: string;
   onClick: () => void;
   isSelected?: boolean;
+  isPinned?: boolean;
+  onTogglePin: () => void;
 }) {
   const isClose = game.status === 'live' && Math.abs(game.home_score - game.away_score) < 8;
   const homeProb = useMemo(() => {
@@ -545,10 +579,26 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
   return (
     <div
       onClick={onClick}
-      className={`group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-3xl border bg-gray-900 transition-transform duration-200 hover:scale-[1.02] hover:border-orange-500/50 hover:bg-gray-850 active:scale-[0.98] select-none ${isSelected ? 'border-orange-500' : 'border-gray-800'}`}
+      className={`group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-3xl border bg-gray-900 transition-transform duration-200 hover:scale-[1.02] hover:border-orange-500/50 hover:bg-gray-850 active:scale-[0.98] select-none ${isSelected || isPinned ? 'border-orange-500' : 'border-gray-800'}`}
     >
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onTogglePin();
+        }}
+        className={`absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
+          isPinned
+            ? 'border-orange-500 bg-orange-500 text-white'
+            : 'border-gray-800 bg-gray-950/90 text-gray-500 hover:border-orange-500/60 hover:text-orange-400'
+        }`}
+        aria-label={isPinned ? 'Unpin game from home scores' : 'Pin game to home scores'}
+        title={isPinned ? 'Unpin score' : 'Pin score'}
+      >
+        <Pin size={15} fill={isPinned ? 'currentColor' : 'none'} />
+      </button>
       {isClose && (
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-orange-600 px-2.5 py-1 rounded-full animate-pulse">
+        <div className="absolute top-4 right-16 z-10 flex items-center gap-1.5 bg-orange-600 px-2.5 py-1 rounded-full animate-pulse">
           <Zap size={10} className="text-white" fill="white" />
           <span className="text-[9px] font-bold uppercase text-white tracking-widest">Clutch</span>
         </div>
@@ -561,6 +611,12 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected }: {
             <div className="text-lg font-bold uppercase leading-none tracking-tight text-white transition-colors group-hover:text-orange-400">
               {game.away_team_abbreviation || 'AWAY'} @ {game.home_team_abbreviation || 'HOME'}
             </div>
+            {isPinned && (
+              <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-orange-400">
+                <Pin size={10} fill="currentColor" />
+                Pinned
+              </div>
+            )}
           </div>
           {!isClose && <Trophy className="shrink-0 text-gray-700" size={24} />}
         </div>

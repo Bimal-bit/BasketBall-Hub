@@ -1,50 +1,54 @@
 import { cachedFetch } from './apiCache';
 import {
+  FALLBACK_SCOREBOARD,
   FALLBACK_STANDINGS,
   FALLBACK_TOP_PLAYERS,
   FALLBACK_TEAMS,
   FALLBACK_PLAYERS,
 } from './offlineFallback';
 
-const PRODUCTION_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
+const LOCAL_API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || PRODUCTION_API_BASE_URL).replace(/\/$/, '');
+const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
+const REQUEST_TIMEOUT_MS = 8_000;
 
 // Track backend reachability so we don't spam failed requests
 let _backendReachable: boolean | null = null;
 let _lastReachabilityCheck = 0;
 const REACHABILITY_TTL = 30_000; // re-check every 30s
 
-async function checkBackendReachable(): Promise<boolean> {
-  const now = Date.now();
-  if (_backendReachable !== null && now - _lastReachabilityCheck < REACHABILITY_TTL) {
-    return _backendReachable;
-  }
-  _lastReachabilityCheck = now;
-  try {
-    const url = `${API_BASE_URL}/health`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
-    _backendReachable = res.ok;
-  } catch {
-    _backendReachable = false;
-  }
-  return _backendReachable!;
+function resolveApiBaseUrl() {
+  const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (configured) return configured.replace(/\/$/, '');
+  return import.meta.env.DEV ? LOCAL_API_BASE_URL : '';
 }
 
 function getApiUrl(path: string) {
+  if (!API_BASE_URL) return path;
   return `${API_BASE_URL}${path}`;
 }
 
 async function apiGet<T>(path: string, ttlMs: number, fallback?: T): Promise<T> {
-  const reachable = await checkBackendReachable();
-  if (!reachable) {
+  if (!API_BASE_URL) {
+    if (fallback !== undefined) return fallback;
+    throw new Error('API backend is not configured');
+  }
+
+  const now = Date.now();
+  if (_backendReachable === false && now - _lastReachabilityCheck < REACHABILITY_TTL) {
     if (fallback !== undefined) return fallback;
     throw new Error('Backend unavailable and no fallback provided');
   }
+
   try {
-    return await cachedFetch<T>(getApiUrl(path), ttlMs);
+    const data = await cachedFetch<T>(getApiUrl(path), ttlMs, { timeoutMs: REQUEST_TIMEOUT_MS });
+    _backendReachable = true;
+    _lastReachabilityCheck = Date.now();
+    return data;
   } catch (err) {
+    _backendReachable = false;
+    _lastReachabilityCheck = Date.now();
     if (fallback !== undefined) return fallback;
     throw err;
   }
@@ -350,7 +354,7 @@ export interface PlayByPlay {
 export const nbaApi = {
   getScoreboard: (date?: string): Promise<Game[]> => {
     const query = date ? `?date=${encodeURIComponent(date)}` : '';
-    return apiGet<Game[]>(`/scoreboard${query}`, 30_000, []);
+    return apiGet<Game[]>(`/scoreboard${query}`, 30_000, FALLBACK_SCOREBOARD as unknown as Game[]);
   },
 
   getPlayByPlay: (gameId: string): Promise<PlayByPlay[]> => {
