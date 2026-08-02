@@ -1,12 +1,4 @@
 import { cachedFetch } from './apiCache';
-import {
-  FALLBACK_SCOREBOARD,
-  FALLBACK_STANDINGS,
-  FALLBACK_TOP_PLAYERS,
-  FALLBACK_TEAMS,
-  FALLBACK_PLAYERS,
-} from './offlineFallback';
-
 const LOCAL_API_BASE_URL = 'http://127.0.0.1:8000/api';
 const LEGACY_TEMPLATE_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
 
@@ -355,7 +347,7 @@ export interface PlayByPlay {
 export const nbaApi = {
   getScoreboard: (date?: string): Promise<Game[]> => {
     const query = date ? `?date=${encodeURIComponent(date)}` : '';
-    return apiGet<Game[]>(`/scoreboard${query}`, 30_000, FALLBACK_SCOREBOARD as unknown as Game[]);
+    return apiGet<Game[]>(`/scoreboard${query}`, 30_000);
   },
 
   getPlayByPlay: (gameId: string): Promise<PlayByPlay[]> => {
@@ -367,11 +359,11 @@ export const nbaApi = {
     if (season) params.append('season', season);
     if (seasonType) params.append('season_type', seasonType);
     const query = params.toString() ? `?${params.toString()}` : '';
-    return apiGet<Standing[]>(`/standings${query}`, 300_000, FALLBACK_STANDINGS as Standing[]);
+    return apiGet<Standing[]>(`/standings${query}`, 300_000);
   },
 
   getTopPlayers: (): Promise<Player[]> => {
-    return apiGet<Player[]>('/players/top', 600_000, FALLBACK_TOP_PLAYERS as unknown as Player[]);
+    return apiGet<Player[]>('/players/top', 600_000);
   },
 
   searchPlayers: (query: string): Promise<Player[]> => {
@@ -380,7 +372,7 @@ export const nbaApi = {
   },
 
   getTeams: (): Promise<NbaTeam[]> => {
-    return apiGet<NbaTeam[]>('/teams', 3_600_000, FALLBACK_TEAMS as NbaTeam[]);
+    return apiGet<NbaTeam[]>('/teams', 3_600_000);
   },
 
   getBoxScore: (gameId: string): Promise<BoxScorePlayer[]> => {
@@ -409,7 +401,7 @@ export const nbaApi = {
   },
 
   getAllPlayers: (): Promise<any[]> => {
-    return apiGet<any[]>('/players', 3_600_000, FALLBACK_PLAYERS);
+    return apiGet<any[]>('/players', 3_600_000);
   },
 
   getPlayerInfo: (playerId: number): Promise<any> => {
@@ -466,7 +458,7 @@ export const nbaApi = {
   getLeaders: (category: string, season?: string, perMode: string = "PerGame", seasonType: string = "Regular Season"): Promise<Player[]> => {
     const params = new URLSearchParams({ category, per_mode: perMode, season_type: seasonType });
     if (season) params.append('season', season);
-    return apiGet<Player[]>(`/leaders?${params.toString()}`, 600_000, FALLBACK_TOP_PLAYERS as unknown as Player[]);
+    return apiGet<Player[]>(`/leaders?${params.toString()}`, 600_000);
   },
 
   getTeamHistory: (teamId: number | string, season: string): Promise<any> => {

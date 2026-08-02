@@ -24,7 +24,6 @@ import {
   type Standing,
   type TeamGame,
 } from '../lib/api';
-import { mockPlayers, mockTeams } from '../lib/mockData';
 import { gameStatusInIndia } from '../lib/time';
 import BasketballLoader from '../components/BasketballLoader';
 
@@ -115,9 +114,9 @@ export default function InsightsLab() {
 
     if (cancelled()) return;
 
-    const apiPlayers = normalizePlayers(playerResult.status === 'fulfilled' && playerResult.value.length ? playerResult.value : fallbackPlayers());
+    const apiPlayers = normalizePlayers(playerResult.status === 'fulfilled' ? playerResult.value : []);
     const apiStandings = standingResult.status === 'fulfilled' ? standingResult.value : [];
-    const apiTeams = teamResult.status === 'fulfilled' && teamResult.value.length ? teamResult.value : fallbackTeams();
+    const apiTeams = teamResult.status === 'fulfilled' ? teamResult.value : [];
     const apiGames = gameResult.status === 'fulfilled' ? gameResult.value : [];
 
     const enrichedTeams = apiTeams.map(team => {
@@ -934,32 +933,4 @@ function readWatchlist() {
   } catch {
     return [];
   }
-}
-
-function fallbackPlayers(): Player[] {
-  return mockPlayers.map((player, index) => ({
-    PERSON_ID: KNOWN_PLAYER_IDS[player.name] || 0,
-    PLAYER_ID: KNOWN_PLAYER_IDS[player.name] || 0,
-    PLAYER_NAME: player.name,
-    TEAM_ID: TEAM_IDS_BY_ABBR[player.team_id] || index,
-    TEAM_ABBREVIATION: player.team_id,
-    PTS: player.ppg,
-    REB: player.rpg,
-    AST: player.apg,
-    STL: player.spg,
-    BLK: player.bpg,
-    FG_PCT: player.fg_pct,
-    FG3_PCT: player.three_pct,
-    FT_PCT: player.ft_pct,
-  }));
-}
-
-function fallbackTeams(): NbaTeam[] {
-  return mockTeams.map((team, index) => ({
-    id: 200000 + index,
-    full_name: team.name,
-    abbreviation: team.abbreviation,
-    nickname: team.name.replace(`${team.name.split(' ')[0]} `, ''),
-    city: team.name.split(' ')[0],
-  }));
 }

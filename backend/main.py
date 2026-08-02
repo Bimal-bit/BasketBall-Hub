@@ -89,7 +89,13 @@ def save_persistent_cache(data):
     try:
         # Only save small/critical data to avoid giant files
         # We only save standings and player lists
-        to_save = {k: v for k, v in data.items() if any(x in k for x in ["standings", "players", "teams"])}
+        to_save = {}
+        for k, v in data.items():
+            if not any(x in k for x in ["standings", "players", "teams"]):
+                continue
+            if k.startswith("get_standings:") and not has_real_standings(v.get("data") if isinstance(v, dict) else None):
+                continue
+            to_save[k] = v
         with open(CACHE_FILE, 'w') as f:
             json.dump(to_save, f)
     except:
@@ -159,52 +165,113 @@ EAST_TEAM_IDS = {
     1610612766,
 }
 
-def fallback_standings():
+def has_real_standings(rows):
+    return bool(rows) and any(to_number(row.get("Wins")) or to_number(row.get("Losses")) for row in rows)
+
+def espn_season_year(season):
+    try:
+        clean_season = (season or current_nba_season()).split(" (")[0]
+        start_year = int(clean_season.split("-")[0])
+        return start_year + 1
+    except Exception:
+        return datetime.utcnow().year
+
+def stat_value(stats, names, default=0, prefer_display=False):
+    wanted = {name.lower() for name in names}
+    for stat in stats or []:
+        keys = [
+            str(stat.get("name", "")).lower(),
+            str(stat.get("displayName", "")).lower(),
+            str(stat.get("shortDisplayName", "")).lower(),
+            str(stat.get("abbreviation", "")).lower(),
+        ]
+        if any(key in wanted for key in keys):
+            value = stat.get("displayValue") if prefer_display else stat.get("value", stat.get("displayValue"))
+            return value if value not in [None, ""] else default
+    return default
+
+def fetch_espn_standings(season=None):
+    nba_by_abbr = {team["abbreviation"].upper(): team for team in nba_teams.get_teams()}
+    nba_by_abbr.update({
+        "GS": nba_by_abbr.get("GSW"),
+        "NY": nba_by_abbr.get("NYK"),
+        "SA": nba_by_abbr.get("SAS"),
+        "NO": nba_by_abbr.get("NOP"),
+        "WSH": nba_by_abbr.get("WAS"),
+        "UTAH": nba_by_abbr.get("UTA"),
+    })
+
+    response = requests.get(
+        "https://site.api.espn.com/apis/v2/sports/basketball/nba/standings",
+        params={
+            "region": "us",
+            "lang": "en",
+            "season": espn_season_year(season),
+            "type": 0,
+            "limit": 100,
+        },
+        headers={"User-Agent": NBA_HEADERS["User-Agent"], "Accept": "application/json"},
+        timeout=NBA_API_TIMEOUT,
+    )
+    response.raise_for_status()
+    payload = response.json()
     rows = []
-    for team in nba_teams.get_teams():
-        team_id = team.get("id")
-        rows.append({
-            "TeamID": team_id,
-            "TeamCity": team.get("city", ""),
-            "TeamName": team.get("nickname", ""),
-            "Conference": "East" if team_id in EAST_TEAM_IDS else "West",
-            "Wins": 0,
-            "Losses": 0,
-            "WinPCT": 0,
-            "L10Rec": "0-0",
-            "Strk": "",
-            "source": "fallback",
-        })
+
+    def collect(node, conference=None):
+        if not isinstance(node, dict):
+            return
+        name = node.get("name") or node.get("displayName") or conference
+        next_conference = conference
+        if isinstance(name, str):
+            if "east" in name.lower():
+                next_conference = "East"
+            elif "west" in name.lower():
+                next_conference = "West"
+
+        entries = node.get("entries") or node.get("standings", {}).get("entries") or []
+        for entry in entries:
+            team = entry.get("team") or {}
+            abbr = str(team.get("abbreviation") or "").upper()
+            nba_team = nba_by_abbr.get(abbr)
+            if not nba_team:
+                continue
+            stats = entry.get("stats") or []
+            wins = int(float(stat_value(stats, ["wins", "w"], 0)))
+            losses = int(float(stat_value(stats, ["losses", "l"], 0)))
+            pct = stat_value(stats, ["winpercent", "win pct", "pct", "p"], None)
+            if pct is None and wins + losses:
+                pct = wins / (wins + losses)
+            pct = float(pct or 0)
+            if pct > 1:
+                pct = pct / 100
+            rows.append({
+                "TeamID": nba_team["id"],
+                "TeamCity": nba_team["city"],
+                "TeamName": nba_team["nickname"],
+                "Conference": next_conference or ("East" if nba_team["id"] in EAST_TEAM_IDS else "West"),
+                "Wins": wins,
+                "Losses": losses,
+                "WinPCT": round(pct, 3),
+                "L10Rec": str(stat_value(stats, ["lasttengames", "last 10", "l10"], "", prefer_display=True)),
+                "Strk": str(stat_value(stats, ["streak", "strk"], "", prefer_display=True)),
+                "source": "espn",
+            })
+
+        for child_key in ["children", "groups"]:
+            for child in node.get(child_key) or []:
+                collect(child, next_conference)
+
+    collect(payload)
+    if not has_real_standings(rows):
+        raise RuntimeError("ESPN standings returned no usable records")
     return rows
 
-def fallback_player_info(player_id):
-    player = nba_players.find_player_by_id(player_id) or {}
-    return {
-        "PERSON_ID": player_id,
-        "DISPLAY_FIRST_LAST": player.get("full_name", "Unknown Player"),
-        "FROM_YEAR": None,
-        "TO_YEAR": None,
-        "source": "fallback",
-    }
-
-def fallback_player_profile(player_id):
-    player = nba_players.find_player_by_id(player_id) or {}
-    return {
-        "id": player_id,
-        "name": player.get("full_name", "Unknown Player"),
-        "height": "N/A",
-        "weight": "N/A",
-        "school": "N/A",
-        "country": "N/A",
-        "draft_year": "N/A",
-        "draft_round": "N/A",
-        "draft_pick": "N/A",
-        "position": "N/A",
-        "from_year": "N/A",
-        "to_year": "N/A",
-        "seasons": [],
-        "source": "fallback",
-    }
+def fallback_standings(season=None):
+    try:
+        return fetch_espn_standings(season)
+    except Exception as e:
+        print(f"ESPN standings fallback error: {e}")
+        raise HTTPException(status_code=503, detail="Real standings are temporarily unavailable from NBA Stats and ESPN.")
 
 def cached(duration=60, ttl=None, fallback=None):
     if ttl is not None:
@@ -218,7 +285,12 @@ def cached(duration=60, ttl=None, fallback=None):
             now = time.time()
             
             if key in cache and now < cache[key]["expiry"]:
-                return cache[key]["data"]
+                cached_data = cache[key]["data"]
+                if func.__name__ == "get_standings" and not has_real_standings(cached_data):
+                    cache.pop(key, None)
+                    save_persistent_cache(cache)
+                else:
+                    return cached_data
             
             try:
                 # Handle both sync and async functions
@@ -1089,7 +1161,7 @@ async def get_awards():
     return NBA_AWARDS_DATA
 
 @app.get("/api/standings")
-@cached(duration=3600, fallback=lambda *_, **__: fallback_standings()) # Cache for 1 hour
+@cached(duration=3600, fallback=lambda *_, **kwargs: fallback_standings(kwargs.get("season"))) # Cache for 1 hour
 def get_standings(season: str = None, season_type: str = "Regular Season"):
     try:
         target_season = season or current_nba_season()
@@ -1116,8 +1188,8 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
         
         return clean_df(df)
     except Exception as e:
-        print(f"Standings upstream error; serving fallback: {e}")
-        return fallback_standings()
+        print(f"Standings upstream error: {e}")
+        raise
 
 @app.get("/api/players/top")
 @cached(duration=3600) # Cache for 1 hour
@@ -1326,7 +1398,7 @@ async def search_players(query: str):
     return results[:10]
 
 @app.get("/api/player/{player_id}")
-@cached(duration=86400, fallback=lambda player_id: fallback_player_info(player_id))
+@cached(duration=86400)
 async def get_player_info(player_id: int):
     try:
         info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, timeout=NBA_API_TIMEOUT)
@@ -1424,8 +1496,8 @@ def get_player_shots(player_id: int, game_id: str):
         rows = data['data']
         return [dict(zip(headers, r)) for r in rows]
     except Exception as e:
-        print(f"Player shots upstream error; serving fallback: {e}")
-        return []
+        print(f"Player shots upstream error: {e}")
+        raise HTTPException(status_code=503, detail="Real player shot data is temporarily unavailable.")
 
 @app.get("/api/team/{team_id}/shots/{game_id}")
 def get_team_shots(team_id: int, game_id: str):
@@ -1436,8 +1508,8 @@ def get_team_shots(team_id: int, game_id: str):
         rows = data['data']
         return [dict(zip(headers, r)) for r in rows]
     except Exception as e:
-        print(f"Team shots upstream error; serving fallback: {e}")
-        return []
+        print(f"Team shots upstream error: {e}")
+        raise HTTPException(status_code=503, detail="Real team shot data is temporarily unavailable.")
 
 @app.get("/api/player/{player_id}/averages")
 @cached(ttl=3600)
@@ -1620,7 +1692,7 @@ def get_all_players():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/profile")
-@cached(ttl=86400, fallback=lambda player_id: fallback_player_profile(player_id))
+@cached(ttl=86400)
 def get_player_profile(player_id: int):
     try:
         from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
@@ -1793,7 +1865,7 @@ async def get_historical_games(season: str = None, season_type: str = "Regular S
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/playoffs")
-@cached(duration=86400, fallback=[]) # Playoff structure changes rarely
+@cached(duration=86400) # Playoff structure changes rarely
 async def get_playoffs(season: str = None):
     try:
         from nba_api.stats.endpoints import commonplayoffseries, leaguegamelog
@@ -1818,8 +1890,8 @@ async def get_playoffs(season: str = None):
         # Convert back to dict for cleaning
         return clean_df(merged)
     except Exception as e:
-        print(f"Playoffs upstream error; serving fallback: {e}")
-        return []
+        print(f"Playoffs upstream error: {e}")
+        raise HTTPException(status_code=503, detail="Real playoff data is temporarily unavailable.")
 
 @app.get("/api/game/{game_id}/player/{player_id}/impact")
 @cached(duration=3600)
