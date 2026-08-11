@@ -291,6 +291,20 @@ export interface ArchiveGame {
   MATCHUP: string;
   WL?: string;
   TEAM_ID: number;
+
+// Simple health-check helper that UI can call at startup to show a clear banner
+export async function checkBackendHealth(timeoutMs = 4000): Promise<boolean> {
+  if (!API_BASE_URL) return false;
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeoutMs);
+    const res = await fetch(`${API_BASE_URL}/health`, { signal: controller.signal });
+    clearTimeout(t);
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
   TEAM_ABBREVIATION: string;
   TEAM_NAME?: string;
   PTS: number;

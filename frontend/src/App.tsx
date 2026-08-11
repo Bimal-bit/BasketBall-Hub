@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { checkBackendHealth } from './lib/api';
 import Layout from './components/Layout';
 import BasketballLoader from './components/BasketballLoader';
 
@@ -56,6 +57,7 @@ const pageTitles: Record<string, string> = {
 
 export default function App() {
   const [activePage, setActivePage] = useState('dashboard');
+  const [backendOk, setBackendOk] = useState<boolean | null>(null);
 
   useEffect(() => {
     const handleNavigate = (event: Event) => {
@@ -71,6 +73,15 @@ export default function App() {
   useEffect(() => {
     document.title = `${pageTitles[activePage] || 'NBA Live Intelligence'} | NBA Live Intelligence`;
   }, [activePage]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const ok = await checkBackendHealth();
+      if (mounted) setBackendOk(ok);
+    })();
+    return () => { mounted = false };
+  }, []);
 
   useEffect(() => {
     const prepareImages = (root: ParentNode) => {
@@ -101,6 +112,9 @@ export default function App() {
 
   return (
     <Layout activePage={activePage} onNavigate={setActivePage}>
+      {backendOk === false && (
+        <div className="p-3 bg-red-700 text-white text-sm text-center">Backend unreachable — some features may be unavailable.</div>
+      )}
       <Suspense fallback={<div className="flex min-h-[70vh] items-center justify-center"><BasketballLoader /></div>}>
         <PageComponent />
       </Suspense>
