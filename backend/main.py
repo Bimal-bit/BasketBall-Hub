@@ -2204,7 +2204,7 @@ async def get_team_history(team_id: int, season: str):
         return cache[key]["data"]
         
     try:
-        from nba_api.stats.endpoints import teamplayerdashboard
+        from nba_api.stats.endpoints import teamplayerdashboard, leaguestandingsv3
         clean_season = season.split(' (')[0]
         
         # 1. Team Stats & Record
