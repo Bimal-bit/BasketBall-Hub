@@ -238,18 +238,18 @@ def fetch_espn_standings(season=None):
 
     try:
         response = HTTP.get(
-        "https://site.api.espn.com/apis/v2/sports/basketball/nba/standings",
-        params={
-            "region": "us",
-            "lang": "en",
-            "season": espn_season_year(season),
-            "type": 0,
-            "limit": 100,
-        },
-        headers={"User-Agent": NBA_HEADERS["User-Agent"], "Accept": "application/json"},
-        timeout=NBA_API_TIMEOUT,
-    )
-    response.raise_for_status()
+            "https://site.api.espn.com/apis/v2/sports/basketball/nba/standings",
+            params={
+                "region": "us",
+                "lang": "en",
+                "season": espn_season_year(season),
+                "type": 0,
+                "limit": 100,
+            },
+            headers={"User-Agent": NBA_HEADERS["User-Agent"], "Accept": "application/json"},
+            timeout=NBA_API_TIMEOUT,
+        )
+        response.raise_for_status()
     except Exception as e:
         print(f"ESPN standings request error: {e}")
         raise
