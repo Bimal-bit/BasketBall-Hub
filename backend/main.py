@@ -13,7 +13,7 @@ import numpy as np
 import requests
 from nba_api.stats.library.http import NBAStatsHTTP
 
-NBA_API_TIMEOUT = int(os.getenv("NBA_API_TIMEOUT", "12"))
+NBA_API_TIMEOUT = int(os.getenv("NBA_API_TIMEOUT", "20"))
 
 # NBA Stats Headers to avoid 403 Forbidden
 NBA_HEADERS = {
@@ -27,6 +27,32 @@ NBA_HEADERS = {
 }
 # Create a custom requests Session with a default timeout to avoid infinite hangs
 class DefaultTimeoutSession(requests.Session):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Configure a retry strategy to tolerate transient upstream failures
+        try:
+            from urllib3.util.retry import Retry
+            from requests.adapters import HTTPAdapter
+
+            retry_strategy = Retry(
+                total=3,
+                backoff_factor=1,
+                status_forcelist=[429, 500, 502, 503, 504],
+                allowed_methods=["HEAD", "GET", "OPTIONS"]
+            )
+            adapter = HTTPAdapter(max_retries=retry_strategy)
+            self.mount("https://", adapter)
+            self.mount("http://", adapter)
+        except Exception:
+            # If urllib3 Retry isn't available for some reason, continue without retries
+            pass
+
+        # Apply sensible default headers so many CDN endpoints accept requests
+        try:
+            self.headers.update(NBA_HEADERS)
+        except Exception:
+            pass
+
     def request(self, method, url, *args, **kwargs):
         if 'timeout' not in kwargs or kwargs['timeout'] is None:
             kwargs['timeout'] = NBA_API_TIMEOUT
@@ -36,6 +62,10 @@ class DefaultTimeoutSession(requests.Session):
 NBAStatsHTTP.default_headers = NBA_HEADERS
 NBAStatsHTTP.timeout = NBA_API_TIMEOUT
 NBAStatsHTTP.set_session(DefaultTimeoutSession())
+
+# A shared HTTP session for our direct requests (CDN, ESPN, etc.) with retries
+HTTP = DefaultTimeoutSession()
+HTTP.headers.update(NBA_HEADERS)
 
 app = FastAPI(title="NBA Intelligence API")
 
@@ -201,7 +231,8 @@ def fetch_espn_standings(season=None):
         "UTAH": nba_by_abbr.get("UTA"),
     })
 
-    response = requests.get(
+    try:
+        response = HTTP.get(
         "https://site.api.espn.com/apis/v2/sports/basketball/nba/standings",
         params={
             "region": "us",
@@ -214,6 +245,9 @@ def fetch_espn_standings(season=None):
         timeout=NBA_API_TIMEOUT,
     )
     response.raise_for_status()
+    except Exception as e:
+        print(f"ESPN standings request error: {e}")
+        raise
     payload = response.json()
     rows = []
 
@@ -271,7 +305,9 @@ def fallback_standings(season=None):
         return fetch_espn_standings(season)
     except Exception as e:
         print(f"ESPN standings fallback error: {e}")
-        raise HTTPException(status_code=503, detail="Real standings are temporarily unavailable from NBA Stats and ESPN.")
+        # Return an empty standings list instead of raising so the frontend can still load
+        # and show a meaningful message instead of a 503.
+        return []
 
 def cached(duration=60, ttl=None, fallback=None):
     if ttl is not None:
@@ -422,8 +458,12 @@ def fetch_live_scoreboard(date):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Referer": "https://www.nba.com/"
     }
-    response = requests.get(url, headers=cdn_headers, timeout=10)
-    response.raise_for_status()
+    try:
+        response = HTTP.get(url, headers=cdn_headers, timeout=10)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"Live CDN scoreboard request error: {e}")
+        raise
     payload = response.json()
     games = payload.get("scoreboard", {}).get("games", [])
 
@@ -456,8 +496,12 @@ def fetch_live_scoreboard(date):
 def fetch_live_playbyplay(game_id):
     url = f"https://cdn.nba.com/static/json/liveData/playbyplay/playbyplay_{game_id}.json"
     headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://www.nba.com/"}
-    response = requests.get(url, headers=headers, timeout=5)
-    response.raise_for_status()
+    try:
+        response = HTTP.get(url, headers=headers, timeout=5)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"Live play-by-play CDN request error: {e}")
+        raise
     game_data = response.json().get("game", {})
     data = game_data.get("actions", [])
     home_team_tricode = game_data.get("homeTeam", {}).get("teamTricode")
@@ -525,8 +569,12 @@ def fetch_live_playbyplay(game_id):
 def fetch_live_boxscore(game_id):
     url = f"https://cdn.nba.com/static/json/liveData/boxscore/boxscore_{game_id}.json"
     headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://www.nba.com/"}
-    response = requests.get(url, headers=headers, timeout=5)
-    response.raise_for_status()
+    try:
+        response = HTTP.get(url, headers=headers, timeout=5)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"Live boxscore CDN request error: {e}")
+        raise
     game_data = response.json().get("game", {})
     
     players = []
@@ -563,8 +611,12 @@ def fetch_live_boxscore(game_id):
 def fetch_live_team_stats(game_id):
     url = f"https://cdn.nba.com/static/json/liveData/boxscore/boxscore_{game_id}.json"
     headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://www.nba.com/"}
-    response = requests.get(url, headers=headers, timeout=5)
-    response.raise_for_status()
+    try:
+        response = HTTP.get(url, headers=headers, timeout=5)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"Live team stats CDN request error: {e}")
+        raise
     game_data = response.json().get("game", {})
     
     teams = []
