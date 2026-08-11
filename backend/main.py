@@ -6,8 +6,8 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from nba_api.stats.endpoints import scoreboardv2, leaguestandingsv3, commonplayerinfo, commonteamroster, boxscoretraditionalv2, shotchartdetail, playergamelogs, leaguedashplayerstats, playbyplayv2, playerawards, leaguedashteamstats, leaguegamelog
-from nba_api.stats.static import teams as nba_teams, players as nba_players
+# Lazy-import `nba_api` endpoints and static helpers inside functions to avoid
+# triggering network calls at module import time during deployments.
 import pandas as pd
 import numpy as np
 import requests
@@ -221,7 +221,12 @@ def stat_value(stats, names, default=0, prefer_display=False):
     return default
 
 def fetch_espn_standings(season=None):
-    nba_by_abbr = {team["abbreviation"].upper(): team for team in nba_teams.get_teams()}
+    try:
+        from nba_api.stats.static import teams as nba_teams
+        nba_by_abbr = {team["abbreviation"].upper(): team for team in nba_teams.get_teams()}
+    except Exception as e:
+        print(f"Unable to load nba teams static data: {e}")
+        nba_by_abbr = {}
     nba_by_abbr.update({
         "GS": nba_by_abbr.get("GSW"),
         "NY": nba_by_abbr.get("NYK"),
@@ -1247,11 +1252,16 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
 @cached(duration=3600) # Cache for 1 hour
 def get_top_players():
     def fetch():
-        leaders = leaguedashplayerstats.LeagueDashPlayerStats(
-            season=current_nba_season(),
-            per_mode_detailed="PerGame",
-            season_type_all_star="Regular Season"
-        )
+        try:
+            from nba_api.stats.endpoints import leaguedashplayerstats
+            leaders = leaguedashplayerstats.LeagueDashPlayerStats(
+                season=current_nba_season(),
+                per_mode_detailed="PerGame",
+                season_type_all_star="Regular Season"
+            )
+        except Exception as e:
+            print(f"LeagueDashPlayerStats load error: {e}")
+            return []
         df = leaders.get_data_frames()[0]
         df = df[df["GP"] > 0].sort_values("PTS", ascending=False).copy()
 
@@ -1272,12 +1282,20 @@ def get_top_players():
 @app.get("/api/teams")
 @cached(duration=86400)
 async def get_teams():
-    return nba_teams.get_teams()
+    try:
+        from nba_api.stats.static import teams as nba_teams
+        return nba_teams.get_teams()
+    except Exception as e:
+        print(f"Teams load error: {e}")
+        return []
 
 @app.get("/api/teams/rosters")
 @cached(duration=3600)
 async def get_all_team_rosters():
     try:
+        from nba_api.stats.static import teams as nba_teams
+        from nba_api.stats.endpoints import leaguedashplayerstats
+
         active_teams = nba_teams.get_teams()
         stats = leaguedashplayerstats.LeagueDashPlayerStats(
             season=current_nba_season(),
@@ -1307,11 +1325,21 @@ async def get_fatigue_report(team_id: int = None, season: str = None):
     try:
         clean_season = (season or current_nba_season()).split(' (')[0]
 
-        stats = leaguedashplayerstats.LeagueDashPlayerStats(
-            season=clean_season,
-            per_mode_detailed="PerGame",
-            season_type_all_star="Regular Season"
-        )
+        try:
+            from nba_api.stats.endpoints import leaguedashplayerstats, leaguegamelog
+            stats = leaguedashplayerstats.LeagueDashPlayerStats(
+                season=clean_season,
+                per_mode_detailed="PerGame",
+                season_type_all_star="Regular Season"
+            )
+        except Exception as e:
+            print(f"Fatigue stats load error: {e}")
+            return {
+                "season": clean_season,
+                "generated_at": datetime.utcnow().isoformat(),
+                "players": [],
+                "summary": {"high": 0, "medium": 0, "low": 0, "average": 0, "back_to_back": 0}
+            }
         stats_df = stats.get_data_frames()[0]
         if stats_df.empty:
             return {
