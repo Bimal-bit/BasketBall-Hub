@@ -14,7 +14,9 @@ const REACHABILITY_TTL = 30_000; // re-check every 30s
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
   if (configured && configured !== LEGACY_TEMPLATE_API_BASE_URL) return configured;
-  return import.meta.env.DEV ? LOCAL_API_BASE_URL : '';
+  // In production, fall back to the legacy Render API so that deployed frontends
+  // without Vercel env vars still reach a working backend.
+  return import.meta.env.DEV ? LOCAL_API_BASE_URL : LEGACY_TEMPLATE_API_BASE_URL;
 }
 
 function getApiUrl(path: string) {
