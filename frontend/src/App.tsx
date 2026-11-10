@@ -121,7 +121,9 @@ export default function App() {
     <Layout activePage={activePage} onNavigate={setActivePage}>
       {backendOk === false && (
         <div role="alert" className="p-3 bg-red-700 text-white text-sm text-center">
-          NBA data is unavailable. Start the backend locally or set VITE_API_BASE_URL to the deployed backend URL ending in /api.
+          {import.meta.env.DEV
+            ? 'The NBA data service is not responding. Development mode uses the deployed API by default; set VITE_API_BASE_URL to use a local backend.'
+            : 'The NBA data service is temporarily unavailable. Please try again shortly.'}
         </div>
       )}
       <Suspense fallback={<div className="flex min-h-[70vh] items-center justify-center"><BasketballLoader /></div>}>

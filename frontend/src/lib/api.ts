@@ -1,6 +1,6 @@
 import { cachedFetch } from './apiCache';
-const LOCAL_API_BASE_URL = 'http://127.0.0.1:8000/api';
 const LEGACY_TEMPLATE_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
+const DEPLOYED_API_BASE_URL = 'https://basketball-hub-api-pesl.onrender.com/api';
 
 const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
@@ -23,7 +23,7 @@ export function getNbaSeasons() {
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
   if (import.meta.env.DEV) {
-    return configured && configured !== LEGACY_TEMPLATE_API_BASE_URL ? configured : LOCAL_API_BASE_URL;
+    return configured && configured !== LEGACY_TEMPLATE_API_BASE_URL ? configured : DEPLOYED_API_BASE_URL;
   }
 
   if (!configured || configured === LEGACY_TEMPLATE_API_BASE_URL) return '/api';
@@ -502,7 +502,8 @@ export const nbaApi = {
     const params = new URLSearchParams({ season_type: seasonType, limit: String(limit) });
     if (season) params.append('season', season);
     if (teamId && teamId !== 'all') params.append('team_id', String(teamId));
-    return apiGet<ArchiveGame[]>(`/archive/games?${params.toString()}`, 3_600_000, []);
+    const cacheDuration = season === getCurrentNbaSeason() ? 60_000 : 6 * 60 * MINUTE;
+    return apiGet<ArchiveGame[]>(`/archive/games?${params.toString()}`, cacheDuration, []);
   },
 };
 

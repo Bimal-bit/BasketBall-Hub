@@ -18,23 +18,32 @@ export default function HistoricalGameArchive() {
   const [limit, setLimit] = useState(1230);
   const [sortMode, setSortMode] = useState<SortMode>('date');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     nbaApi.getTeams().then(items => setTeams(items.slice().sort((a, b) => a.full_name.localeCompare(b.full_name)))).catch(() => setTeams([]));
   }, []);
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
+    setLoadError('');
     nbaApi.getHistoricalGames(season, seasonType, teamId, limit)
       .then(items => {
+        if (!active) return;
         setGames(items);
         setSelectedId(items[0]?.GAME_ID ?? '');
-      })
-      .catch(() => {
+      }).catch((error: unknown) => {
+        if (!active) return;
+        console.error('Game archive load error:', error);
         setGames([]);
         setSelectedId('');
+        setLoadError('Game archive data is temporarily unavailable. Please try again shortly.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, [season, seasonType, teamId, limit]);
 
   useEffect(() => {
@@ -108,6 +117,7 @@ export default function HistoricalGameArchive() {
         <div className="space-y-2">
           <div className="text-xs text-gray-400">Loaded {games.length} records{limit >= 1230 ? ' (full season archive)' : ''}</div>
           {loading && <div className="text-center py-10 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">Loading official games...</div>}
+          {!loading && loadError && <div role="alert" className="text-center py-6 px-4 text-xs text-red-300 bg-red-500/5 border border-red-500/20 rounded-xl">{loadError}</div>}
           {!loading && filtered.map(game => (
             <button key={game.GAME_ID} onClick={() => setSelectedId(game.GAME_ID)} className={`w-full text-left rounded-xl border p-4 transition-transform duration-200 hover:scale-105 shadow-none hover:shadow-none ${selected?.GAME_ID === game.GAME_ID ? 'bg-gray-800 border-orange-500/40 shadow-none' : 'bg-gray-900 border-gray-800 hover:border-gray-800'}`}>
               <div className="flex items-center justify-between gap-3 mb-2">
@@ -121,7 +131,7 @@ export default function HistoricalGameArchive() {
               </div>
             </button>
           ))}
-          {!loading && filtered.length === 0 && <div className="text-center py-10 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">No official games match this archive view</div>}
+          {!loading && !loadError && filtered.length === 0 && <div className="text-center py-10 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">No official games match this archive view</div>}
         </div>
 
         <div className="space-y-4">

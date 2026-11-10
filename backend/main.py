@@ -5,7 +5,7 @@ import re
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -87,6 +87,7 @@ ESPN_GAME_CACHE = {}
 NBA_PLAYER_ID_BY_NAME = None
 ESPN_TEAM_ID_MAP = None
 ESPN_PLAYER_STATS_CACHE = {}
+ESPN_ARCHIVE_CACHE = {}
 
 def normalize_person_name(name):
     normalized = unicodedata.normalize("NFKD", str(name or ""))
@@ -2552,22 +2553,125 @@ async def get_team_gamelog(team_id: int, season: str = None, season_type: str = 
         print(f"Gamelog error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+def fetch_espn_archive(season: str, season_type: str, team_id: int, limit: int):
+    if season != current_nba_season():
+        return []
+
+    cache_key = (season, season_type)
+    cached_games = ESPN_ARCHIVE_CACHE.get(cache_key)
+    if cached_games and cached_games["expires"] > time.time():
+        games = cached_games["games"]
+        return [game for game in games if team_id is None or game["TEAM_ID"] == team_id or game["OPPONENT_TEAM_ID"] == team_id][:limit]
+
+    if season_type == "Playoffs":
+        return []
+    if season_type not in {"Regular Season", "Pre Season"}:
+        raise RuntimeError(f"ESPN archive fallback does not support {season_type}")
+
+    from zoneinfo import ZoneInfo
+
+    start_year = int(season[:4])
+    start_month = 9 if season_type == "Pre Season" else 10
+    today = datetime.now(ZoneInfo("America/New_York")).date()
+    start_date = datetime(start_year, start_month, 1).date()
+    dates = [
+        (start_date + timedelta(days=offset)).strftime("%Y%m%d")
+        for offset in range((today - start_date).days + 1)
+    ]
+    teams_by_abbreviation = get_nba_teams_by_abbreviation()
+    games_by_id = {}
+
+    def fetch_day(date_key):
+        response = HTTP.get(
+            "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard",
+            params={"dates": date_key, "limit": 100},
+            headers=ESPN_HEADERS,
+            timeout=min(NBA_API_TIMEOUT, 8),
+        )
+        response.raise_for_status()
+        return date_key, response.json().get("events") or []
+
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        for date_key, events in executor.map(fetch_day, dates):
+            for event in events:
+                status = (event.get("status") or {}).get("type") or {}
+                if status.get("state") != "post":
+                    continue
+                competition = (event.get("competitions") or [{}])[0]
+                competitors = competition.get("competitors") or []
+                home = next((entry for entry in competitors if entry.get("homeAway") == "home"), None)
+                away = next((entry for entry in competitors if entry.get("homeAway") == "away"), None)
+                if not home or not away:
+                    continue
+
+                home_team = home.get("team") or {}
+                away_team = away.get("team") or {}
+                home_abbr = str(home_team.get("abbreviation") or "").upper()
+                away_abbr = str(away_team.get("abbreviation") or "").upper()
+                nba_home = teams_by_abbreviation.get(home_abbr)
+                nba_away = teams_by_abbreviation.get(away_abbr)
+                if not nba_home or not nba_away:
+                    continue
+
+                home_points = int(float(home.get("score") or 0))
+                away_points = int(float(away.get("score") or 0))
+                try:
+                    game_date = datetime.fromisoformat(event["date"].replace("Z", "+00:00")).astimezone(
+                        ZoneInfo("America/New_York")
+                    ).date().isoformat()
+                except (KeyError, ValueError):
+                    game_date = f"{date_key[:4]}-{date_key[4:6]}-{date_key[6:]}"
+
+                game_id = str(event.get("id") or "")
+                if not game_id:
+                    continue
+                games_by_id[game_id] = {
+                    "GAME_ID": game_id,
+                    "GAME_DATE": game_date,
+                    "SEASON_ID": f"2{start_year}",
+                    "MATCHUP": f"{home_abbr} vs. {away_abbr}",
+                    "WL": "W" if home_points > away_points else "L",
+                    "TEAM_ID": nba_home["id"],
+                    "TEAM_ABBREVIATION": home_abbr,
+                    "TEAM_NAME": nba_home["full_name"],
+                    "PTS": home_points,
+                    "PLUS_MINUS": home_points - away_points,
+                    "OPPONENT_TEAM_ID": nba_away["id"],
+                    "OPPONENT_TEAM_ABBREVIATION": away_abbr,
+                    "OPPONENT_TEAM_NAME": nba_away["full_name"],
+                    "OPP_PTS": away_points,
+                    "HOME_TEAM_ID": nba_home["id"],
+                    "AWAY_TEAM_ID": nba_away["id"],
+                    "HOME_TEAM_ABBREVIATION": home_abbr,
+                    "AWAY_TEAM_ABBREVIATION": away_abbr,
+                    "HOME_TEAM_NAME": nba_home["full_name"],
+                    "AWAY_TEAM_NAME": nba_away["full_name"],
+                    "HOME_PTS": home_points,
+                    "AWAY_PTS": away_points,
+                    "STAGE": season_type,
+                    "source": "espn",
+                }
+
+    games = sorted(games_by_id.values(), key=lambda game: game["GAME_DATE"], reverse=True)
+    ESPN_ARCHIVE_CACHE[cache_key] = {"games": games, "expires": time.time() + 900}
+    return [game for game in games if team_id is None or game["TEAM_ID"] == team_id or game["OPPONENT_TEAM_ID"] == team_id][:limit]
+
 @app.get("/api/archive/games")
-@cached(duration=86400)
-async def get_historical_games(season: str = None, season_type: str = "Regular Season", team_id: int = None, limit: int = 100):
+@cached(duration=900)
+def get_historical_games(season: str = None, season_type: str = "Regular Season", team_id: int = None, limit: int = 100):
+    clean_season = (season or current_nba_season()).split(' (')[0]
+    max_rows = max(1, min(limit, 2000))
     try:
         from nba_api.stats.endpoints import leaguegamelog
-        clean_season = (season or current_nba_season()).split(' (')[0]
-        max_rows = max(1, min(limit, 2000))
         log = leaguegamelog.LeagueGameLog(
             season=clean_season,
             season_type_all_star=season_type,
             player_or_team_abbreviation='T',
-            timeout=NBA_API_TIMEOUT
+            timeout=min(NBA_API_TIMEOUT, 8)
         )
         df = log.get_data_frames()[0]
         if df.empty:
-            return []
+            raise RuntimeError(f"NBA Stats returned no archive games for {clean_season}")
 
         if team_id:
             game_ids = df[df['TEAM_ID'] == team_id]['GAME_ID'].unique().tolist()
@@ -2622,9 +2726,21 @@ async def get_historical_games(season: str = None, season_type: str = "Regular S
 
         games = sorted(games, key=lambda item: item.get('GAME_DATE') or '', reverse=True)
         return clean_data(games[:max_rows])
-    except Exception as e:
-        print(f"Archive games error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as nba_error:
+        print(f"NBA Stats archive error for {clean_season}: {nba_error}")
+
+    try:
+        games = fetch_espn_archive(clean_season, season_type, team_id, max_rows)
+        if games:
+            return clean_data(games)
+        if clean_season == current_nba_season() and season_type == "Playoffs":
+            return []
+        if clean_season == current_nba_season():
+            return []
+    except Exception as espn_error:
+        print(f"ESPN archive fallback error for {clean_season}: {espn_error}")
+
+    raise HTTPException(status_code=503, detail="Game archive is temporarily unavailable.")
 
 @app.get("/api/playoffs")
 @cached(duration=86400) # Playoff structure changes rarely
@@ -2884,7 +3000,7 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
         raise HTTPException(status_code=503, detail="Requested player stats are temporarily unavailable.")
 
 @app.get("/api/vault/team-history")
-async def get_team_history(team_id: int, season: str):
+def get_team_history(team_id: int, season: str):
     # Dynamic cache duration: 1 hour for current season, 24 hours for historical
     is_current = season == current_nba_season()
     cache_duration = 3600 if is_current else 86400
