@@ -650,7 +650,7 @@ export default function DreamTeam() {
         const name = getPlayerName(player).toLowerCase();
         return id > 0 && name.includes(s) && !selectedIds.has(id) && positionMatches(inferPlayerPosition(player), activePick.position);
       })
-      .slice(0, 12);
+      .slice(0, 30); // Show more results when searching all-time players
   }, [allPlayers, search, selectedIds, activePick]);
 
   const teamScores = useMemo(() => ({
@@ -795,8 +795,10 @@ export default function DreamTeam() {
   function autoAssignNext() {
     if (!nextPick) return;
     const used = new Set(selectedIds);
+    // Prefer current season leaders, fall back to all-time players for a wider draft pool
     const positionPool = topPlayers.filter(player => positionMatches(inferPlayerPosition(player), nextPick.position));
-    const candidate = pickRandomPlayer(positionPool.length ? positionPool : topPlayers, used);
+    const fallbackPool = allPlayers.filter(p => !used.has(getPlayerId(p)));
+    const candidate = pickRandomPlayer(positionPool.length ? positionPool : fallbackPool, used);
     if (!candidate) return;
     handleAddPlayer(candidate, nextPick);
   }
@@ -1824,16 +1826,23 @@ function numberFrom(...values: any[]) {
   return 0;
 }
 
+// Normalized position overrides for accent-insensitive matching
+const PLAYER_POSITION_OVERRIDES_NORM: Record<string, string> = {};
+for (const [key, val] of Object.entries(PLAYER_POSITION_OVERRIDES)) {
+  PLAYER_POSITION_OVERRIDES_NORM[normalizeName(key)] = val;
+}
+
 function inferPlayerPosition(player: any): string {
   const raw = (player?.POSITION || player?.position || player?.START_POSITION || '').toString().toUpperCase();
   if (raw) return raw;
   const name = getPlayerName(player);
-  return PLAYER_POSITION_OVERRIDES[name] || '';
+  if (PLAYER_POSITION_OVERRIDES[name]) return PLAYER_POSITION_OVERRIDES[name];
+  return PLAYER_POSITION_OVERRIDES_NORM[normalizeName(name)] || '';
 }
 
 function positionMatches(posRaw: string | undefined | null, target: Position) {
   const pos = (posRaw || '').toString().toUpperCase();
-  if (!pos) return false;
+  if (!pos) return true; // Unknown position — show in all filters rather than hiding
   if (pos.includes(target)) return true;
   if ((target === 'PG' || target === 'SG') && pos.includes('G')) return true;
   if ((target === 'SF' || target === 'PF') && (pos.includes('F') || pos.includes('SF') || pos.includes('PF'))) return true;

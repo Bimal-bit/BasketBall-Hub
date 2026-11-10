@@ -1625,6 +1625,70 @@ def fetch_stats_scoreboard(date):
 
 # THE DEFINITIVE NBA AWARDS DATASET (1985-2026)
 # Verified against official NBA records. IDs provided for player drill-downs.
+# 2026 NBA Draft Class - manually added as they may not be in nba_api yet
+DRAFT_2026_PLAYERS = [
+    {"id": 1642844, "full_name": "AJ Dybantsa", "first_name": "AJ", "last_name": "Dybantsa", "is_active": True},
+    {"id": 1642845, "full_name": "Darryn Peterson", "first_name": "Darryn", "last_name": "Peterson", "is_active": True},
+    {"id": 1642846, "full_name": "Cameron Boozer", "first_name": "Cameron", "last_name": "Boozer", "is_active": True},
+    {"id": 1642847, "full_name": "Caleb Wilson", "first_name": "Caleb", "last_name": "Wilson", "is_active": True},
+    {"id": 1642848, "full_name": "Keaton Wagler", "first_name": "Keaton", "last_name": "Wagler", "is_active": True},
+    {"id": 1642849, "full_name": "Mikel Brown Jr.", "first_name": "Mikel", "last_name": "Brown Jr.", "is_active": True},
+    {"id": 1642850, "full_name": "Darius Acuff Jr.", "first_name": "Darius", "last_name": "Acuff Jr.", "is_active": True},
+    {"id": 1642851, "full_name": "Kingston Flemings", "first_name": "Kingston", "last_name": "Flemings", "is_active": True},
+    {"id": 1642852, "full_name": "Morez Johnson Jr.", "first_name": "Morez", "last_name": "Johnson Jr.", "is_active": True},
+    {"id": 1642853, "full_name": "Brayden Burries", "first_name": "Brayden", "last_name": "Burries", "is_active": True},
+    {"id": 1642854, "full_name": "Yaxel Lendeborg", "first_name": "Yaxel", "last_name": "Lendeborg", "is_active": True},
+    {"id": 1642855, "full_name": "Aday Mara", "first_name": "Aday", "last_name": "Mara", "is_active": True},
+    {"id": 1642856, "full_name": "Nate Ament", "first_name": "Nate", "last_name": "Ament", "is_active": True},
+    {"id": 1642857, "full_name": "Hannes Steinbach", "first_name": "Hannes", "last_name": "Steinbach", "is_active": True},
+    {"id": 1642858, "full_name": "Dailyn Swain", "first_name": "Dailyn", "last_name": "Swain", "is_active": True},
+    {"id": 1642859, "full_name": "Bennett Stirtz", "first_name": "Bennett", "last_name": "Stirtz", "is_active": True},
+    {"id": 1642860, "full_name": "Ebuka Okorie", "first_name": "Ebuka", "last_name": "Okorie", "is_active": True},
+    {"id": 1642861, "full_name": "Christian Anderson", "first_name": "Christian", "last_name": "Anderson", "is_active": True},
+    {"id": 1642862, "full_name": "Allen Graves", "first_name": "Allen", "last_name": "Graves", "is_active": True},
+    {"id": 1642863, "full_name": "Jayden Quaintance", "first_name": "Jayden", "last_name": "Quaintance", "is_active": True},
+    {"id": 1642864, "full_name": "Karim López", "first_name": "Karim", "last_name": "López", "is_active": True},
+    {"id": 1642865, "full_name": "Labaron Philon Jr.", "first_name": "Labaron", "last_name": "Philon Jr.", "is_active": True},
+    {"id": 1642866, "full_name": "Zuby Ejiofor", "first_name": "Zuby", "last_name": "Ejiofor", "is_active": True},
+    {"id": 1642867, "full_name": "Cameron Carr", "first_name": "Cameron", "last_name": "Carr", "is_active": True},
+    {"id": 1642868, "full_name": "Sergio De Larrea", "first_name": "Sergio", "last_name": "De Larrea", "is_active": True},
+    {"id": 1642869, "full_name": "Tarris Reed Jr.", "first_name": "Tarris", "last_name": "Reed Jr.", "is_active": True},
+    {"id": 1642870, "full_name": "Chris Cenac Jr.", "first_name": "Chris", "last_name": "Cenac Jr.", "is_active": True},
+    {"id": 1642871, "full_name": "Joshua Jefferson", "first_name": "Joshua", "last_name": "Jefferson", "is_active": True},
+    {"id": 1642872, "full_name": "Alex Karaban", "first_name": "Alex", "last_name": "Karaban", "is_active": True},
+    {"id": 1642873, "full_name": "Koa Peat", "first_name": "Koa", "last_name": "Peat", "is_active": True},
+    {"id": 1642874, "full_name": "Bruce Thornton", "first_name": "Bruce", "last_name": "Thornton", "is_active": True},
+    {"id": 1642875, "full_name": "Richie Saunders", "first_name": "Richie", "last_name": "Saunders", "is_active": True},
+    {"id": 1642876, "full_name": "Isaiah Evans", "first_name": "Isaiah", "last_name": "Evans", "is_active": True},
+    {"id": 1642877, "full_name": "Meleek Thomas", "first_name": "Meleek", "last_name": "Thomas", "is_active": True},
+    {"id": 1642878, "full_name": "Trevon Brazile", "first_name": "Trevon", "last_name": "Brazile", "is_active": True},
+    {"id": 1642879, "full_name": "Baba Miller", "first_name": "Baba", "last_name": "Miller", "is_active": True},
+    {"id": 1642880, "full_name": "Ryan Conwell", "first_name": "Ryan", "last_name": "Conwell", "is_active": True},
+    {"id": 1642881, "full_name": "Braden Smith", "first_name": "Braden", "last_name": "Smith", "is_active": True},
+    {"id": 1642882, "full_name": "Jack Kayil", "first_name": "Jack", "last_name": "Kayil", "is_active": True},
+    {"id": 1642883, "full_name": "Dillon Mitchell", "first_name": "Dillon", "last_name": "Mitchell", "is_active": True},
+    {"id": 1642884, "full_name": "Otega Oweh", "first_name": "Otega", "last_name": "Oweh", "is_active": True},
+    {"id": 1642885, "full_name": "Ja'Kobi Gillespie", "first_name": "Ja'Kobi", "last_name": "Gillespie", "is_active": True},
+    {"id": 1642886, "full_name": "Tyler Bilodeau", "first_name": "Tyler", "last_name": "Bilodeau", "is_active": True},
+    {"id": 1642887, "full_name": "Maliq Brown", "first_name": "Maliq", "last_name": "Brown", "is_active": True},
+    {"id": 1642888, "full_name": "Emanuel Sharp", "first_name": "Emanuel", "last_name": "Sharp", "is_active": True},
+    {"id": 1642889, "full_name": "Felix Okpara", "first_name": "Felix", "last_name": "Okpara", "is_active": True},
+    {"id": 1642890, "full_name": "Tyler Nickel", "first_name": "Tyler", "last_name": "Nickel", "is_active": True},
+    {"id": 1642891, "full_name": "Tobi Lawal", "first_name": "Tobi", "last_name": "Lawal", "is_active": True},
+    {"id": 1642892, "full_name": "Bryce Hopkins", "first_name": "Bryce", "last_name": "Hopkins", "is_active": True},
+    {"id": 1642893, "full_name": "Jaden Bradley", "first_name": "Jaden", "last_name": "Bradley", "is_active": True},
+    {"id": 1642894, "full_name": "Izaiyah Nelson", "first_name": "Izaiyah", "last_name": "Nelson", "is_active": True},
+    {"id": 1642895, "full_name": "Henri Veesaar", "first_name": "Henri", "last_name": "Veesaar", "is_active": True},
+    {"id": 1642896, "full_name": "Ugonna Onyenso", "first_name": "Ugonna", "last_name": "Onyenso", "is_active": True},
+    {"id": 1642897, "full_name": "Lajae Jones", "first_name": "Lajae", "last_name": "Jones", "is_active": True},
+    {"id": 1642898, "full_name": "Nick Martinelli", "first_name": "Nick", "last_name": "Martinelli", "is_active": True},
+    {"id": 1642899, "full_name": "Vsevolod Ishchenko", "first_name": "Vsevolod", "last_name": "Ishchenko", "is_active": True},
+    {"id": 1642900, "full_name": "Narcisse Ngoy", "first_name": "Narcisse", "last_name": "Ngoy", "is_active": True},
+    {"id": 1642901, "full_name": "Jaron Pierre Jr.", "first_name": "Jaron", "last_name": "Pierre Jr.", "is_active": True},
+    {"id": 1642902, "full_name": "Trey Kaufman-Renn", "first_name": "Trey", "last_name": "Kaufman-Renn", "is_active": True},
+    {"id": 1642903, "full_name": "Malique Lewis", "first_name": "Malique", "last_name": "Lewis", "is_active": True},
+]
+
 NBA_AWARDS_DATA = [
     {
         "season": "2025-26", 
@@ -2682,6 +2746,14 @@ def get_all_players():
     try:
         from nba_api.stats.static import players
         all_players = players.get_players()
+        
+        # Add 2026 draft class manually
+        # Check if they're already in the list to avoid duplicates
+        existing_ids = {p['id'] for p in all_players}
+        for draft_player in DRAFT_2026_PLAYERS:
+            if draft_player['id'] not in existing_ids:
+                all_players.append(draft_player)
+        
         # Sort by active, then name
         all_players.sort(key=lambda x: (not x['is_active'], x['full_name']))
         return all_players

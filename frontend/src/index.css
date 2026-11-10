@@ -74,6 +74,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color 0.4s ease, color 0.4s ease;
+    letter-spacing: 0.015em;
   }
 
   *,
@@ -297,6 +298,10 @@ h1, h2, h3 {
   font-weight: 400;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+
+p, span, div, li, td, th, label, button, input, select, textarea {
+  letter-spacing: 0.02em;
 }
 
 .hi-stroke {
