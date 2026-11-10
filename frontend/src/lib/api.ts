@@ -39,29 +39,23 @@ function resolveApiBaseUrl() {
     return configured && configured !== LEGACY_TEMPLATE_API_BASE_URL ? configured : DEPLOYED_API_BASE_URL;
   }
 
-  // In production (Vercel), always use the proxy path '/api'
-  // This works with vercel.json rewrites configuration
-  if (!configured || configured === LEGACY_TEMPLATE_API_BASE_URL || configured === DEPLOYED_API_BASE_URL) {
-    return '/api';
-  }
-  
-  // Handle explicit production API URL configuration
-  try {
-    const url = new URL(configured);
-    // If pointing to our render backend, use proxy instead
-    if (url.hostname === 'basketball-hub-api-95yz.onrender.com' || url.hostname === 'basketball-hub-api-pesl.onrender.com') {
-      return '/api';
-    }
-  } catch {
-    // Invalid URL, use proxy
-    return '/api';
-  }
-  
-  return configured;
+  // In production (Vercel), ALWAYS use the proxy path '/api'
+  // This prevents CORS issues by routing through Vercel's rewrite rules
+  // The vercel.json config maps /api/* to the backend
+  console.log('[API] Production mode detected, using /api proxy');
+  return '/api';
 }
 
 function getApiUrl(path: string) {
   if (!API_BASE_URL) return path;
+  
+  // Safety check: In production, API_BASE_URL should be '/api'
+  // If somehow it's a full URL, log a warning and use '/api' instead
+  if (!import.meta.env.DEV && API_BASE_URL.startsWith('http')) {
+    console.warn('[API] Production mode but API_BASE_URL is full URL, forcing /api proxy');
+    return `/api${path}`;
+  }
+  
   return `${API_BASE_URL}${path}`;
 }
 
