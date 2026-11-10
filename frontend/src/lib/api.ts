@@ -63,6 +63,7 @@ function getApiUrl(path: string) {
 
 async function apiGet<T>(path: string, ttlMs: number, fallback?: T): Promise<T> {
   if (!API_BASE_URL) {
+    console.warn('API_BASE_URL is not configured, using fallback');
     if (fallback !== undefined) return fallback;
     throw new Error('API backend is not configured');
   }
@@ -71,6 +72,7 @@ async function apiGet<T>(path: string, ttlMs: number, fallback?: T): Promise<T> 
     const data = await cachedFetch<T>(getApiUrl(path), ttlMs, { timeoutMs: REQUEST_TIMEOUT_MS });
     return data;
   } catch (err) {
+    console.error(`API request failed for ${path}:`, err);
     if (fallback !== undefined) return fallback;
     throw err;
   }
