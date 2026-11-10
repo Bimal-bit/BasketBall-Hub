@@ -17,11 +17,5 @@
       "source": "/api/:path*",
       "destination": "https://basketball-hub-api-pesl.onrender.com/api/:path*"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
   ]
 }
