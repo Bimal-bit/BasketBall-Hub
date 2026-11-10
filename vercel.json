@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && rm -rf dist && npm ci && npm run build",
+  "buildCommand": "npm ci --prefix frontend && npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
   "cleanUrls": false,
   "trailingSlash": false,
