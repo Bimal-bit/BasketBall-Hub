@@ -215,14 +215,26 @@ function getTeamAbbr(teamId: string): string {
   return team ? team.abbr : 'NBA';
 }
 
+/** Normalize a player name for matching: lowercase, strip accents/diacritics, trim. */
+function normalizeName(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove combining diacritical marks
+    .replace(/[''`]/g, '')          // remove apostrophes/quotes
+    .replace(/\./g, '')             // remove periods
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
 function getTeamLegendsForDraft(teamId: string, allPlayers: any[]) {
   const names = TEAM_LEGENDS[teamId] || [];
   const matched: any[] = [];
   
   names.forEach(name => {
     const found = allPlayers.find(p => {
-      const pName = (p.full_name || p.PLAYER_NAME || p.name || '').toLowerCase();
-      return pName === name.toLowerCase();
+      const pName = normalizeName(p.full_name || p.PLAYER_NAME || p.name || '');
+      return pName === normalizeName(name);
     });
     if (found) {
       matched.push({

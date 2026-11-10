@@ -42,6 +42,15 @@ ESPN_CORE_HEADERS = {
     "Origin": "https://www.espn.com",
     "Referer": "https://www.espn.com/",
 }
+# Headers for the NBA Live CDN (cdn.nba.com). The CDN's anti-bot protection
+# rejects full Chrome/Firefox User-Agent strings (403) but accepts a shorter
+# AppleWebKit-only UA combined with a Referer header.
+CDN_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Referer": "https://www.nba.com/",
+    "Connection": "keep-alive",
+}
 # Create a custom requests Session with a default timeout to avoid infinite hangs
 class DefaultTimeoutSession(requests.Session):
     def __init__(self, *args, **kwargs):
@@ -1084,12 +1093,8 @@ def fetch_live_scoreboard(date):
     else:
         url = f"https://cdn.nba.com/static/json/liveData/scoreboard/scoreboard_{date.replace('-', '')}.json"
 
-    cdn_headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": "https://www.nba.com/"
-    }
     try:
-        response = HTTP.get(url, headers=cdn_headers, timeout=10)
+        response = requests.get(url, headers=CDN_HEADERS, timeout=10)
         response.raise_for_status()
     except Exception as e:
         print(f"Live CDN scoreboard request error: {e}")
@@ -1125,9 +1130,8 @@ def fetch_live_scoreboard(date):
 
 def fetch_live_playbyplay(game_id):
     url = f"https://cdn.nba.com/static/json/liveData/playbyplay/playbyplay_{game_id}.json"
-    headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://www.nba.com/"}
     try:
-        response = HTTP.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=CDN_HEADERS, timeout=10)
         response.raise_for_status()
     except Exception as e:
         print(f"Live play-by-play CDN request error: {e}")
@@ -1199,9 +1203,8 @@ def fetch_live_playbyplay(game_id):
 
 def fetch_live_boxscore(game_id):
     url = f"https://cdn.nba.com/static/json/liveData/boxscore/boxscore_{game_id}.json"
-    headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://www.nba.com/"}
     try:
-        response = HTTP.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=CDN_HEADERS, timeout=10)
         response.raise_for_status()
     except Exception as e:
         print(f"Live boxscore CDN request error: {e}")
@@ -1241,9 +1244,8 @@ def fetch_live_boxscore(game_id):
 
 def fetch_live_team_stats(game_id):
     url = f"https://cdn.nba.com/static/json/liveData/boxscore/boxscore_{game_id}.json"
-    headers = {"User-Agent": "Mozilla/5.0", "Referer": "https://www.nba.com/"}
     try:
-        response = HTTP.get(url, headers=headers, timeout=5)
+        response = requests.get(url, headers=CDN_HEADERS, timeout=10)
         response.raise_for_status()
     except Exception as e:
         print(f"Live team stats CDN request error: {e}")
@@ -1277,6 +1279,187 @@ def fetch_live_team_stats(game_id):
             "TO": stats.get("turnovers"),
             "PF": stats.get("foulsPersonal"),
             "PTS": stats.get("points")
+        })
+    return teams
+
+def _classify_action_type(action_type):
+    """Map a play-by-play actionType string to an NBA EVENTMSGTYPE integer."""
+    at = (action_type or "").lower()
+    if "shot" in at or "2pt" in at or "3pt" in at:
+        return 1  # Made Shot (caller checks shotResult)
+    if "freethrow" in at:
+        return 3
+    if "rebound" in at:
+        return 4
+    if "turnover" in at:
+        return 5
+    if "foul" in at:
+        return 6
+    if "violation" in at:
+        return 7
+    if "substitution" in at:
+        return 8
+    if "timeout" in at:
+        return 9
+    if "jumpball" in at:
+        return 10
+    if "stoppage" in at:
+        return 11
+    if "period" in at:
+        return 12 if "start" in at else 13
+    # Fallbacks
+    if "made" in at:
+        return 1
+    if "miss" in at:
+        return 2
+    if "free" in at:
+        return 3
+    if "reb" in at:
+        return 4
+    if "turn" in at:
+        return 5
+    if "foul" in at:
+        return 6
+    return 0
+
+def _format_clock(clock_str):
+    """Convert ISO-8601 duration like 'PT11M44.00S' to 'M:SS' clock display."""
+    text = str(clock_str or "").replace("PT", "").replace("M", ":").replace("S", "")
+    parts = text.split(".")
+    return parts[0] if parts else ""
+
+def fetch_stats_playbyplay(game_id):
+    """Fetch play-by-play via nba_api PlayByPlayV3 (replaces deprecated V2)."""
+    from nba_api.stats.endpoints import playbyplayv3
+    pbp = playbyplayv3.PlayByPlayV3(game_id=game_id, timeout=NBA_API_TIMEOUT)
+    df = pbp.get_data_frames()[0]
+    if df.empty:
+        return []
+
+    processed = []
+    for _, action in df.iterrows():
+        action_type = str(action.get("actionType") or "")
+        shot_result = str(action.get("shotResult") or "")
+        team_tricode = action.get("teamTricode")
+        location = str(action.get("location") or "").lower()
+
+        event_type = _classify_action_type(action_type)
+        # Distinguish made vs missed shots
+        if event_type in (1, 2) and shot_result:
+            event_type = 1 if shot_result == "Made" else 2
+
+        description = action.get("description") or ""
+        home_desc = description if location == "h" else None
+        visitor_desc = description if location == "v" else None
+        neutral_desc = description if not team_tricode else None
+
+        score_home = action.get("scoreHome")
+        score_away = action.get("scoreAway")
+        score = f"{score_away}-{score_home}" if score_home is not None and score_away is not None else None
+        score_margin = None
+        try:
+            if score_home is not None and score_away is not None:
+                score_margin = int(score_home) - int(score_away)
+        except (TypeError, ValueError):
+            pass
+
+        processed.append({
+            "EVENTNUM": action.get("actionNumber"),
+            "EVENTMSGTYPE": event_type,
+            "PERIOD": action.get("period"),
+            "PCTIMESTRING": _format_clock(action.get("clock")),
+            "HOMEDESCRIPTION": home_desc,
+            "VISITORDESCRIPTION": visitor_desc,
+            "NEUTRALDESCRIPTION": neutral_desc,
+            "SCORE": score,
+            "SCOREMARGIN": score_margin,
+            "SHOT_VALUE": int(action.get("shotValue") or 0),
+            "SHOT_DISTANCE": int(action.get("shotDistance") or 0),
+            "PLAYER1_ID": int(action.get("personId") or 0),
+            "PLAYER1_NAME": action.get("playerName") or action.get("playerNameI"),
+            "PLAYER2_ID": 0,
+            "PLAYER2_NAME": None,
+            "PLAYER3_ID": 0,
+            "PLAYER3_NAME": None,
+        })
+    return processed
+
+def fetch_stats_boxscore_player(game_id):
+    """Fetch player box score via nba_api BoxScoreTraditionalV3 (replaces deprecated V2)."""
+    from nba_api.stats.endpoints import boxscoretraditionalv3
+    bs = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id, timeout=NBA_API_TIMEOUT)
+    df = bs.get_data_frames()[0]  # player stats
+    if df.empty:
+        return []
+    players = []
+    for _, row in df.iterrows():
+        name = row.get("nameI") or " ".join(filter(None, [row.get("firstName"), row.get("familyName")])) or ""
+        players.append({
+            "GAME_ID": str(game_id),
+            "TEAM_ID": int(row.get("teamId") or 0),
+            "TEAM_ABBREVIATION": row.get("teamTricode"),
+            "PLAYER_ID": int(row.get("personId") or 0),
+            "PLAYER_NAME": name,
+            "START_POSITION": row.get("position"),
+            "COMMENT": row.get("comment"),
+            "MIN": row.get("minutes"),
+            "PTS": row.get("points"),
+            "REB": row.get("reboundsTotal"),
+            "AST": row.get("assists"),
+            "STL": row.get("steals"),
+            "BLK": row.get("blocks"),
+            "PLUS_MINUS": row.get("plusMinusPoints"),
+            "FG_PCT": row.get("fieldGoalsPercentage"),
+            "FGM": row.get("fieldGoalsMade"),
+            "FGA": row.get("fieldGoalsAttempted"),
+            "FG3M": row.get("threePointersMade"),
+            "FG3A": row.get("threePointersAttempted"),
+            "FG3_PCT": row.get("threePointersPercentage"),
+            "FTM": row.get("freeThrowsMade"),
+            "FTA": row.get("freeThrowsAttempted"),
+            "FT_PCT": row.get("freeThrowsPercentage"),
+            "TOV": row.get("turnovers"),
+            "TO": row.get("turnovers"),
+            "OREB": row.get("reboundsOffensive"),
+            "DREB": row.get("reboundsDefensive"),
+            "PF": row.get("foulsPersonal"),
+        })
+    return players
+
+def fetch_stats_boxscore_team(game_id):
+    """Fetch team box score via nba_api BoxScoreTraditionalV3 (replaces deprecated V2)."""
+    from nba_api.stats.endpoints import boxscoretraditionalv3
+    bs = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id, timeout=NBA_API_TIMEOUT)
+    dfs = bs.get_data_frames()
+    df = dfs[2] if len(dfs) > 2 else pd.DataFrame()  # team stats
+    if df.empty:
+        return []
+    teams = []
+    for _, row in df.iterrows():
+        teams.append({
+            "GAME_ID": str(game_id),
+            "TEAM_ID": row.get("teamId"),
+            "TEAM_NAME": f"{row.get('teamCity', '')} {row.get('teamName', '')}".strip(),
+            "TEAM_ABBREVIATION": row.get("teamTricode"),
+            "FGM": row.get("fieldGoalsMade"),
+            "FGA": row.get("fieldGoalsAttempted"),
+            "FG_PCT": row.get("fieldGoalsPercentage"),
+            "FG3M": row.get("threePointersMade"),
+            "FG3A": row.get("threePointersAttempted"),
+            "FG3_PCT": row.get("threePointersPercentage"),
+            "FTM": row.get("freeThrowsMade"),
+            "FTA": row.get("freeThrowsAttempted"),
+            "FT_PCT": row.get("freeThrowsPercentage"),
+            "OREB": row.get("reboundsOffensive"),
+            "DREB": row.get("reboundsDefensive"),
+            "REB": row.get("reboundsTotal"),
+            "AST": row.get("assists"),
+            "STL": row.get("steals"),
+            "BLK": row.get("blocks"),
+            "TO": row.get("turnovers"),
+            "PF": row.get("foulsPersonal"),
+            "PTS": row.get("points"),
+            "PLUS_MINUS": row.get("plusMinusPoints"),
         })
     return teams
 
@@ -1364,12 +1547,9 @@ def get_playbyplay(game_id: str):
         print(f"Live PlayByPlay CDN error: {e}")
 
     try:
-        from nba_api.stats.endpoints import playbyplayv2
-        pbp = playbyplayv2.PlayByPlayV2(game_id=game_id)
-        df = pbp.get_data_frames()[0]
-        return clean_df(df)
+        return fetch_stats_playbyplay(game_id)
     except Exception as e:
-        print(f"PlayByPlay API error: {e}")
+        print(f"PlayByPlayV3 API error: {e}")
         return []
 
 def fetch_stats_scoreboard(date):
@@ -1443,9 +1623,19 @@ def fetch_stats_scoreboard(date):
         print(f"ScoreboardV3 Error: {e}")
         return []
 
-# THE DEFINITIVE NBA AWARDS DATASET (1985-2025)
+# THE DEFINITIVE NBA AWARDS DATASET (1985-2026)
 # Verified against official NBA records. IDs provided for player drill-downs.
 NBA_AWARDS_DATA = [
+    {
+        "season": "2025-26", 
+        "mvp": {"name": "Shai Gilgeous-Alexander", "id": 1628983, "pts": 32.7, "reb": 6.1, "ast": 6.3}, 
+        "dpoy": {"name": "Victor Wembanyama", "id": 1641705, "pts": 24.3, "reb": 11.0, "ast": 3.7}, 
+        "roty": {"name": "Cooper Flagg", "id": 1642843, "pts": 21.0, "reb": 6.7, "ast": 4.5}, 
+        "fmvp": {"name": "Jalen Brunson", "id": 1628973, "pts": 28.5, "reb": 4.2, "ast": 7.5},
+        "sixman": {"name": "Keldon Johnson", "id": 1629640, "pts": 13.2, "reb": 5.4, "ast": 1.4},
+        "mip": {"name": "Nickeil Alexander-Walker", "id": 1629638, "pts": 20.8, "reb": 3.4, "ast": 3.7},
+        "coty": {"name": "Joe Mazzulla", "id": 0, "pts": 56, "reb": 26, "ast": 0}
+    },
     {
         "season": "2024-25", 
         "mvp": {"name": "Shai Gilgeous-Alexander", "id": 1628983, "pts": 31.2, "reb": 5.8, "ast": 6.6}, 
@@ -2200,14 +2390,9 @@ def get_boxscore(game_id: str):
         print(f"Live Boxscore CDN error: {e}")
 
     try:
-        from nba_api.stats.endpoints import boxscoretraditionalv2
-        box = boxscoretraditionalv2.BoxScoreTraditionalV2(game_id=game_id)
-        data = box.player_stats.get_dict()
-        headers = data['headers']
-        rows = data['data']
-        return [dict(zip(headers, r)) for r in rows]
+        return fetch_stats_boxscore_player(game_id)
     except Exception as e:
-        print(f"BoxScore API error: {e}")
+        print(f"BoxScore V3 API error: {e}")
         return []
 
 @app.get("/api/game/{game_id}/team-stats")
@@ -2223,14 +2408,9 @@ def get_game_team_stats(game_id: str):
         print(f"Live TeamStats CDN error: {e}")
 
     try:
-        from nba_api.stats.endpoints import boxscoretraditionalv2
-        box = boxscoretraditionalv2.BoxScoreTraditionalV2(game_id=game_id)
-        data = box.team_stats.get_dict()
-        headers = data['headers']
-        rows = data['data']
-        return [dict(zip(headers, r)) for r in rows]
+        return fetch_stats_boxscore_team(game_id)
     except Exception as e:
-        print(f"TeamStats API error: {e}")
+        print(f"TeamStats V3 API error: {e}")
         return []
 
 @app.get("/api/player/{player_id}/shots/{game_id}")
@@ -2247,12 +2427,12 @@ def get_player_shots(player_id: int, game_id: str):
         # We need team_id for shotchartdetail, or use 0 for all
         shots = shotchartdetail.ShotChartDetail(player_id=player_id, game_id_nullable=game_id, team_id=0, context_measure_simple='FGA', timeout=NBA_API_TIMEOUT)
         data = shots.shot_chart_detail.get_dict()
-        headers = data['headers']
-        rows = data['data']
+        headers = data.get('headers', [])
+        rows = data.get('data', [])
         return [dict(zip(headers, r)) for r in rows]
     except Exception as e:
         print(f"Player shots upstream error: {e}")
-        raise HTTPException(status_code=503, detail="Real player shot data is temporarily unavailable.")
+        return []
 
 @app.get("/api/team/{team_id}/shots/{game_id}")
 def get_team_shots(team_id: int, game_id: str):
@@ -2266,12 +2446,12 @@ def get_team_shots(team_id: int, game_id: str):
         from nba_api.stats.endpoints import shotchartdetail
         shots = shotchartdetail.ShotChartDetail(player_id=0, game_id_nullable=game_id, team_id=team_id, context_measure_simple='FGA', timeout=NBA_API_TIMEOUT)
         data = shots.shot_chart_detail.get_dict()
-        headers = data['headers']
-        rows = data['data']
+        headers = data.get('headers', [])
+        rows = data.get('data', [])
         return [dict(zip(headers, r)) for r in rows]
     except Exception as e:
         print(f"Team shots upstream error: {e}")
-        raise HTTPException(status_code=503, detail="Real team shot data is temporarily unavailable.")
+        return []
 
 @app.get("/api/player/{player_id}/averages")
 @cached(ttl=3600)
@@ -2827,20 +3007,53 @@ async def get_playoffs(season: str = None):
         print(f"Playoffs upstream error: {e}")
         raise HTTPException(status_code=503, detail="Real playoff data is temporarily unavailable.")
 
+def _play_desc(play):
+    """Extract the first non-empty description from a play-by-play row, handling NaN."""
+    for key in ('HOMEDESCRIPTION', 'VISITORDESCRIPTION', 'NEUTRALDESCRIPTION'):
+        val = play.get(key)
+        if val is not None and not (isinstance(val, float) and pd.isna(val)):
+            return str(val)
+    return ""
+
+def _safe_str(val, default=""):
+    """Convert a possibly-NaN value to a clean string."""
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return default
+    return str(val)
+
+def _safe_int(val, default=0):
+    """Convert a possibly-NaN value to an int."""
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return default
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return default
+
 @app.get("/api/game/{game_id}/player/{player_id}/impact")
 @cached(duration=3600)
 async def get_player_game_impact(game_id: str, player_id: int):
+    plays = None
     try:
         plays = fetch_espn_playbyplay(game_id)
-        df = pd.DataFrame(plays)
     except Exception:
+        pass
+    if not plays:
         try:
             plays = fetch_live_playbyplay(game_id)
-            df = pd.DataFrame(plays)
         except Exception:
-            from nba_api.stats.endpoints import playbyplayv2
-            pbp = playbyplayv2.PlayByPlayV2(game_id=game_id)
-            df = pbp.get_data_frames()[0]
+            pass
+    if not plays:
+        try:
+            plays = fetch_stats_playbyplay(game_id)
+        except Exception as e:
+            print(f"Impact playbyplay error: {e}")
+    if not plays:
+        return {"scoring_breakdown": [], "assists_tracking": [], "total_generated_points": 0}
+    try:
+        df = pd.DataFrame(plays)
+    except Exception:
+        return {"scoring_breakdown": [], "assists_tracking": [], "total_generated_points": 0}
     if df.empty or 'PLAYER1_ID' not in df.columns:
         return {"scoring_breakdown": [], "assists_tracking": [], "total_generated_points": 0}
     
@@ -2848,11 +3061,10 @@ async def get_player_game_impact(game_id: str, player_id: int):
     scoring_plays = df[(df['PLAYER1_ID'] == player_id) & (df['EVENTMSGTYPE'].isin([1, 3]))]
     shots = []
     for _, play in scoring_plays.iterrows():
-        desc = str(play.get('HOMEDESCRIPTION') or play.get('VISITORDESCRIPTION') or play.get('NEUTRALDESCRIPTION') or "")
-        event_type = int(play.get('EVENTMSGTYPE') or 0)
+        desc = _play_desc(play)
+        event_type = _safe_int(play.get('EVENTMSGTYPE'))
         if event_type in [1, 3]:
             points = infer_play_points(play, desc)
-            
             shots.append({
                 "description": desc,
                 "points": points,
@@ -2863,10 +3075,10 @@ async def get_player_game_impact(game_id: str, player_id: int):
     assists = []
     assists_df = df[df.get('PLAYER2_ID', pd.Series(dtype='int64')) == player_id]
     for _, play in assists_df.iterrows():
-        desc = str(play.get('HOMEDESCRIPTION') or play.get('VISITORDESCRIPTION') or play.get('NEUTRALDESCRIPTION') or "")
-        if int(play.get('EVENTMSGTYPE') or 0) == 1:
-            scorer_id = int(play.get('PLAYER1_ID') or 0)
-            scorer_name = str(play.get('PLAYER1_NAME') or "Teammate")
+        desc = _play_desc(play)
+        if _safe_int(play.get('EVENTMSGTYPE')) == 1:
+            scorer_id = _safe_int(play.get('PLAYER1_ID'))
+            scorer_name = _safe_str(play.get('PLAYER1_NAME'), "Teammate")
             points = infer_play_points(play, desc)
             assists.append({
                 "to_player_id": scorer_id,
