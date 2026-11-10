@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-nba_api
+nba_api==1.12.0
 pandas
 requests
 python-dotenv

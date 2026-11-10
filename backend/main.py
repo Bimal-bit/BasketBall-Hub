@@ -1857,13 +1857,6 @@ async def get_awards():
 def get_standings(season: str = None, season_type: str = "Regular Season"):
     target_season = (season or current_nba_season()).split(' (')[0]
     try:
-        standings = fetch_espn_standings(target_season)
-        if standings:
-            return standings
-    except Exception as e:
-        print(f"ESPN standings error: {e}")
-
-    try:
         from nba_api.stats.endpoints import leaguestandingsv3
 
         # `leaguestandingsv3` does not reliably support a Playoffs season_type.
@@ -1874,6 +1867,8 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
         data = s.get_dict()['resultSets'][0]['rowSet']
         headers = s.get_dict()['resultSets'][0]['headers']
         df = pd.DataFrame(data, columns=headers)
+        if df.empty:
+            raise RuntimeError(f"NBA Stats returned no standings for {target_season}")
         
         # Map headers to match frontend expectations
         rename_map = {
@@ -1885,9 +1880,17 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
         df = df.rename(columns=rename_map)
         
         return clean_df(df)
-    except Exception as e:
-        print(f"Standings upstream error: {e}")
-        raise
+    except Exception as nba_error:
+        print(f"NBA Stats standings error for {target_season}: {nba_error}")
+
+    try:
+        standings = fetch_espn_standings(target_season)
+        if standings:
+            return standings
+        raise RuntimeError(f"ESPN returned no standings for {target_season}")
+    except Exception as espn_error:
+        print(f"ESPN standings fallback error for {target_season}: {espn_error}")
+        raise HTTPException(status_code=503, detail="Season standings are temporarily unavailable.")
 
 @app.get("/api/players/top")
 def get_top_players(season: str = None):
