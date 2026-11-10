@@ -139,8 +139,6 @@ export default function Dashboard() {
       setLoadError(null);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Error loading NBA data:', error);
-      setGames([]);
       setLoadError(error instanceof Error ? error.message : 'Unknown API error');
     } finally {
       setLoading(false);
@@ -150,7 +148,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = window.setInterval(loadData, 5000);
+    const interval = window.setInterval(loadData, 30_000);
     return () => window.clearInterval(interval);
   }, [loadData]);
 

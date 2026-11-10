@@ -28,6 +28,7 @@ import {
   getPlayerHeadshotUrl,
   getPlayerId,
   getPlayerName,
+  getTeamLogoUrl,
   type Player,
   type Standing,
 } from '../lib/api';
@@ -378,7 +379,7 @@ function Wheel({ teams, onSpinEnd, isSpinning, setIsSpinning, targetIndex, sound
       const image = new Image();
       image.crossOrigin = 'anonymous';
       image.onload = () => drawWheel();
-      image.src = `https://cdn.nba.com/logos/nba/${team.id}/global/L/logo.svg`;
+      image.src = getTeamLogoUrl(team.id);
       logoImagesRef.current.set(String(team.id), image);
     });
     drawWheel();
@@ -437,7 +438,7 @@ function Wheel({ teams, onSpinEnd, isSpinning, setIsSpinning, targetIndex, sound
       ctx.shadowColor = 'rgba(0,0,0,0.7)';
       ctx.shadowBlur = 4;
       const logo = logoImagesRef.current.get(String(team.id));
-      if (logo?.complete) {
+      if (logo?.complete && logo.naturalWidth > 0) {
         ctx.save();
         ctx.translate(radius - 48, 0);
         ctx.rotate(Math.PI / 2);

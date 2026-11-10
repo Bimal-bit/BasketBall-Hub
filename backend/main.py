@@ -25,6 +25,14 @@ NBA_HEADERS = {
     "Referer": "https://www.nba.com/",
     "Connection": "keep-alive"
 }
+ESPN_HEADERS = {
+    "Host": "site.api.espn.com",
+    "User-Agent": NBA_HEADERS["User-Agent"],
+    "Accept": "application/json",
+    "Origin": "https://www.espn.com",
+    "Referer": "https://www.espn.com/",
+    "Connection": "keep-alive",
+}
 # Create a custom requests Session with a default timeout to avoid infinite hangs
 class DefaultTimeoutSession(requests.Session):
     def __init__(self, *args, **kwargs):
@@ -246,7 +254,7 @@ def fetch_espn_standings(season=None):
                 "type": 0,
                 "limit": 100,
             },
-            headers={"User-Agent": NBA_HEADERS["User-Agent"], "Accept": "application/json"},
+            headers=ESPN_HEADERS,
             timeout=NBA_API_TIMEOUT,
         )
         response.raise_for_status()
@@ -451,6 +459,95 @@ def get_stats_period_scores(row):
         return []
     keys = ["PTS_QTR1", "PTS_QTR2", "PTS_QTR3", "PTS_QTR4", "PTS_OT1", "PTS_OT2", "PTS_OT3", "PTS_OT4", "PTS_OT5", "PTS_OT6", "PTS_OT7", "PTS_OT8", "PTS_OT9", "PTS_OT10"]
     return [int(row[key]) for key in keys if key in row and pd.notna(row[key])]
+
+def fetch_espn_scoreboard(date):
+    response = HTTP.get(
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard",
+        params={"dates": date.replace("-", "")},
+        headers=ESPN_HEADERS,
+        timeout=10,
+    )
+    response.raise_for_status()
+    events = response.json().get("events") or []
+
+    try:
+        from nba_api.stats.static import teams as nba_teams
+        teams_by_abbreviation = {
+            team["abbreviation"].upper(): team
+            for team in nba_teams.get_teams()
+        }
+    except Exception as e:
+        print(f"Unable to load NBA team IDs for ESPN scoreboard: {e}")
+        teams_by_abbreviation = {}
+
+    teams_by_abbreviation.update({
+        "GS": teams_by_abbreviation.get("GSW"),
+        "NY": teams_by_abbreviation.get("NYK"),
+        "SA": teams_by_abbreviation.get("SAS"),
+        "NO": teams_by_abbreviation.get("NOP"),
+        "WSH": teams_by_abbreviation.get("WAS"),
+        "UTAH": teams_by_abbreviation.get("UTA"),
+    })
+
+    def convert_team(competitor):
+        team = competitor.get("team") or {}
+        abbreviation = str(team.get("abbreviation") or "").upper()
+        nba_team = teams_by_abbreviation.get(abbreviation) or {}
+        periods = competitor.get("linescores") or []
+        return {
+            "id": int(nba_team.get("id") or team.get("id") or 0),
+            "abbreviation": abbreviation,
+            "name": team.get("displayName") or team.get("name") or abbreviation,
+            "score": int(float(competitor.get("score") or 0)),
+            "periods": [int(float(period.get("value") or 0)) for period in periods],
+        }
+
+    games = []
+    for event in events:
+        competition = (event.get("competitions") or [{}])[0]
+        competitors = competition.get("competitors") or []
+        home = next((team for team in competitors if team.get("homeAway") == "home"), None)
+        away = next((team for team in competitors if team.get("homeAway") == "away"), None)
+        if not home or not away:
+            continue
+
+        home_team = convert_team(home)
+        away_team = convert_team(away)
+        event_status = event.get("status") or {}
+        status_type = event_status.get("type") or {}
+        state = status_type.get("state")
+        status = "live" if state == "in" else "final" if state == "post" else "scheduled"
+        detail = status_type.get("shortDetail") or status_type.get("detail") or ""
+
+        if status == "scheduled":
+            try:
+                from zoneinfo import ZoneInfo
+                game_time = datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
+                detail = game_time.astimezone(ZoneInfo("America/New_York")).strftime("%I:%M %p ET").lstrip("0").lower()
+            except (KeyError, ValueError):
+                pass
+
+        games.append({
+            "game_id": event.get("id"),
+            "game_date": date,
+            "status": status,
+            "status_text": detail,
+            "arena": (competition.get("venue") or {}).get("fullName") or "TBD",
+            "home_team_id": home_team["id"],
+            "away_team_id": away_team["id"],
+            "home_team_abbreviation": home_team["abbreviation"],
+            "away_team_abbreviation": away_team["abbreviation"],
+            "home_team_name": home_team["name"],
+            "away_team_name": away_team["name"],
+            "home_score": home_team["score"],
+            "away_score": away_team["score"],
+            "home_period_scores": home_team["periods"],
+            "away_period_scores": away_team["periods"],
+            "quarter": int((event_status.get("period") or 0)),
+            "time_remaining": event_status.get("displayClock") or detail,
+        })
+
+    return games
 
 def fetch_live_scoreboard(date):
     today = get_nba_today()
@@ -675,6 +772,11 @@ def get_scoreboard(date: str = None):
     target_date = parse_scoreboard_date(date)
 
     def fetch():
+        try:
+            return fetch_espn_scoreboard(target_date)
+        except Exception as e:
+            print(f"ESPN scoreboard error: {e}")
+
         try:
             stats_games = fetch_stats_scoreboard(target_date)
             if stats_games:
@@ -1220,18 +1322,22 @@ async def get_awards():
 @app.get("/api/standings")
 @cached(duration=3600, fallback=lambda *_, **kwargs: fallback_standings(kwargs.get("season"))) # Cache for 1 hour
 def get_standings(season: str = None, season_type: str = "Regular Season"):
+    target_season = (season or current_nba_season()).split(' (')[0]
+    try:
+        standings = fetch_espn_standings(target_season)
+        if standings:
+            return standings
+    except Exception as e:
+        print(f"ESPN standings error: {e}")
+
     try:
         from nba_api.stats.endpoints import leaguestandingsv3
 
-        target_season = season or current_nba_season()
-        # Sanitize season string
-        clean_season = target_season.split(' (')[0]
-        
         # `leaguestandingsv3` does not reliably support a Playoffs season_type.
         # Use regular-season standings data for bracket rendering in the frontend.
         api_season_type = "Regular Season" if season_type == "Playoffs" else season_type
         
-        s = leaguestandingsv3.LeagueStandingsV3(season=clean_season, season_type=api_season_type, timeout=NBA_API_TIMEOUT)
+        s = leaguestandingsv3.LeagueStandingsV3(season=target_season, season_type=api_season_type, timeout=NBA_API_TIMEOUT)
         data = s.get_dict()['resultSets'][0]['rowSet']
         headers = s.get_dict()['resultSets'][0]['headers']
         df = pd.DataFrame(data, columns=headers)

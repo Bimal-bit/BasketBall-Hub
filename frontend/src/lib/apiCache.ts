@@ -8,7 +8,7 @@ const inFlight = new Map<string, Promise<unknown>>();
 
 const RETRY_DELAY_MS = 800;
 const MAX_RETRIES = 2;
-const DEFAULT_TIMEOUT_MS = 8_000;
+const DEFAULT_TIMEOUT_MS = 30_000;
 
 type CachedFetchOptions = RequestInit & {
   timeoutMs?: number;

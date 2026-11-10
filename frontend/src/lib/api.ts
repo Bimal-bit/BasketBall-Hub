@@ -4,12 +4,7 @@ const LEGACY_TEMPLATE_API_BASE_URL = 'https://basketball-hub-api.onrender.com/ap
 
 const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
-const REQUEST_TIMEOUT_MS = 8_000;
-
-// Track backend reachability so we don't spam failed requests
-let _backendReachable: boolean | null = null;
-let _lastReachabilityCheck = 0;
-const REACHABILITY_TTL = 30_000; // re-check every 30s
+const REQUEST_TIMEOUT_MS = 30_000;
 
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
@@ -28,20 +23,10 @@ async function apiGet<T>(path: string, ttlMs: number, fallback?: T): Promise<T> 
     throw new Error('API backend is not configured');
   }
 
-  const now = Date.now();
-  if (_backendReachable === false && now - _lastReachabilityCheck < REACHABILITY_TTL) {
-    if (fallback !== undefined) return fallback;
-    throw new Error('Backend unavailable and no fallback provided');
-  }
-
   try {
     const data = await cachedFetch<T>(getApiUrl(path), ttlMs, { timeoutMs: REQUEST_TIMEOUT_MS });
-    _backendReachable = true;
-    _lastReachabilityCheck = Date.now();
     return data;
   } catch (err) {
-    _backendReachable = false;
-    _lastReachabilityCheck = Date.now();
     if (fallback !== undefined) return fallback;
     throw err;
   }
@@ -310,13 +295,16 @@ export interface ArchiveGame {
 
 export async function checkBackendHealth(timeoutMs = REQUEST_TIMEOUT_MS): Promise<boolean> {
   if (!API_BASE_URL) return false;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    const data = await cachedFetch<unknown>(getApiUrl('/scoreboard'), 30_000, {
-      timeoutMs,
-    });
-    return Array.isArray(data);
+    const response = await fetch(getApiUrl('/health'), { signal: controller.signal });
+    return response.ok;
   } catch {
     return false;
+  } finally {
+    window.clearTimeout(timeout);
   }
 }
 
@@ -494,8 +482,25 @@ export const nbaApi = {
   },
 };
 
-export const getTeamLogoUrl = (teamId: number | string) => 
-  `https://cdn.nba.com/logos/nba/${teamId}/global/L/logo.svg`;
+const ESPN_TEAM_LOGO_IDS: Record<string, string> = {
+  '1610612737': 'atl', '1610612738': 'bos', '1610612739': 'cle',
+  '1610612740': 'no', '1610612741': 'chi', '1610612742': 'dal',
+  '1610612743': 'den', '1610612744': 'gs', '1610612745': 'hou',
+  '1610612746': 'lac', '1610612747': 'lal', '1610612748': 'mia',
+  '1610612749': 'mil', '1610612750': 'min', '1610612751': 'bkn',
+  '1610612752': 'ny', '1610612753': 'orl', '1610612754': 'ind',
+  '1610612755': 'phi', '1610612756': 'phx', '1610612757': 'por',
+  '1610612758': 'sac', '1610612759': 'sa', '1610612760': 'okc',
+  '1610612761': 'tor', '1610612762': 'utah', '1610612763': 'mem',
+  '1610612764': 'wsh', '1610612765': 'det', '1610612766': 'cha',
+};
+
+export const getTeamLogoUrl = (teamId: number | string) => {
+  const logoId = ESPN_TEAM_LOGO_IDS[String(teamId)];
+  return logoId
+    ? `https://a.espncdn.com/i/teamlogos/nba/500/${logoId}.png`
+    : '/assets/images/nba-6.svg';
+};
 
 export const getPlayerHeadshotUrl = (playerId: number | string) => 
   `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${playerId}.png`;
