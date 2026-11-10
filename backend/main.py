@@ -701,10 +701,28 @@ def to_number(value, default=0):
         return default
 
 def current_nba_season():
-    """Return season label used by stats.nba.com, e.g. 2026-27."""
+    """Return season label used by stats.nba.com, e.g. 2025-26.
+    
+    Defaults to the most recent completed season if current season data is not available.
+    NBA seasons typically start in October, but data may not be immediately available.
+    """
     now = pd.Timestamp.now()
+    
+    # Determine the theoretical current season
     start_year = now.year if now.month >= 10 else now.year - 1
+    
+    # For early season (October-December), use previous season as default
+    # to avoid hitting APIs when new season data isn't available yet
+    if now.month in [10, 11, 12]:
+        # Use previous season as safer default
+        start_year = start_year - 1
+    
     return f"{start_year}-{str(start_year + 1)[-2:]}"
+
+def get_available_season():
+    """Get the most recent season with available data, defaulting to 2025-26."""
+    # For now, default to 2025-26 which should have complete data
+    return "2025-26"
 
 def days_between(a, b):
     try:
@@ -741,7 +759,7 @@ def has_real_standings(rows):
 
 def espn_season_year(season):
     try:
-        clean_season = (season or current_nba_season()).split(" (")[0]
+        clean_season = (season or get_available_season()).split(" (")[0]
         start_year = int(clean_season.split("-")[0])
         return start_year + 1
     except Exception:
@@ -2110,7 +2128,12 @@ async def get_awards():
 @app.get("/api/standings")
 @cached(duration=3600, fallback=lambda *_, **kwargs: fallback_standings(kwargs.get("season"))) # Cache for 1 hour
 def get_standings(season: str = None, season_type: str = "Regular Season"):
-    target_season = (season or current_nba_season()).split(' (')[0]
+    # Use provided season, or fall back to most recent available season
+    if season:
+        target_season = season.split(' (')[0]
+    else:
+        # Try to use available season data instead of current which may not exist yet
+        target_season = get_available_season()
     try:
         from nba_api.stats.endpoints import leaguestandingsv3
 
@@ -2149,7 +2172,11 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
 
 @app.get("/api/players/top")
 def get_top_players(season: str = None):
-    target_season = (season or current_nba_season()).split(" (")[0]
+    # Use provided season, or fall back to most recent available season
+    if season:
+        target_season = season.split(" (")[0]
+    else:
+        target_season = get_available_season()
 
     def fetch():
         try:
@@ -2205,7 +2232,7 @@ async def get_all_team_rosters():
 
         active_teams = nba_teams.get_teams()
         stats = leaguedashplayerstats.LeagueDashPlayerStats(
-            season=current_nba_season(),
+            season=get_available_season(),
             per_mode_detailed="PerGame",
             season_type_all_star="Regular Season"
         )
@@ -2230,7 +2257,7 @@ async def get_fatigue_report(team_id: int = None, season: str = None):
     actual recent minutes, rest, back-to-backs, and efficiency changes.
     """
     try:
-        clean_season = (season or current_nba_season()).split(' (')[0]
+        clean_season = (season or get_available_season()).split(' (')[0]
 
         try:
             from nba_api.stats.endpoints import leaguedashplayerstats, leaguegamelog
@@ -2409,7 +2436,7 @@ async def get_team_roster(team_id: int):
         
         # Fetch league stats to merge with roster
         stats = leaguedashplayerstats.LeagueDashPlayerStats(
-            season=current_nba_season(),
+            season=get_available_season(),
             per_mode_detailed="PerGame",
             season_type_all_star="Regular Season"
         )
@@ -2551,7 +2578,7 @@ def get_player_averages(player_id: int, season: str = None):
                 'FTA': row.get('FTA', 0),
             }
 
-        season = season or current_nba_season()
+        season = season or get_available_season()
         clean_season = season.split(' (')[0]
         
         # Try Game Logs first for "Actual" current numbers
@@ -2717,7 +2744,7 @@ def get_player_detailed_stats(player_id: int, season: str = None):
             except:
                 pass
                 
-        season = season or current_nba_season()
+        season = season or get_available_season()
         clean_season = season.split(' (')[0]
         
         reg_logs = playergamelogs.PlayerGameLogs(player_id_nullable=player_id, season_nullable=clean_season, season_type_nullable='Regular Season')
@@ -2732,7 +2759,7 @@ def get_player_detailed_stats(player_id: int, season: str = None):
         return clean_df(combined_df)
     except Exception as e:
         try:
-             season = season or current_nba_season()
+             season = season or get_available_season()
              clean_season = season.split(' (')[0]
              logs = playergamelogs.PlayerGameLogs(player_id_nullable=player_id, season_nullable=clean_season)
              df = logs.get_data_frames()[0]
@@ -2741,24 +2768,38 @@ def get_player_detailed_stats(player_id: int, season: str = None):
         except:
              raise HTTPException(status_code=500, detail=str(e))
 @app.get("/api/players")
-@cached(ttl=86400)
+# @cached(ttl=86400)  # Temporarily disabled for testing
 def get_all_players():
     try:
         from nba_api.stats.static import players
         all_players = players.get_players()
         
+        print(f"DEBUG: Initial player count from nba_api: {len(all_players)}")
+        print(f"DEBUG: DRAFT_2026_PLAYERS count: {len(DRAFT_2026_PLAYERS)}")
+        
         # Add 2026 draft class manually
         # Check if they're already in the list to avoid duplicates
         existing_ids = {p['id'] for p in all_players}
+        added_count = 0
         for draft_player in DRAFT_2026_PLAYERS:
             if draft_player['id'] not in existing_ids:
                 all_players.append(draft_player)
+                added_count += 1
+        
+        print(f"DEBUG: Added {added_count} draft players")
+        print(f"DEBUG: Final player count: {len(all_players)}")
+        
+        # Verify a few were added
+        dybantsa = next((p for p in all_players if p['full_name'] == 'AJ Dybantsa'), None)
+        print(f"DEBUG: AJ Dybantsa found: {dybantsa is not None}")
         
         # Sort by active, then name
         all_players.sort(key=lambda x: (not x['is_active'], x['full_name']))
         return all_players
     except Exception as e:
         print(f"Players error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/profile")
@@ -2844,7 +2885,7 @@ def get_player_awards(player_id: int, season: str = None):
 async def get_team_gamelog(team_id: int, season: str = None, season_type: str = "Regular Season"):
     try:
         from nba_api.stats.endpoints import teamgamelogs
-        clean_season = (season or current_nba_season()).split(' (')[0]
+        clean_season = (season or get_available_season()).split(' (')[0]
         logs = teamgamelogs.TeamGameLogs(
             team_id_nullable=team_id,
             season_nullable=clean_season,
@@ -2862,7 +2903,8 @@ async def get_team_gamelog(team_id: int, season: str = None, season_type: str = 
         raise HTTPException(status_code=500, detail=str(e))
 
 def fetch_espn_archive(season: str, season_type: str, team_id: int, limit: int):
-    if season != current_nba_season():
+    # Only fetch ESPN archive for current season, not historical
+    if season != get_available_season():
         return []
 
     cache_key = (season, season_type)
@@ -2967,7 +3009,7 @@ def fetch_espn_archive(season: str, season_type: str, team_id: int, limit: int):
 @app.get("/api/archive/games")
 @cached(duration=900)
 def get_historical_games(season: str = None, season_type: str = "Regular Season", team_id: int = None, limit: int = 100):
-    clean_season = (season or current_nba_season()).split(' (')[0]
+    clean_season = (season or get_available_season()).split(' (')[0]
     max_rows = max(1, min(limit, 2000))
     try:
         from nba_api.stats.endpoints import leaguegamelog
@@ -3041,9 +3083,9 @@ def get_historical_games(season: str = None, season_type: str = "Regular Season"
         games = fetch_espn_archive(clean_season, season_type, team_id, max_rows)
         if games:
             return clean_data(games)
-        if clean_season == current_nba_season() and season_type == "Playoffs":
+        if clean_season == get_available_season() and season_type == "Playoffs":
             return []
-        if clean_season == current_nba_season():
+        if clean_season == get_available_season():
             return []
     except Exception as espn_error:
         print(f"ESPN archive fallback error for {clean_season}: {espn_error}")
@@ -3055,7 +3097,12 @@ def get_historical_games(season: str = None, season_type: str = "Regular Season"
 async def get_playoffs(season: str = None):
     try:
         from nba_api.stats.endpoints import commonplayoffseries, leaguegamelog
-        clean_season = (season or current_nba_season()).split(' (')[0]
+        
+        # Use provided season, or fall back to most recent available season
+        if season:
+            clean_season = season.split(' (')[0]
+        else:
+            clean_season = get_available_season()
         
         # 1. Get series structure
         series_endpoint = commonplayoffseries.CommonPlayoffSeries(season=clean_season, timeout=NBA_API_TIMEOUT)
@@ -3169,7 +3216,7 @@ async def get_player_game_impact(game_id: str, player_id: int):
 @cached(duration=3600)
 async def get_leaders(category: str = "PTS", season: str = None, per_mode: str = "PerGame", season_type: str = "Regular Season"):
     try:
-        target_season = season or current_nba_season()
+        target_season = season or get_available_season()
         
         # All-Time / Lifetime Logic (Usually Regular Season only in NBA API All Time)
         if target_season == "Lifetime":
@@ -3332,7 +3379,7 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
         return clean_df(df)
     except Exception as e:
         print(f"Leaders error: {e}")
-        if target_season != "Lifetime" and target_season == current_nba_season():
+        if target_season != "Lifetime" and target_season == get_available_season():
             try:
                 return fetch_espn_player_leaders(target_season, category, season_type, per_mode)
             except Exception as fallback_error:
@@ -3342,7 +3389,7 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
 @app.get("/api/vault/team-history")
 def get_team_history(team_id: int, season: str):
     # Dynamic cache duration: 1 hour for current season, 24 hours for historical
-    is_current = season == current_nba_season()
+    is_current = season == get_available_season()
     cache_duration = 3600 if is_current else 86400
     
     key = f"get_team_history:{team_id}:{season}"

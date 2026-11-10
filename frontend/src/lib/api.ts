@@ -8,7 +8,14 @@ const REQUEST_TIMEOUT_MS = 30_000;
 
 export function getCurrentNbaSeason() {
   const now = new Date();
-  const startYear = now.getFullYear() - (now.getMonth() < 9 ? 1 : 0);
+  // Determine the season start year
+  let startYear = now.getFullYear() - (now.getMonth() < 9 ? 1 : 0);
+  
+  // For early season (Oct-Dec), use previous season as default since new season data may not be available
+  if (now.getMonth() >= 9 && now.getMonth() <= 11) {
+    startYear = startYear - 1;
+  }
+  
   return `${startYear}-${String(startYear + 1).slice(-2)}`;
 }
 
