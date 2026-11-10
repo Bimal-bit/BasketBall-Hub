@@ -8,15 +8,15 @@ const REQUEST_TIMEOUT_MS = 30_000;
 
 export function getCurrentNbaSeason() {
   const now = new Date();
-  // Determine the season start year
-  let startYear = now.getFullYear() - (now.getMonth() < 9 ? 1 : 0);
-  
-  // For early season (Oct-Dec), use previous season as default since new season data may not be available
-  if (now.getMonth() >= 9 && now.getMonth() <= 11) {
-    startYear = startYear - 1;
-  }
-  
+  // Return the actual current NBA season
+  const startYear = now.getFullYear() - (now.getMonth() < 9 ? 1 : 0);
   return `${startYear}-${String(startYear + 1).slice(-2)}`;
+}
+
+export function getCompletedNbaSeason() {
+  // Returns the most recent completed season with full data
+  // Use this for historical analysis, awards, etc.
+  return "2025-26";
 }
 
 export function getNbaSeasons() {
@@ -474,7 +474,9 @@ export const nbaApi = {
   },
 
   getPlayoffs: (season?: string): Promise<any[]> => {
-    const query = season ? `?season=${encodeURIComponent(season)}` : '';
+    // Default to completed season for playoffs if no season specified
+    const defaultSeason = season || getCompletedNbaSeason();
+    const query = `?season=${encodeURIComponent(defaultSeason)}`;
     return apiGet<any[]>(`/playoffs${query}`, 600_000, []);
   },
 

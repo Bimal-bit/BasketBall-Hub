@@ -701,28 +701,31 @@ def to_number(value, default=0):
         return default
 
 def current_nba_season():
-    """Return season label used by stats.nba.com, e.g. 2025-26.
+    """Return current NBA season label, e.g. 2026-27.
     
-    Defaults to the most recent completed season if current season data is not available.
-    NBA seasons typically start in October, but data may not be immediately available.
+    This returns the actual current season based on the date.
+    NBA seasons start in October and end in June.
     """
     now = pd.Timestamp.now()
-    
-    # Determine the theoretical current season
     start_year = now.year if now.month >= 10 else now.year - 1
-    
-    # For early season (October-December), use previous season as default
-    # to avoid hitting APIs when new season data isn't available yet
-    if now.month in [10, 11, 12]:
-        # Use previous season as safer default
-        start_year = start_year - 1
-    
     return f"{start_year}-{str(start_year + 1)[-2:]}"
 
 def get_available_season():
-    """Get the most recent season with available data, defaulting to 2025-26."""
-    # For now, default to 2025-26 which should have complete data
+    """Get the most recent season with COMPLETE data available.
+    
+    Use this for historical queries, stats analysis, awards, etc.
+    For live/current data, use current_nba_season() instead.
+    """
+    # Return the most recent COMPLETED season
+    # 2025-26 has complete data, 2026-27 is ongoing
     return "2025-26"
+
+def get_default_season_for_live_data():
+    """Get the season to use for live/current data like standings and games.
+    
+    This attempts to use the current season if data is available.
+    """
+    return current_nba_season()
 
 def days_between(a, b):
     try:
@@ -2128,12 +2131,12 @@ async def get_awards():
 @app.get("/api/standings")
 @cached(duration=3600, fallback=lambda *_, **kwargs: fallback_standings(kwargs.get("season"))) # Cache for 1 hour
 def get_standings(season: str = None, season_type: str = "Regular Season"):
-    # Use provided season, or fall back to most recent available season
+    # Use provided season, or use current season for live standings
     if season:
         target_season = season.split(' (')[0]
     else:
-        # Try to use available season data instead of current which may not exist yet
-        target_season = get_available_season()
+        # For standings, use current season to show live data
+        target_season = get_default_season_for_live_data()
     try:
         from nba_api.stats.endpoints import leaguestandingsv3
 
@@ -2172,11 +2175,11 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
 
 @app.get("/api/players/top")
 def get_top_players(season: str = None):
-    # Use provided season, or fall back to most recent available season
+    # Use provided season, or use current season for live player stats
     if season:
         target_season = season.split(" (")[0]
     else:
-        target_season = get_available_season()
+        target_season = get_default_season_for_live_data()
 
     def fetch():
         try:
@@ -3098,19 +3101,27 @@ async def get_playoffs(season: str = None):
     try:
         from nba_api.stats.endpoints import commonplayoffseries, leaguegamelog
         
-        # Use provided season, or fall back to most recent available season
+        # Use provided season, or use available season (playoffs need complete data)
         if season:
             clean_season = season.split(' (')[0]
         else:
+            # For playoffs, use completed season since current season may not have playoffs yet
             clean_season = get_available_season()
         
         # 1. Get series structure
         series_endpoint = commonplayoffseries.CommonPlayoffSeries(season=clean_season, timeout=NBA_API_TIMEOUT)
         series_df = series_endpoint.get_data_frames()[0]
         
+        # If no playoff data exists yet, return empty array instead of error
+        if series_df.empty:
+            return []
+        
         # 2. Get game results
         log_endpoint = leaguegamelog.LeagueGameLog(season=clean_season, season_type_all_star='Playoffs', timeout=NBA_API_TIMEOUT)
         log_df = log_endpoint.get_data_frames()[0]
+        
+        if log_df.empty:
+            return []
         
         # 3. Aggregate wins per series
         # Merge series_df with log_df on GAME_ID
@@ -3124,7 +3135,8 @@ async def get_playoffs(season: str = None):
         return clean_df(merged)
     except Exception as e:
         print(f"Playoffs upstream error: {e}")
-        raise HTTPException(status_code=503, detail="Real playoff data is temporarily unavailable.")
+        # Return empty array instead of 503 error when playoffs haven't started yet
+        return []
 
 def _play_desc(play):
     """Extract the first non-empty description from a play-by-play row, handling NaN."""
@@ -3216,7 +3228,8 @@ async def get_player_game_impact(game_id: str, player_id: int):
 @cached(duration=3600)
 async def get_leaders(category: str = "PTS", season: str = None, per_mode: str = "PerGame", season_type: str = "Regular Season"):
     try:
-        target_season = season or get_available_season()
+        # Use current season for live leaders, or specified season
+        target_season = season or get_default_season_for_live_data()
         
         # All-Time / Lifetime Logic (Usually Regular Season only in NBA API All Time)
         if target_season == "Lifetime":
