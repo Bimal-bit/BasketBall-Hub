@@ -11,7 +11,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://basketball-hub-api-pesl.onrender.com/api/:path*"
+      "destination": "https://basketball-hub-api-95yz.onrender.com/api/:path*"
     }
   ],
   "routes": [
@@ -60,7 +60,7 @@
 ## Deployment Status
 
 ### Backend (Render)
-- ✅ URL: https://basketball-hub-api-pesl.onrender.com
+- ✅ URL: https://basketball-hub-api-95yz.onrender.com
 - ✅ Health check: /api/health returns 200 OK
 - ⚠️ Note: Free tier may have cold starts (15-30 seconds)
 
@@ -74,7 +74,7 @@
 
 ### 1. Check Backend Health
 ```bash
-curl https://basketball-hub-api-pesl.onrender.com/api/health
+curl https://basketball-hub-api-95yz.onrender.com/api/health
 # Should return: {"status":"ok"}
 ```
 
@@ -183,7 +183,7 @@ If issues persist:
    ```
 
 2. **Use Previous Environment Variables**
-   - Add `VITE_API_BASE_URL=https://basketball-hub-api-pesl.onrender.com/api` in Vercel
+   - Add `VITE_API_BASE_URL=https://basketball-hub-api-95yz.onrender.com/api` in Vercel
 
 3. **Check Browser DevTools**
    - Open Console tab

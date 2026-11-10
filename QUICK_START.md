@@ -57,7 +57,7 @@ Check `frontend/.env` - it should look like this:
 # VITE_API_BASE_URL=http://127.0.0.1:8000/api
 
 # Custom Backend: Set to your deployed backend URL:
-# VITE_API_BASE_URL=https://basketball-hub-api-pesl.onrender.com/api
+# VITE_API_BASE_URL=https://basketball-hub-api-95yz.onrender.com/api
 ```
 
 **DO NOT** have `VITE_API_BASE_URL=http://127.0.0.1:8000/api` in `.env`
@@ -88,7 +88,7 @@ git push origin main
 
 ### CORS Errors in Production
 - Verify `vercel.json` has correct backend URL
-- Backend URL should be: `https://basketball-hub-api-pesl.onrender.com/api`
+- Backend URL should be: `https://basketball-hub-api-95yz.onrender.com/api`
 
 ### Backend Takes Forever to Load
 - Free Render services sleep after 15 minutes
@@ -98,7 +98,7 @@ git push origin main
 ### 2026 Players Not Showing
 - Check backend logs on Render
 - Verify backend redeployed with new code
-- Try: `curl https://basketball-hub-api-pesl.onrender.com/api/health`
+- Try: `curl https://basketball-hub-api-95yz.onrender.com/api/health`
 
 ## Files Changed
 

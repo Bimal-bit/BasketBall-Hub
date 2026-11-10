@@ -4,7 +4,7 @@ import { cachedFetch } from './apiCache';
 const cache = new Map<string, { data: unknown; expires: number }>();
 
 const LEGACY_TEMPLATE_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
-const DEPLOYED_API_BASE_URL = 'https://basketball-hub-api-pesl.onrender.com/api';
+const DEPLOYED_API_BASE_URL = 'https://basketball-hub-api-95yz.onrender.com/api';
 
 const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
@@ -49,7 +49,7 @@ function resolveApiBaseUrl() {
   try {
     const url = new URL(configured);
     // If pointing to our render backend, use proxy instead
-    if (url.hostname === 'basketball-hub-api-pesl.onrender.com') {
+    if (url.hostname === 'basketball-hub-api-95yz.onrender.com' || url.hostname === 'basketball-hub-api-pesl.onrender.com') {
       return '/api';
     }
   } catch {

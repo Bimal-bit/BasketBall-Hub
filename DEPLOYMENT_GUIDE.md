@@ -13,8 +13,10 @@ This guide explains how to deploy both the frontend and backend, and how the con
 
 ### Current Backend URL
 ```
-https://basketball-hub-api-pesl.onrender.com/api
+https://basketball-hub-api-95yz.onrender.com/api
 ```
+
+⚠️ **Note**: The old URL `basketball-hub-api-pesl.onrender.com` is no longer active. Always use `basketball-hub-api-95yz.onrender.com`.
 
 ### Configuration Files
 - `render.yaml` - Render service configuration
