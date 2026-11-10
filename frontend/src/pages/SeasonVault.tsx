@@ -118,9 +118,16 @@ export default function SeasonVault() {
         if (!mounted) return;
         const standing = standingsData.find((item: any) => Number(item.TeamID) === Number(teamId));
         const fallback = buildFallbackVault(teamId);
+        const data = historyData && typeof historyData === 'object' ? historyData : {};
         setHistory({
-          ...(historyData || fallback),
-          standing: { ...fallback.standing, ...(historyData?.standing ?? {}), ...(standing ?? {}) },
+          ...fallback,
+          ...data,
+          stats: { ...fallback.stats, ...(data.stats ?? {}) },
+          advanced: data.advanced ?? {},
+          coaches: Array.isArray(data.coaches) ? data.coaches : fallback.coaches,
+          roster: Array.isArray(data.roster) ? data.roster : fallback.roster,
+          player_stats: Array.isArray(data.player_stats) ? data.player_stats : [],
+          standing: { ...fallback.standing, ...(data.standing ?? {}), ...(standing ?? {}) },
         });
       } catch (error) {
         console.error('Error loading vault:', error);

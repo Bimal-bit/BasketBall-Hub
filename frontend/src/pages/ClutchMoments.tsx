@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { Activity, Award, Clock, Filter, Flame, TrendingUp } from 'lucide-react';
+import { Activity, Award, Clock, Filter, Flame, RefreshCw, TrendingUp } from 'lucide-react';
 import { nbaApi, type BoxScorePlayer, type Game, type NbaTeam, type PlayByPlay } from '../lib/api';
 import MiniLineChart from '../components/MiniLineChart';
 import { formatIndianDate, getIndianDateKey } from '../lib/time';
@@ -72,17 +72,19 @@ export default function ClutchMoments() {
         .filter((game, index, arr) => arr.findIndex(item => item.game_id === game.game_id) === index)
         .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime());
 
-      games = games.slice(0, 18);
+      games = games.slice(0, 12);
 
       const processed = await mapWithConcurrency(games, 4, async game => {
         const margin = Math.abs((game.home_score ?? 0) - (game.away_score ?? 0));
         const pressureRating = computePressureRating(game, margin);
         const isClutch = pressureRating >= CLUTCH_PRESSURE_THRESHOLD;
-        const boxscoreRaw = await withTimeout(nbaApi.getBoxScore(game.game_id), 1800, [] as BoxScorePlayer[]).catch(() => []);
         const shouldLoadPbp = isClutch || game.status === 'live' || margin <= 8;
-        const playByPlayRaw = shouldLoadPbp
-          ? await withTimeout(nbaApi.getPlayByPlay(game.game_id), 1800, [] as PlayByPlay[]).catch(() => [])
-          : [];
+        const [boxscoreRaw, playByPlayRaw] = await Promise.all([
+          withTimeout(nbaApi.getBoxScore(game.game_id), 1800, [] as BoxScorePlayer[]).catch(() => []),
+          shouldLoadPbp
+            ? withTimeout(nbaApi.getPlayByPlay(game.game_id), 1800, [] as PlayByPlay[]).catch(() => [])
+            : Promise.resolve([] as PlayByPlay[]),
+        ]);
         const boxscore = Array.isArray(boxscoreRaw) ? boxscoreRaw : [];
         const playByPlay = Array.isArray(playByPlayRaw) ? playByPlayRaw : [];
         const topPerformers = (boxscore.length > 0 ? boxscore : buildLeaderBoxScore(game))
@@ -225,7 +227,18 @@ export default function ClutchMoments() {
             </button>
           ))}
           </div>
-          {filteredGames.length === 0 && <div className="text-center py-8 text-xs text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">No recent games found from NBA API</div>}
+          {filteredGames.length === 0 && (
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-gray-800 bg-gray-900 py-8 text-center text-xs text-gray-400">
+              <span>No recent games are available right now.</span>
+              <button
+                onClick={() => void loadData()}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-3 py-2 font-medium text-gray-200 transition hover:border-orange-500/50 hover:text-white"
+              >
+                <RefreshCw size={13} />
+                Retry
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="order-1 lg:order-2 lg:col-span-2 space-y-3 sm:space-y-4">

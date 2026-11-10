@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { Component, useState, useEffect, lazy, Suspense, type ErrorInfo, type ReactNode } from 'react';
 import { checkBackendHealth } from './lib/api';
 import Layout from './components/Layout';
 import BasketballLoader from './components/BasketballLoader';
@@ -55,8 +55,43 @@ const pageTitles: Record<string, string> = {
   dreamteam: 'Dream Team',
 };
 
+class SectionErrorBoundary extends Component<
+  { children: ReactNode; pageName: string; onRetry: () => void },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error(`The ${this.props.pageName} section failed to render:`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div role="alert" className="mx-auto my-12 max-w-xl rounded-2xl border border-red-500/30 bg-red-500/5 p-6 text-center">
+          <h2 className="text-lg font-bold text-white">{this.props.pageName} could not be displayed</h2>
+          <p className="mt-2 text-sm text-gray-400">The rest of the site is still available. Retry this section or choose another section from the menu.</p>
+          <button
+            onClick={this.props.onRetry}
+            className="mt-5 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-orange-500"
+          >
+            Retry section
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [activePage, setActivePage] = useState('dashboard');
+  const [pageAttempt, setPageAttempt] = useState(0);
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -64,6 +99,7 @@ export default function App() {
       const page = (event as CustomEvent<string>).detail;
       if (page && pages[page]) {
         setActivePage(page);
+        setPageAttempt(0);
       }
     };
     window.addEventListener('navigate', handleNavigate);
@@ -118,7 +154,10 @@ export default function App() {
   const PageComponent = pages[activePage] || Dashboard;
 
   return (
-    <Layout activePage={activePage} onNavigate={setActivePage}>
+    <Layout activePage={activePage} onNavigate={page => {
+      setActivePage(page);
+      setPageAttempt(0);
+    }}>
       {backendOk === false && (
         <div role="alert" className="p-3 bg-red-700 text-white text-sm text-center">
           {import.meta.env.DEV
@@ -127,7 +166,13 @@ export default function App() {
         </div>
       )}
       <Suspense fallback={<div className="flex min-h-[70vh] items-center justify-center"><BasketballLoader /></div>}>
-        <PageComponent />
+        <SectionErrorBoundary
+          key={`${activePage}:${pageAttempt}`}
+          pageName={pageTitles[activePage] || 'This section'}
+          onRetry={() => setPageAttempt(attempt => attempt + 1)}
+        >
+          <PageComponent />
+        </SectionErrorBoundary>
       </Suspense>
     </Layout>
   );
