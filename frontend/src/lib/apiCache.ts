@@ -6,9 +6,9 @@ type CacheEntry = {
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<unknown>>();
 
-const RETRY_DELAY_MS = 800;
-const MAX_RETRIES = 1;
-const DEFAULT_TIMEOUT_MS = 30_000;
+const RETRY_DELAY_MS = 1200;
+const MAX_RETRIES = 2;
+const DEFAULT_TIMEOUT_MS = 45_000; // Increased for Render cold starts
 
 type CachedFetchOptions = RequestInit & {
   timeoutMs?: number;

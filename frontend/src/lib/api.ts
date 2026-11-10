@@ -4,7 +4,7 @@ const DEPLOYED_API_BASE_URL = 'https://basketball-hub-api-pesl.onrender.com/api'
 
 const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
-const REQUEST_TIMEOUT_MS = 30_000;
+const REQUEST_TIMEOUT_MS = 45_000; // Increased for Render cold starts
 
 export function getCurrentNbaSeason() {
   const now = new Date();
@@ -29,16 +29,30 @@ export function getNbaSeasons() {
 
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+  
+  // In development, use configured URL or fallback to deployed API
   if (import.meta.env.DEV) {
     return configured && configured !== LEGACY_TEMPLATE_API_BASE_URL ? configured : DEPLOYED_API_BASE_URL;
   }
 
-  if (!configured || configured === LEGACY_TEMPLATE_API_BASE_URL) return '/api';
-  try {
-    if (new URL(configured).hostname === 'basketball-hub-api-pesl.onrender.com') return '/api';
-  } catch {
-    return configured;
+  // In production (Vercel), always use the proxy path '/api'
+  // This works with vercel.json rewrites configuration
+  if (!configured || configured === LEGACY_TEMPLATE_API_BASE_URL || configured === DEPLOYED_API_BASE_URL) {
+    return '/api';
   }
+  
+  // Handle explicit production API URL configuration
+  try {
+    const url = new URL(configured);
+    // If pointing to our render backend, use proxy instead
+    if (url.hostname === 'basketball-hub-api-pesl.onrender.com') {
+      return '/api';
+    }
+  } catch {
+    // Invalid URL, use proxy
+    return '/api';
+  }
+  
   return configured;
 }
 
