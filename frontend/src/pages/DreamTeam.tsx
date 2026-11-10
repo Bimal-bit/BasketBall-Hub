@@ -33,6 +33,7 @@ import {
   type Player,
   type Standing,
 } from '../lib/api';
+import PageHero from '../components/PageHero';
 import BasketballLoader from '../components/BasketballLoader';
 import { CURRENT_TEAM_VAULT } from './SeasonVaultData';
 
@@ -821,15 +822,11 @@ export default function DreamTeam() {
     <div className="p-4 lg:p-6 space-y-6 max-w-[1600px] mx-auto">
       {/* Header Panel */}
       <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between shadow-xl">
-        <div className="relative z-10">
-          <h2 className="flex items-center gap-3 text-2xl sm:text-4xl font-semibold text-white tracking-tight uppercase">
-            <Trophy className="text-orange-500 animate-pulse" size={36} />
-            Prime Dream Match
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-gray-500">
-            Build a head-to-head matchup or create one solo roster, verify its season standing, and simulate the finished lineup.
+        <PageHero kicker="Dream Team · tap a slot to swap" title="Dream" accent="team">
+          <p className="mt-3 max-w-2xl font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">
+            Build a head-to-head matchup or one solo roster, then simulate the lineup.
           </p>
-        </div>
+        </PageHero>
 
         <div className="relative z-10 flex flex-wrap items-center gap-2.5">
           <div className="flex rounded-xl border border-gray-800 bg-gray-950 p-1">

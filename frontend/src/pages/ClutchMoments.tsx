@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { Activity, Award, Clock, Filter, Flame, RefreshCw, TrendingUp } from 'lucide-react';
 import { nbaApi, type BoxScorePlayer, type Game, type NbaTeam, type PlayByPlay } from '../lib/api';
 import MiniLineChart from '../components/MiniLineChart';
+import PageHero from '../components/PageHero';
 import { formatIndianDate, getIndianDateKey } from '../lib/time';
 
 const CLUTCH_PRESSURE_THRESHOLD = 62;
@@ -161,10 +162,9 @@ export default function ClutchMoments() {
 
   return (
     <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
-      <div>
-        <h2 className="text-lg sm:text-xl font-medium text-white mb-1">Clutch Moment Detector</h2>
-        <p className="text-xs sm:text-sm text-gray-400">Recent NBA games ranked by late pressure and boxscore impact.</p>
-      </div>
+      <PageHero kicker="Analysis · Clutch Moments" title="Clutch" accent="moments">
+        <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Recent NBA games ranked by late pressure and box score impact</p>
+      </PageHero>
 
       <div className="grid grid-cols-5 gap-1.5 sm:gap-3">
         <MetricCard icon={<Flame size={16} className="text-orange-400 mx-auto mb-1" />} value={totalClutchGames} label="Clutch" />

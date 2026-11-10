@@ -3,6 +3,7 @@ import { MessageSquare, Sparkles, RefreshCw, Copy, Check } from 'lucide-react';
 import { supabase, type Game, type Team, type PlayerGameStat, type Player } from '../lib/supabase';
 import { generateCommentary } from '../lib/analytics';
 import BasketballLoader from '../components/BasketballLoader';
+import PageHero from '../components/PageHero';
 
 type CommentaryEntry = {
   gameId: string;
@@ -106,10 +107,9 @@ export default function AICommentary() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-medium text-white mb-1">AI Commentary Generator</h2>
-          <p className="text-sm text-gray-400">Automatically generates professional-grade match summaries using NLP analysis of game stats and player performance patterns.</p>
-        </div>
+        <PageHero kicker="Analysis · Commentary" title="Game" accent="voice">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Match summaries from game stats and player performance</p>
+        </PageHero>
         <button
           onClick={() => games.forEach(g => generateForGame(g))}
           className="flex items-center justify-center gap-2 px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-xs text-orange-400 transition-colors w-full sm:w-auto shrink-0"

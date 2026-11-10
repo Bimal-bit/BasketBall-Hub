@@ -1,3 +1,5 @@
+const ink = (token) => `rgb(var(${token}) / <alpha-value>)`;
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
@@ -5,13 +7,62 @@ export default {
   theme: {
     extend: {
       colors: {
-        'nba-navy': '#0A1628',
-        'nba-navy-mid': '#1A2E4A',
-        'nba-orange': '#F97316', // Update brand orange to #F97316
-        'nba-orange-light': '#FEF0E8',
+        white: ink('--hi-tx'),
+        gray: {
+          50: ink('--hi-surf'),
+          100: ink('--hi-tx'),
+          200: ink('--hi-tx'),
+          300: ink('--hi-mut'),
+          400: ink('--hi-mut'),
+          500: ink('--hi-mut'),
+          600: ink('--hi-mut'),
+          700: ink('--hi-line'),
+          800: ink('--hi-line'),
+          850: ink('--hi-surf2'),
+          900: ink('--hi-surf'),
+          950: ink('--hi-bg'),
+        },
+        zinc: {
+          50: ink('--hi-surf'),
+          100: ink('--hi-surf2'),
+          200: ink('--hi-line'),
+          300: ink('--hi-mut'),
+          400: ink('--hi-mut'),
+          500: ink('--hi-mut'),
+          600: ink('--hi-line'),
+          700: ink('--hi-line'),
+          800: ink('--hi-surf2'),
+          900: ink('--hi-surf'),
+          950: ink('--hi-bg'),
+        },
+        orange: {
+          50: ink('--hi-acc'),
+          100: ink('--hi-acc'),
+          200: ink('--hi-acc'),
+          300: ink('--hi-acc'),
+          400: ink('--hi-acc'),
+          500: ink('--hi-acc'),
+          600: ink('--hi-acc'),
+          700: ink('--hi-acc'),
+          800: ink('--hi-acc'),
+          900: ink('--hi-acc'),
+          950: ink('--hi-surf'),
+        },
+        green: {
+          400: ink('--hi-acc2'),
+          500: ink('--hi-acc2'),
+          600: ink('--hi-acc2'),
+          700: ink('--hi-acc2'),
+        },
+        'nba-navy': ink('--hi-bg'),
+        'nba-navy-mid': ink('--hi-surf'),
+        'nba-orange': ink('--hi-acc'),
+        'nba-orange-light': ink('--hi-surf2'),
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+        display: ['Anton', 'Impact', '"Arial Narrow"', 'sans-serif'],
+        mono: ['"DM Mono"', 'ui-monospace', 'monospace'],
       },
     },
   },

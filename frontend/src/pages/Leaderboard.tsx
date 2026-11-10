@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Trophy, ChevronDown, TrendingUp, User, Users, Calendar, Award, Zap, Target, Shield, Clock, Search, ChevronRight, X } from 'lucide-react';
 import { getCurrentNbaSeason, getNbaSeasons, nbaApi, type Player, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
+import PageHero from '../components/PageHero';
 
 const CATEGORIES = [
   "Games played",
@@ -133,10 +134,9 @@ export default function Leaderboard() {
       `}</style>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-medium text-gray-500 text-white tracking-tighter uppercase">Stat Leaderboard</h1>
-          <p className="text-sm text-gray-500">Comprehensive performance tracking from 1985 through the current season.</p>
-        </div>
+        <PageHero kicker="League · Leaderboard" title="League" accent="leaders">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Performance tracking from 1985 through the current season</p>
+        </PageHero>
         
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1 bg-gray-900 bg-gray-950 p-1 rounded-2xl border border-gray-800 backdrop-blur-xl">

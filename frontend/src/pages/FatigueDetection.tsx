@@ -3,6 +3,7 @@ import { Activity, AlertTriangle, CheckCircle, Clock, Search, SlidersHorizontal,
 import { getPlayerHeadshotUrl, getTeamLogoUrl, nbaApi, type NbaTeam, type Player, type PlayerFatigueScore, type PlayerGameLog } from '../lib/api';
 import MiniLineChart from '../components/MiniLineChart';
 import { SkeletonGrid } from '../components/SkeletonCard';
+import PageHero from '../components/PageHero';
 
 type PlayerFatigue = Player & { fatigue?: PlayerFatigueScore; recent_games?: PlayerGameLog[] };
 type RiskFilter = 'all' | 'high' | 'medium' | 'low';
@@ -132,10 +133,9 @@ export default function FatigueDetection() {
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div className="p-4 border-b border-gray-800">
-          <h1 className="text-base font-medium text-gray-500 text-white">Fatigue detection</h1>
-          <p className="text-xs text-gray-500">Official NBA workload model using recent player stats, rest, and back-to-backs</p>
-        </div>
+        <PageHero kicker="Analysis · Fatigue Detector" title="Running" accent="on empty">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Workload from recent minutes, rest, and back-to-backs</p>
+        </PageHero>
         <div className="text-xs text-gray-500">
           {season && <span>{season}</span>}
           {generatedAt && <span className="ml-2">Updated {new Date(generatedAt).toLocaleString()}</span>}

@@ -3,6 +3,7 @@ import { Search, User, Calendar, Trophy, Star, TrendingUp, DollarSign, Activity 
 import { nbaApi, getPlayerHeadshotUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 import { SkeletonGrid } from '../components/SkeletonCard';
+import PageHero from '../components/PageHero';
 
 const sanitizeNumberValue = (value: any, fallback = 0) => {
   if (typeof value === 'string') {
@@ -321,11 +322,10 @@ export default function PlayerAnalyzer() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 pb-24 animate-fade-in lg:space-y-12">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center p-4 border-b border-gray-800">
-         <div>
-            <h1 className="text-xl font-bold text-white uppercase tracking-tight">Player Analyzer</h1>
-            <p className="text-xs text-gray-500">Comprehensive NBA database</p>
-         </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+         <PageHero kicker="Analysis · Player Analyzer" title="Player" accent="analyzer">
+            <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Comprehensive NBA database</p>
+         </PageHero>
          
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:max-w-2xl items-stretch sm:items-center">
              <div className="relative flex-1 group">

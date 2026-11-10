@@ -6,6 +6,7 @@ import {
   getPlayerHeadshotUrl,
   type BoxScorePlayer 
 } from '../lib/api';
+import PageHero from '../components/PageHero';
 
 type AwardPlayer = {
   id?: number;
@@ -206,10 +207,9 @@ export default function Awards() {
   return (
     <div className="p-4 lg:p-6 space-y-12 pb-20 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-950 p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] border border-gray-800 backdrop-blur-xl">
-        <div>
-          <h1 className="text-2xl sm:text-4xl font-medium text-white  uppercase tracking-tighter">Award Records</h1>
-          <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium uppercase tracking-[0.3em] sm:tracking-[0.5em] mt-2 sm:mt-3">NBA Official Historical Vault</p>
-        </div>
+        <PageHero kicker="League · Awards History" title="Hall of" accent="honours">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">NBA official historical vault</p>
+        </PageHero>
         
         <div className="relative group max-w-md w-full">
            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors" size={18} />

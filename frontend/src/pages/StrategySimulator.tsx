@@ -3,6 +3,7 @@ import { Play, RefreshCw, ChevronDown, X, Target, Shield, Zap, Crosshair, Scale,
 import { nbaApi, type Player, type Standing, getTeamLogoUrl, getPlayerHeadshotUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 import { simulateLineup, TACTICAL_STRATEGIES, type TacticKey } from '../lib/analytics';
+import PageHero from '../components/PageHero';
 
 type Team = Standing & {
   logo_color: string;
@@ -267,10 +268,9 @@ export default function StrategySimulator() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6 bg-gray-900">
-      <div>
-        <h1 className="text-3xl font-medium text-white mb-2">Strategy Simulator</h1>
-        <p className="text-sm text-gray-400">Build custom lineups and simulate game matchups. The model uses real NBA stats to predict outcomes.</p>
-      </div>
+      <PageHero kicker="Analysis · Strategy Simulator" title="What" accent="if">
+        <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Lineups and matchups modeled from real NBA stats</p>
+      </PageHero>
 
       {/* Team Selectors */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

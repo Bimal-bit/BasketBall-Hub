@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { getNbaSeasons, nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
+import PageHero from '../components/PageHero';
 import { NBA_CHAMPIONS, ARENA_IMAGES, MASCOTS, getRingImageUrl, getTeamVaultInfo } from './SeasonVaultData';
 
 const SEASONS = getNbaSeasons();
@@ -210,13 +211,9 @@ export default function SeasonVault() {
              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-[1.25rem] sm:rounded-[1.5rem] bg-orange-500/20 flex items-center justify-center border border-orange-500/20 shadow-none shadow-none flex-shrink-0">
                 <Layers className="text-orange-500" size={32} />
              </div>
-             <div className="min-w-0">
-                <h1 className="text-2xl sm:text-4xl font-medium text-white  tracking-tighter uppercase leading-none mb-1 break-words">Season Vault</h1>
-                <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                   <p className="text-[9px] sm:text-[10px] font-medium text-gray-500 uppercase tracking-widest">Historical Data Sync Active</p>
-                </div>
-             </div>
+             <PageHero kicker="League · Season Archive" title="Past" accent="seasons">
+                <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Historical data sync active</p>
+             </PageHero>
           </div>
           
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">

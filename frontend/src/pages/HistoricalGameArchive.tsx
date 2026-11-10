@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Award, Calendar, Clock, History, Search, Star, Trophy } from 'lucide-react';
 import { getCurrentNbaSeason, getNbaSeasons, nbaApi, type ArchiveGame, type BoxScorePlayer, type NbaTeam } from '../lib/api';
+import PageHero from '../components/PageHero';
 
 type SortMode = 'date' | 'score' | 'margin' | 'team';
 
@@ -76,10 +77,9 @@ export default function HistoricalGameArchive() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-        <div className="p-4 border-b border-gray-800 mb-4">
-          <h1 className="text-base font-medium text-gray-500 text-white">Season archive</h1>
-          <p className="text-xs text-gray-500">Official NBA game logs, searchable by season, team, and season type</p>
-        </div>
+        <PageHero kicker="League · Game Archive" title="Game" accent="archive">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Official NBA game logs by season, team, and type</p>
+        </PageHero>
         <div className="relative w-full lg:w-80">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search games or teams" className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50" />

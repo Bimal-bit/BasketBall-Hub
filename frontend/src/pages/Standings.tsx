@@ -10,6 +10,7 @@ import {
   type TeamGame,
   type BoxScorePlayer
 } from '../lib/api';
+import PageHero from '../components/PageHero';
 import BasketballLoader from '../components/BasketballLoader';
 import { SkeletonGrid } from '../components/SkeletonCard';
 
@@ -158,11 +159,10 @@ export default function Standings() {
 
   return (
     <div className="w-full space-y-8 pb-24 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-gray-900 p-4 sm:p-6 rounded-2xl border border-gray-800 backdrop-blur-xl">
-        <div>
-          <h1 className="text-xl font-bold text-white uppercase tracking-tight">League Standings</h1>
-          <p className="text-[10px] text-gray-500 font-medium uppercase tracking-[0.2em] mt-1">NBA Official Season {season}</p>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
+        <PageHero kicker="League · Standings" title="The" accent="ladder">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">NBA official season {season}</p>
+        </PageHero>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5">
             <Calendar size={18} className="text-orange-500 shrink-0" />

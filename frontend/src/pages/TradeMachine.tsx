@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { ArrowLeftRight, CheckCircle, Repeat2, Scale, Search, Ticket, TrendingUp, XCircle } from 'lucide-react';
 import { nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl, getPlayerSalary, type NbaTeam, type Player, type Standing } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
+import PageHero from '../components/PageHero';
 
 type TeamOption = { id: number; name: string; abbr: string; wins: number; color: string };
 type DraftPick = { id: string; label: string; round: 1 | 2; year: number; protection: string; value: number; sourceUrl: string };
@@ -85,10 +86,9 @@ export default function TradeMachine() {
     <div className="w-full space-y-5 sm:space-y-6">
       <div className="rounded-3xl border border-gray-800 bg-gray-950 p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-        <div className="p-4 border-b border-gray-800 mb-4">
-          <h1 className="text-base font-medium text-gray-500 text-white">Trade tools</h1>
-          <p className="text-xs text-gray-500">Build two-team trades with live rosters, salary checks, and asset estimates</p>
-        </div>
+        <PageHero kicker="League · Trade Tools" title="Trade" accent="machine">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Two-team trades with live rosters and salary checks</p>
+        </PageHero>
         <div className="relative w-full lg:w-72">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search roster" className="w-full bg-gray-900 border border-gray-800 rounded-lg py-2 pl-9 pr-3 text-sm text-white outline-none focus:border-orange-500/50" />

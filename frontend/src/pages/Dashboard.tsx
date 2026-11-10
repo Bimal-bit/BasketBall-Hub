@@ -16,6 +16,7 @@ import {
   type Standing
 } from '../lib/api';
 import { SkeletonGrid } from '../components/SkeletonCard';
+import PageHero from '../components/PageHero';
 import { formatIndianTime, gameStatusInIndia } from '../lib/time';
 import { useLayout } from '../lib/layoutContext';
 
@@ -69,9 +70,9 @@ function readPinnedGames() {
 function LiveTicker({ games }: { games: Game[] }) {
   if (games.length === 0) return null;
   return (
-    <div className="bg-gray-950 border-b border-gray-850 overflow-x-auto flex items-center gap-4 p-5 scrollbar-none">
+    <div className="flex items-stretch gap-3 overflow-x-auto scrollbar-none">
       {games.map((game) => (
-        <div key={game.game_id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3.5 flex-shrink-0 min-w-[200px]">
+        <div key={game.game_id} className="flex min-w-[200px] flex-shrink-0 items-center gap-3.5 border border-gray-800 bg-gray-900 px-4 py-3">
           <div className="flex flex-col gap-1 flex-1">
             <div className="flex justify-between items-center gap-4">
               <span className="text-white font-medium text-sm">{game.away_team_abbreviation}</span>
@@ -427,19 +428,22 @@ export default function Dashboard() {
   return (
     <div className="w-full max-w-full space-y-0 overflow-hidden">
       <div className="w-full max-w-full p-2 sm:p-4 lg:p-6 space-y-8 sm:space-y-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between p-4 border-b border-gray-800 gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-white uppercase tracking-tight">Live Dashboard</h1>
-          <p className="text-xs text-gray-500">NBA live scores, box scores & player leaders</p>
-        </div>
-        <button
-          onClick={loadData}
-          className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-800 bg-gray-900 px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-orange-500 transition-all hover:border-orange-500 hover:bg-orange-500/10 sm:w-auto md:self-auto cursor-pointer"
-        >
-          <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
-          Refresh
-        </button>
-      </div>
+      <PageHero
+        kicker="Scoreboard · NBA"
+        title="Tonight’s"
+        accent="slate"
+        actions={
+          <button
+            onClick={loadData}
+            className="inline-flex items-center justify-center gap-2 border border-gray-800 bg-gray-900 px-4 py-2 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500 transition hover:border-orange-500 hover:text-white"
+          >
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        }
+      >
+        <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">NBA live scores, box scores and player leaders</p>
+      </PageHero>
 
       <section className="space-y-8">
         {loadError && (
@@ -583,10 +587,12 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected, isPin
     return Math.min(Math.max(base, 5), 95);
   }, [game]);
 
+  const quarter = game.status === 'final' ? 4 : game.status === 'scheduled' ? 0 : Math.min(4, game.quarter || 0);
+
   return (
     <div
       onClick={onClick}
-      className={`group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-3xl border bg-gray-900 transition-transform duration-200 hover:scale-[1.02] hover:border-orange-500/50 hover:bg-gray-850 active:scale-[0.98] select-none ${isSelected || isPinned ? 'border-orange-500' : 'border-gray-800'}`}
+      className={`hi-card group relative w-full min-w-0 cursor-pointer p-5 transition duration-300 hover:-translate-y-1 hover:border-orange-500 select-none ${isSelected || isPinned ? 'border-green-500 shadow-[0_0_0_2px_rgb(var(--hi-acc2))]' : ''}`}
     >
       <button
         type="button"
@@ -604,33 +610,29 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected, isPin
       >
         <Pin size={15} fill={isPinned ? 'currentColor' : 'none'} />
       </button>
-      {isClose && (
-        <div className="absolute top-4 right-16 z-10 flex items-center gap-1.5 bg-orange-600 px-2.5 py-1 rounded-full animate-pulse">
-          <Zap size={10} className="text-white" fill="white" />
-          <span className="text-[9px] font-bold uppercase text-white tracking-widest">Clutch</span>
+      <div className="relative">
+        <div className="mb-4 flex min-w-0 items-center justify-between gap-3 pr-10 font-mono text-[12px] uppercase tracking-[0.06em]">
+          {game.status === 'live' ? (
+            <span className="inline-flex items-center gap-2 text-orange-500"><b className="hi-live-dot" />Live</span>
+          ) : (
+            <span className="border border-gray-800 px-2 py-0.5 text-gray-500">{game.status === 'final' ? 'Final' : 'Upcoming'}</span>
+          )}
+          <span className="truncate text-gray-500">{statusText(game)}</span>
         </div>
-      )}
-      
-      <div className="relative p-4 sm:p-6">
-        <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">{statusText(game)}</div>
-            <div className="text-lg font-bold uppercase leading-none tracking-tight text-white transition-colors group-hover:text-orange-400">
-              {game.away_team_abbreviation || 'AWAY'} @ {game.home_team_abbreviation || 'HOME'}
-            </div>
-            {isPinned && (
-              <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-orange-400">
-                <Pin size={10} fill="currentColor" />
-                Pinned
-              </div>
-            )}
+        {isClose && (
+          <div className="mb-3 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.08em] text-orange-500">
+            <Zap size={12} /> Clutch
           </div>
-          {!isClose && <Trophy className="shrink-0 text-gray-700" size={24} />}
+        )}
+
+        <div>
+          <TeamScore teamId={game.away_team_id} abbr={game.away_team_abbreviation || 'AWY'} name={awayTeamName} score={game.away_score} active={game.away_score > game.home_score} scheduled={game.status === 'scheduled'} />
+          <TeamScore teamId={game.home_team_id} abbr={game.home_team_abbreviation || 'HME'} name={homeTeamName} score={game.home_score} active={game.home_score > game.away_score} scheduled={game.status === 'scheduled'} />
         </div>
-        
-        <div className="space-y-3 sm:space-y-4">
-          <TeamScore teamId={game.away_team_id} name={awayTeamName} score={game.away_score} active={game.away_score > game.home_score} />
-          <TeamScore teamId={game.home_team_id} name={homeTeamName} score={game.home_score} active={game.home_score > game.away_score} />
+        <div className="mt-4 flex gap-1.5">
+          {[1, 2, 3, 4].map(mark => (
+            <i key={mark} className={`h-1 flex-1 ${mark <= quarter ? 'bg-orange-500' : 'bg-gray-850'}`} />
+          ))}
         </div>
 
         {game.status !== 'scheduled' && (
@@ -640,9 +642,9 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected, isPin
               <span>Win Probability</span>
               <span>{homeProb}% Chance</span>
             </div>
-            <div className="h-1.5 w-full bg-gray-950 rounded-full overflow-hidden flex">
-              <div className="h-full bg-orange-500/40 transition-all duration-1000" style={{ width: `${100 - homeProb}%` }} />
-              <div className="h-full bg-blue-500/40 transition-all duration-1000" style={{ width: `${homeProb}%` }} />
+            <div className="flex h-2.5 overflow-hidden bg-gray-850">
+              <i className="block h-full bg-orange-500 transition-all duration-1000" style={{ width: `${100 - homeProb}%` }} />
+              <i className="block h-full bg-green-500 transition-all duration-1000" style={{ width: `${homeProb}%` }} />
             </div>
           </div>
         )}
@@ -680,15 +682,12 @@ function GameCard({ game, awayTeamName, homeTeamName, onClick, isSelected, isPin
 }
 
 
-function TeamScore({ teamId, name, score, active }: { teamId: number; name: string; score: number; active: boolean }) {
+function TeamScore({ teamId, abbr, name, score, active, scheduled }: { teamId: number; abbr: string; name: string; score: number; active: boolean; scheduled?: boolean }) {
   return (
-    <div className="flex min-w-0 items-center justify-between gap-2 text-lg font-bold tabular-nums sm:gap-4 sm:text-xl">
-      <img src={getTeamLogoUrl(teamId)} alt={name} className="h-10 w-10 sm:h-12 sm:w-12 shrink-0 object-contain" />
-      <div className="min-w-0 flex-1">
-        <div className="max-w-[180px] xs:max-w-[240px] truncate text-sm font-semibold text-gray-400 sm:max-w-none sm:text-base">{name}</div>
-        <div className="text-[8px] font-bold uppercase text-gray-500">Team</div>
-      </div>
-      <div className={`shrink-0 font-extrabold leading-none ${active ? 'text-white' : 'text-gray-500'}`}>{score || '-'}</div>
+    <div className={`flex min-w-0 items-center gap-3 py-1.5 ${active ? 'text-white' : 'text-gray-500'}`}>
+      <img src={getTeamLogoUrl(teamId)} alt={abbr} className="h-11 w-11 shrink-0 object-contain" />
+      <span className="min-w-0 flex-1 truncate text-sm font-bold uppercase tracking-[0.04em]">{name}</span>
+      <span className={`shrink-0 font-display text-[52px] leading-none tabular-nums ${active ? 'text-green-500' : ''}`}>{scheduled ? '–' : score}</span>
     </div>
   );
 }
@@ -699,7 +698,7 @@ function PlayerLeaderCard({ player, rank, onClick }: { player: DashboardPlayer &
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-3xl border border-gray-850 bg-gray-900 transition-transform duration-200 hover:scale-[1.02] hover:border-orange-500/50 hover:bg-gray-850 active:scale-[0.98] select-none"
+      className="hi-card group cursor-pointer p-5 transition duration-300 hover:-translate-y-1 hover:border-orange-500 select-none"
     >
       <div className="relative p-6">
         <div className="mb-4 flex items-start justify-between">

@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Banknote, CalendarClock, FileSignature, Landmark, TrendingDown, TrendingUp } from 'lucide-react';
 import { nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl, getPlayerId, getPlayerName, getPlayerSalary, estimateYears, estimateStatus, type NbaTeam, type Player, type Standing } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
+import PageHero from '../components/PageHero';
 
 type CapTeam = {
   id: number;
@@ -70,10 +71,9 @@ export default function SalaryCapHub() {
   return (
     <div className="p-4 lg:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-medium text-white mb-1">Contract & Salary Cap Hub</h2>
-          <p className="text-sm text-gray-400">All NBA teams from `nba_api`, with roster-driven cap estimates and contract pressure.</p>
-        </div>
+        <PageHero kicker="League · Salary Cap Hub" title="Cap" accent="space">
+          <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Roster payroll, cap room, and contract pressure</p>
+        </PageHero>
         <select value={teamId} onChange={event => setTeamId(Number(event.target.value))} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-orange-500/50 w-full sm:w-auto">
           {teams.map(option => <option key={option.id} value={option.id}>{option.full_name}</option>)}
         </select>

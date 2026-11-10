@@ -4,6 +4,7 @@ import { getCurrentNbaSeason, nbaApi, type PlayerGameLog, type PlayerShot } from
 import ShotChart from '../components/ShotChart';
 import BasketballLoader from '../components/BasketballLoader';
 import { SkeletonGrid } from '../components/SkeletonCard';
+import PageHero from '../components/PageHero';
 
 const SHOT_ZONES = [
   'Restricted Area',
@@ -121,10 +122,9 @@ export default function ShotPredictor() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="p-4 border-b border-gray-800 mb-4">
-        <h1 className="text-base font-medium text-gray-500 text-white">Shot tools</h1>
-        <p className="text-xs text-gray-500">Official NBA API player logs and shot charts, with probability estimation</p>
-      </div>
+      <PageHero kicker="Analysis · Shot Tools" title="Shot" accent="lab">
+        <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.08em] text-gray-500">Official NBA player logs and shot charts</p>
+      </PageHero>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="space-y-4">
