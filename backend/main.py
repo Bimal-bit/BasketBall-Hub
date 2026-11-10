@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 # Lazy-import `nba_api` endpoints and static helpers inside functions to avoid
 # triggering network calls at module import time during deployments.
 import pandas as pd
@@ -610,6 +613,11 @@ def fetch_espn_shots(game_id, player_id=None, team_id=None):
 
 app = FastAPI(title="NBA Intelligence API")
 
+# Rate limiting setup
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
@@ -644,7 +652,8 @@ async def add_cache_control_headers(request: Request, call_next):
 CACHE_FILE = "api_cache.json"
 
 @app.get("/api/health")
-async def health_check():
+@limiter.limit("30/minute")
+async def health_check(request: Request):
     return {"status": "ok"}
 
 def load_persistent_cache():
@@ -1501,7 +1510,8 @@ def infer_play_points(play, desc):
     return 2
 
 @app.get("/api/scoreboard")
-def get_scoreboard(date: str = None):
+@limiter.limit("20/minute")
+def get_scoreboard(request: Request, date: str = None):
     target_date = parse_scoreboard_date(date)
 
     def fetch():
@@ -1555,7 +1565,8 @@ def get_scoreboard(date: str = None):
     return get_cached_scoreboard(f"scoreboard:{target_date}", fetch)
 
 @app.get("/api/game/{game_id}/playbyplay")
-def get_playbyplay(game_id: str):
+@limiter.limit("30/minute")
+def get_playbyplay(request: Request, game_id: str):
     try:
         return fetch_espn_playbyplay(game_id)
     except Exception as e:
@@ -2124,13 +2135,15 @@ NBA_AWARDS_DATA = [
 ]
 
 @app.get("/api/awards")
+@limiter.limit("10/minute")
 @cached(duration=86400) # Cache for 24 hours
-async def get_awards():
+async def get_awards(request: Request):
     return NBA_AWARDS_DATA
 
 @app.get("/api/standings")
+@limiter.limit("30/minute")
 @cached(duration=3600, fallback=lambda *_, **kwargs: fallback_standings(kwargs.get("season"))) # Cache for 1 hour
-def get_standings(season: str = None, season_type: str = "Regular Season"):
+def get_standings(request: Request, season: str = None, season_type: str = "Regular Season"):
     # Use provided season, or use current season for live standings
     if season:
         target_season = season.split(' (')[0]
@@ -2174,7 +2187,8 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
         raise HTTPException(status_code=503, detail="Season standings are temporarily unavailable.")
 
 @app.get("/api/players/top")
-def get_top_players(season: str = None):
+@limiter.limit("40/minute")
+def get_top_players(request: Request, season: str = None):
     # Use provided season, or use current season for live player stats
     if season:
         target_season = season.split(" (")[0]
@@ -2217,8 +2231,9 @@ def get_top_players(season: str = None):
     return get_cached_data(f"players:{target_season}", fetch, duration=3600)
 
 @app.get("/api/teams")
+@limiter.limit("40/minute")
 @cached(duration=86400)
-async def get_teams():
+async def get_teams(request: Request):
     try:
         from nba_api.stats.static import teams as nba_teams
         return nba_teams.get_teams()
@@ -2227,8 +2242,9 @@ async def get_teams():
         return []
 
 @app.get("/api/teams/rosters")
+@limiter.limit("40/minute")
 @cached(duration=3600)
-async def get_all_team_rosters():
+async def get_all_team_rosters(request: Request):
     try:
         from nba_api.stats.static import teams as nba_teams
         from nba_api.stats.endpoints import leaguedashplayerstats
@@ -2252,8 +2268,9 @@ async def get_all_team_rosters():
         return {}
 
 @app.get("/api/fatigue")
+@limiter.limit("30/minute")
 @cached(duration=900)
-async def get_fatigue_report(team_id: int = None, season: str = None):
+async def get_fatigue_report(request: Request, team_id: int = None, season: str = None):
     """Official NBA workload-based fatigue report.
 
     Uses nba_api season stats for player baselines and NBA player game logs for
@@ -2408,16 +2425,18 @@ async def get_fatigue_report(team_id: int = None, season: str = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/players/search")
+@limiter.limit("40/minute")
 @cached(duration=86400) # Cache for 24 hours
-async def search_players(query: str):
+async def search_players(request: Request, query: str):
     from nba_api.stats.static import players as nba_players
     all_players = nba_players.get_active_players()
     results = [p for p in all_players if query.lower() in p['full_name'].lower()]
     return results[:10]
 
 @app.get("/api/player/{player_id}")
+@limiter.limit("40/minute")
 @cached(duration=86400)
-async def get_player_info(player_id: int):
+async def get_player_info(request: Request, player_id: int):
     try:
         from nba_api.stats.endpoints import commonplayerinfo
         info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, timeout=NBA_API_TIMEOUT)
@@ -2430,8 +2449,9 @@ async def get_player_info(player_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/team/{team_id}/roster")
+@limiter.limit("40/minute")
 @cached(duration=3600)
-async def get_team_roster(team_id: int):
+async def get_team_roster(request: Request, team_id: int):
     try:
         from nba_api.stats.endpoints import commonteamroster, leaguedashplayerstats
         roster = commonteamroster.CommonTeamRoster(team_id=team_id)
@@ -2471,8 +2491,9 @@ async def get_team_roster(team_id: int):
         return []
 
 @app.get("/api/game/{game_id}/boxscore")
+@limiter.limit("30/minute")
 @cached(ttl=60)
-def get_boxscore(game_id: str):
+def get_boxscore(request: Request, game_id: str):
     try:
         return fetch_espn_boxscore(game_id)
     except Exception as e:
@@ -2490,7 +2511,8 @@ def get_boxscore(game_id: str):
         return []
 
 @app.get("/api/game/{game_id}/team-stats")
-def get_game_team_stats(game_id: str):
+@limiter.limit("30/minute")
+def get_game_team_stats(request: Request, game_id: str):
     try:
         return fetch_espn_team_stats(game_id)
     except Exception as e:
@@ -2508,8 +2530,9 @@ def get_game_team_stats(game_id: str):
         return []
 
 @app.get("/api/player/{player_id}/shots/{game_id}")
+@limiter.limit("30/minute")
 @cached(ttl=300)
-def get_player_shots(player_id: int, game_id: str):
+def get_player_shots(request: Request, player_id: int, game_id: str):
     try:
         shots = fetch_espn_shots(game_id, player_id=player_id)
         if shots:
@@ -2529,7 +2552,8 @@ def get_player_shots(player_id: int, game_id: str):
         return []
 
 @app.get("/api/team/{team_id}/shots/{game_id}")
-def get_team_shots(team_id: int, game_id: str):
+@limiter.limit("30/minute")
+def get_team_shots(request: Request, team_id: int, game_id: str):
     try:
         shots = fetch_espn_shots(game_id, team_id=team_id)
         if shots:
@@ -2548,8 +2572,9 @@ def get_team_shots(team_id: int, game_id: str):
         return []
 
 @app.get("/api/player/{player_id}/averages")
+@limiter.limit("40/minute")
 @cached(ttl=3600)
-def get_player_averages(player_id: int, season: str = None):
+def get_player_averages(request: Request, player_id: int, season: str = None):
     try:
         from nba_api.stats.endpoints import playercareerstats, playergamelogs
         
@@ -2673,8 +2698,9 @@ def get_player_averages(player_id: int, season: str = None):
         return {}
 
 @app.get("/api/player/{player_id}/prime-stats")
+@limiter.limit("40/minute")
 @cached(duration=86400)
-def get_player_prime_stats(player_id: int):
+def get_player_prime_stats(request: Request, player_id: int):
     try:
         from nba_api.stats.endpoints import playercareerstats
 
@@ -2729,8 +2755,9 @@ def get_player_prime_stats(player_id: int):
         raise HTTPException(status_code=503, detail="Player season stats are temporarily unavailable.")
 
 @app.get("/api/player/{player_id}/stats")
+@limiter.limit("40/minute")
 @cached(ttl=3600)
-def get_player_detailed_stats(player_id: int, season: str = None):
+def get_player_detailed_stats(request: Request, player_id: int, season: str = None):
     try:
         from nba_api.stats.endpoints import playergamelogs, commonplayerinfo
         import pandas as pd
@@ -2771,8 +2798,9 @@ def get_player_detailed_stats(player_id: int, season: str = None):
         except:
              raise HTTPException(status_code=500, detail=str(e))
 @app.get("/api/players")
+@limiter.limit("40/minute")
 # @cached(ttl=86400)  # Temporarily disabled for testing
-def get_all_players():
+def get_all_players(request: Request):
     try:
         from nba_api.stats.static import players
         all_players = players.get_players()
@@ -2806,8 +2834,9 @@ def get_all_players():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/profile")
+@limiter.limit("40/minute")
 @cached(ttl=86400)
-def get_player_profile(player_id: int):
+def get_player_profile(request: Request, player_id: int):
     try:
         from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
         from nba_api.stats.static import players
@@ -2862,8 +2891,9 @@ def get_player_profile(player_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/player/{player_id}/awards")
+@limiter.limit("40/minute")
 @cached(ttl=86400)
-def get_player_awards(player_id: int, season: str = None):
+def get_player_awards(request: Request, player_id: int, season: str = None):
     try:
         from nba_api.stats.endpoints import playerawards
         awards = playerawards.PlayerAwards(player_id=player_id)
@@ -2884,8 +2914,9 @@ def get_player_awards(player_id: int, season: str = None):
         return []
 
 @app.get("/api/team/{team_id}/gamelog")
+@limiter.limit("30/minute")
 @cached(duration=3600)
-async def get_team_gamelog(team_id: int, season: str = None, season_type: str = "Regular Season"):
+async def get_team_gamelog(request: Request, team_id: int, season: str = None, season_type: str = "Regular Season"):
     try:
         from nba_api.stats.endpoints import teamgamelogs
         clean_season = (season or get_available_season()).split(' (')[0]
@@ -3010,8 +3041,9 @@ def fetch_espn_archive(season: str, season_type: str, team_id: int, limit: int):
     return [game for game in games if team_id is None or game["TEAM_ID"] == team_id or game["OPPONENT_TEAM_ID"] == team_id][:limit]
 
 @app.get("/api/archive/games")
+@limiter.limit("20/minute")
 @cached(duration=900)
-def get_historical_games(season: str = None, season_type: str = "Regular Season", team_id: int = None, limit: int = 100):
+def get_historical_games(request: Request, season: str = None, season_type: str = "Regular Season", team_id: int = None, limit: int = 100):
     clean_season = (season or get_available_season()).split(' (')[0]
     max_rows = max(1, min(limit, 2000))
     try:
@@ -3096,8 +3128,9 @@ def get_historical_games(season: str = None, season_type: str = "Regular Season"
     raise HTTPException(status_code=503, detail="Game archive is temporarily unavailable.")
 
 @app.get("/api/playoffs")
+@limiter.limit("20/minute")
 @cached(duration=86400) # Playoff structure changes rarely
-async def get_playoffs(season: str = None):
+async def get_playoffs(request: Request, season: str = None):
     try:
         from nba_api.stats.endpoints import commonplayoffseries, leaguegamelog
         
@@ -3162,8 +3195,9 @@ def _safe_int(val, default=0):
         return default
 
 @app.get("/api/game/{game_id}/player/{player_id}/impact")
+@limiter.limit("30/minute")
 @cached(duration=3600)
-async def get_player_game_impact(game_id: str, player_id: int):
+async def get_player_game_impact(request: Request, game_id: str, player_id: int):
     plays = None
     try:
         plays = fetch_espn_playbyplay(game_id)
@@ -3225,8 +3259,9 @@ async def get_player_game_impact(game_id: str, player_id: int):
     }
 
 @app.get("/api/leaders")
+@limiter.limit("20/minute")
 @cached(duration=3600)
-async def get_leaders(category: str = "PTS", season: str = None, per_mode: str = "PerGame", season_type: str = "Regular Season"):
+async def get_leaders(request: Request, category: str = "PTS", season: str = None, per_mode: str = "PerGame", season_type: str = "Regular Season"):
     try:
         # Use current season for live leaders, or specified season
         target_season = season or get_default_season_for_live_data()
@@ -3400,7 +3435,8 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
         raise HTTPException(status_code=503, detail="Requested player stats are temporarily unavailable.")
 
 @app.get("/api/vault/team-history")
-def get_team_history(team_id: int, season: str):
+@limiter.limit("20/minute")
+def get_team_history(request: Request, team_id: int, season: str):
     # Dynamic cache duration: 1 hour for current season, 24 hours for historical
     is_current = season == get_available_season()
     cache_duration = 3600 if is_current else 86400
@@ -3557,8 +3593,9 @@ def get_team_history(team_id: int, season: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/vault/season-awards")
+@limiter.limit("20/minute")
 @cached(duration=86400)
-async def get_season_awards(season: str):
+async def get_season_awards(request: Request, season: str):
     try:
         clean_season = season.split(' (')[0]
         # Find awards for this specific season
@@ -3585,7 +3622,8 @@ async def get_season_awards(season: str):
         return []
 
 @app.get("/api/vault/jerseys")
-async def get_team_jerseys(team_name: str, season: str = None):
+@limiter.limit("20/minute")
+async def get_team_jerseys(request: Request, team_name: str, season: str = None):
     try:
         archive_path = os.path.join(os.path.dirname(__file__), "nba_master_archive.json")
         if not os.path.exists(archive_path):
