@@ -113,15 +113,26 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
     const checkBackend = async () => {
-      const ok = await checkBackendHealth();
-      if (mounted) setBackendOk(ok);
+      try {
+        const ok = await checkBackendHealth();
+        if (mounted) setBackendOk(ok);
+      } catch (error) {
+        console.warn('Backend health check failed:', error);
+        if (mounted) setBackendOk(false);
+      }
     };
-    checkBackend();
+    
+    // Initial check after a short delay to avoid immediate 429 on load
+    const initialTimeout = setTimeout(checkBackend, 1000);
+    
+    // Periodic check every 2 minutes (reduced from 120s)
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') checkBackend();
     }, 120_000);
+    
     return () => {
       mounted = false;
+      clearTimeout(initialTimeout);
       window.clearInterval(interval);
     };
   }, []);

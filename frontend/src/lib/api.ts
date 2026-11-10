@@ -1,4 +1,8 @@
 import { cachedFetch } from './apiCache';
+
+// Create a simple cache Map for health checks
+const cache = new Map<string, { data: unknown; expires: number }>();
+
 const LEGACY_TEMPLATE_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
 const DEPLOYED_API_BASE_URL = 'https://basketball-hub-api-pesl.onrender.com/api';
 
@@ -340,14 +344,26 @@ export interface ArchiveGame {
 }
 
 export async function checkBackendHealth(timeoutMs = REQUEST_TIMEOUT_MS): Promise<boolean> {
+  // Use cached result if checked within last 30 seconds
+  const cacheKey = 'backend_health_check';
+  const now = Date.now();
+  const cached = cache.get(`GET:${cacheKey}`);
+  if (cached && cached.expires > now) {
+    return cached.data as boolean;
+  }
+
   if (!API_BASE_URL) return false;
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(getApiUrl('/health'), { signal: controller.signal });
-    return response.ok;
+    const result = response.ok;
+    // Cache the result for 30 seconds
+    cache.set(`GET:${cacheKey}`, { data: result, expires: now + 30_000 });
+    return result;
   } catch {
+    cache.set(`GET:${cacheKey}`, { data: false, expires: now + 10_000 });
     return false;
   } finally {
     window.clearTimeout(timeout);
