@@ -424,6 +424,10 @@ export const nbaApi = {
     return apiGet<any>(`/player/${playerId}/averages${query}`, 600_000, {});
   },
 
+  getPlayerPrimeStats: (playerId: number): Promise<any[]> => {
+    return apiGet<any[]>(`/player/${playerId}/prime-stats`, 86_400_000, []);
+  },
+
   getAllPlayers: (): Promise<any[]> => {
     return apiGet<any[]>('/players', 3_600_000);
   },

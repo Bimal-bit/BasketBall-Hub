@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import {
   AlertTriangle,
   BarChart3,
@@ -552,6 +552,7 @@ export default function DreamTeam() {
   const [mode, setMode] = useState<AppMode>('versus');
   const [search, setSearch] = useState('');
   const [loadingList, setLoadingList] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
   const [activePick, setActivePick] = useState<ActivePick | null>(null);
   const [loadingPrimeId, setLoadingPrimeId] = useState<number | null>(null);
   const [simResult, setSimResult] = useState<SimulationResult | null>(null);
@@ -583,19 +584,38 @@ export default function DreamTeam() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(rosters));
   }, [rosters]);
 
-  useEffect(() => {
-    Promise.all([
-      nbaApi.getAllPlayers().catch(() => []),
-      nbaApi.getTopPlayers().catch(() => []),
-      nbaApi.getStandings(getCurrentNbaSeason(), 'Regular Season').catch(() => []),
-    ])
-      .then(([players, leaders, seasonStandings]) => {
-        setAllPlayers(Array.isArray(players) ? players : []);
-        setTopPlayers(Array.isArray(leaders) ? leaders : []);
-        setStandings(Array.isArray(seasonStandings) ? seasonStandings : []);
-      })
-      .finally(() => setLoadingList(false));
+  const loadDraftData = useCallback(async () => {
+    setLoadingList(true);
+    setListError(null);
+    try {
+      const [players, leaders, seasonStandings] = await Promise.all([
+        nbaApi.getAllPlayers().catch(error => {
+          console.error('Dream Team player list failed to load:', error);
+          return [];
+        }),
+        nbaApi.getTopPlayers().catch(error => {
+          console.error('Dream Team season leaders failed to load:', error);
+          return [];
+        }),
+        nbaApi.getStandings(getCurrentNbaSeason(), 'Regular Season').catch(error => {
+          console.error('Dream Team standings failed to load:', error);
+          return [];
+        }),
+      ]);
+      setAllPlayers(Array.isArray(players) ? players : []);
+      setTopPlayers(Array.isArray(leaders) ? leaders : []);
+      setStandings(Array.isArray(seasonStandings) ? seasonStandings : []);
+      if (!Array.isArray(players) || !players.length || !Array.isArray(leaders) || !leaders.length) {
+        setListError('Some player data could not be loaded. Retry to fetch the latest NBA data.');
+      }
+    } finally {
+      setLoadingList(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void loadDraftData();
+  }, [loadDraftData]);
 
   const selectedIds = useMemo(() => {
     const ids = new Set<number>();
@@ -678,8 +698,7 @@ export default function DreamTeam() {
 
   async function buildDreamPlayer(player: any, position: Position): Promise<DreamPlayer> {
     const id = getPlayerId(player);
-    const profile = await nbaApi.getPlayerProfile(id).catch(() => null);
-    const prime = await getPrimeSeason(id, profile, player, position);
+    const prime = await getPrimeSeason(id, player, position);
 
     return {
       id,
@@ -691,20 +710,12 @@ export default function DreamTeam() {
     };
   }
 
-  async function getPrimeSeason(playerId: number, profile: any, player: any, position: Position): Promise<PrimeStats> {
-    const seasons = Array.isArray(profile?.seasons) ? profile.seasons : [];
-    const candidates = seasons.length > 0 ? pickPrimeCandidateSeasons(seasons) : [];
-
-    const seasonStats = await Promise.all(
-      candidates.map(async (season: string) => {
-        const avg = await nbaApi.getPlayerAverages(playerId, season).catch(() => null);
-        return normalizePrime(avg, season);
-      })
-    );
-
-    const best = seasonStats
-      .filter(Boolean)
-      .sort((a, b) => primeScore(b as PrimeStats) - primeScore(a as PrimeStats))[0] as PrimeStats | undefined;
+  async function getPrimeSeason(playerId: number, player: any, position: Position): Promise<PrimeStats> {
+    const seasons = await nbaApi.getPlayerPrimeStats(playerId).catch(() => []);
+    const seasonStats = seasons
+      .map((stats: any) => normalizePrime(stats, stats.season))
+      .filter((stats: PrimeStats | null): stats is PrimeStats => stats !== null);
+    const best = seasonStats.sort((a, b) => primeScore(b) - primeScore(a))[0];
 
     return best || fallbackPrime(player, position);
   }
@@ -865,6 +876,20 @@ export default function DreamTeam() {
           </button>
         </div>
       </div>
+
+      {listError && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-yellow-500/30 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-200">
+          <span>{listError}</span>
+          <button
+            onClick={() => void loadDraftData()}
+            disabled={loadingList}
+            className="inline-flex items-center gap-2 rounded-lg border border-yellow-500/30 px-3 py-2 text-xs font-bold uppercase tracking-wide hover:bg-yellow-500/10 disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={loadingList ? 'animate-spin' : ''} />
+            Retry
+          </button>
+        </div>
+      )}
 
       {loadingList ? (
         <div className="flex min-h-[50vh] items-center justify-center">
@@ -1825,16 +1850,6 @@ function normalizePrime(avg: any, season: string): PrimeStats | null {
     estimated: false,
   };
   return primeScore(prime) > 0 ? prime : null;
-}
-
-function pickPrimeCandidateSeasons(seasons: string[]) {
-  const sorted = [...seasons].sort();
-  if (sorted.length <= 8) return sorted;
-  const start = Math.max(0, Math.floor(sorted.length * 0.2) - 1);
-  const end = Math.min(sorted.length, Math.ceil(sorted.length * 0.85));
-  const primeWindow = sorted.slice(start, end);
-  const everyOther = primeWindow.filter((_, index) => index % 2 === 0);
-  return everyOther.slice(-8);
 }
 
 function primeScore(stats: PrimeStats) {

@@ -2398,6 +2398,62 @@ def get_player_averages(player_id: int, season: str = None):
         print(f"Averages error: {e}")
         return {}
 
+@app.get("/api/player/{player_id}/prime-stats")
+@cached(duration=86400)
+def get_player_prime_stats(player_id: int):
+    try:
+        from nba_api.stats.endpoints import playercareerstats
+
+        career = playercareerstats.PlayerCareerStats(
+            player_id=player_id,
+            timeout=min(NBA_API_TIMEOUT, 8),
+        )
+        season_totals = career.season_totals_regular_season.get_data_frame()
+        if season_totals.empty:
+            return []
+
+        totals_columns = [
+            "GP", "MIN", "FGM", "FGA", "FG3M", "FG3A", "FTM", "FTA",
+            "OREB", "DREB", "REB", "AST", "STL", "BLK", "TOV", "PF", "PTS",
+        ]
+        rows = []
+        for season, group in season_totals.groupby("SEASON_ID", sort=False):
+            team_abbreviations = group["TEAM_ABBREVIATION"] if "TEAM_ABBREVIATION" in group else pd.Series(index=group.index, dtype=str)
+            total_row = group[team_abbreviations == "TOT"]
+            if not total_row.empty:
+                totals = total_row.iloc[-1]
+            else:
+                totals = group[totals_columns].sum(numeric_only=True)
+
+            games = to_number(totals.get("GP"))
+            if games <= 0:
+                continue
+
+            def per_game(column):
+                return round(to_number(totals.get(column)) / games, 1)
+
+            fga = to_number(totals.get("FGA"))
+            fg3a = to_number(totals.get("FG3A"))
+            fta = to_number(totals.get("FTA"))
+            rows.append({
+                "season": str(season),
+                "GP": int(games),
+                "MIN": per_game("MIN"),
+                "PTS": per_game("PTS"),
+                "REB": per_game("REB"),
+                "AST": per_game("AST"),
+                "STL": per_game("STL"),
+                "BLK": per_game("BLK"),
+                "TOV": per_game("TOV"),
+                "FG_PCT": to_number(totals.get("FGM")) / fga if fga else 0,
+                "FG3_PCT": to_number(totals.get("FG3M")) / fg3a if fg3a else 0,
+                "FT_PCT": to_number(totals.get("FTM")) / fta if fta else 0,
+            })
+        return sorted(rows, key=lambda row: row["season"], reverse=True)
+    except Exception as e:
+        print(f"Prime season stats error for player {player_id}: {e}")
+        raise HTTPException(status_code=503, detail="Player season stats are temporarily unavailable.")
+
 @app.get("/api/player/{player_id}/stats")
 @cached(ttl=3600)
 def get_player_detailed_stats(player_id: int, season: str = None):
