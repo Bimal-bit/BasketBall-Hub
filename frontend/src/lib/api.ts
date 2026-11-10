@@ -14,9 +14,7 @@ const REACHABILITY_TTL = 30_000; // re-check every 30s
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
   if (configured && configured !== LEGACY_TEMPLATE_API_BASE_URL) return configured;
-  // In production, fall back to the legacy Render API so that deployed frontends
-  // without Vercel env vars still reach a working backend.
-  return import.meta.env.DEV ? LOCAL_API_BASE_URL : LEGACY_TEMPLATE_API_BASE_URL;
+  return import.meta.env.DEV ? LOCAL_API_BASE_URL : '';
 }
 
 function getApiUrl(path: string) {
@@ -310,15 +308,14 @@ export interface ArchiveGame {
   STAGE?: string;
 }
 
-export async function checkBackendHealth(timeoutMs = 4000): Promise<boolean> {
+export async function checkBackendHealth(timeoutMs = REQUEST_TIMEOUT_MS): Promise<boolean> {
   if (!API_BASE_URL) return false;
   try {
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), timeoutMs);
-    const res = await fetch(`${API_BASE_URL}/health`, { signal: controller.signal });
-    clearTimeout(t);
-    return res.ok;
-  } catch (e) {
+    const data = await cachedFetch<unknown>(getApiUrl('/scoreboard'), 30_000, {
+      timeoutMs,
+    });
+    return Array.isArray(data);
+  } catch {
     return false;
   }
 }

@@ -114,6 +114,7 @@ export default function Dashboard() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(() => getNBADate());
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
@@ -133,11 +134,14 @@ export default function Dashboard() {
   const loadData = useCallback(async () => {
     setRefreshing(true);
     try {
-      const gData = await nbaApi.getScoreboard(selectedDate).catch(() => []);
+      const gData = await nbaApi.getScoreboard(selectedDate);
       setGames(gData);
+      setLoadError(null);
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Error loading NBA data:', error);
+      setGames([]);
+      setLoadError(error instanceof Error ? error.message : 'Unknown API error');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -440,6 +444,11 @@ export default function Dashboard() {
       </div>
 
       <section className="space-y-8">
+        {loadError && (
+          <div role="alert" className="rounded-2xl border border-red-500/40 bg-red-950/40 p-4 text-sm text-red-200">
+            Could not fetch scoreboard data ({loadError}). Check that the backend is running and VITE_API_BASE_URL points to it.
+          </div>
+        )}
         <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 scrollbar-none">
           {dayOffsets.map(offset => {
             const date = parseDateKey(getNBADate());

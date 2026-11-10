@@ -76,11 +76,16 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
+    const checkBackend = async () => {
       const ok = await checkBackendHealth();
       if (mounted) setBackendOk(ok);
-    })();
-    return () => { mounted = false };
+    };
+    checkBackend();
+    const interval = window.setInterval(checkBackend, 30_000);
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -113,7 +118,9 @@ export default function App() {
   return (
     <Layout activePage={activePage} onNavigate={setActivePage}>
       {backendOk === false && (
-        <div className="p-3 bg-red-700 text-white text-sm text-center">Backend unreachable — some features may be unavailable.</div>
+        <div role="alert" className="p-3 bg-red-700 text-white text-sm text-center">
+          NBA data is unavailable. Start the backend locally or set VITE_API_BASE_URL to the deployed backend URL ending in /api.
+        </div>
       )}
       <Suspense fallback={<div className="flex min-h-[70vh] items-center justify-center"><BasketballLoader /></div>}>
         <PageComponent />

@@ -27,7 +27,7 @@ https://basketball-hub-api.onrender.com
 Your API base URL will be:
 
 ```text
-https://basketball-hub-api.onrender.com/api
+https://<your-render-service>.onrender.com/api
 ```
 
 ## 3. Deploy The Frontend On Vercel
@@ -56,13 +56,13 @@ dist
 7. Add this environment variable in Vercel:
 
 ```text
-VITE_API_BASE_URL=https://basketball-hub-api.onrender.com/api
+VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api
 ```
 
-Example:
+Use the URL of the Render service you deployed from this repository. The frontend expects the `/api/scoreboard` and other `/api/*` routes in this project's backend; a health endpoint alone is not sufficient. Redeploy the frontend after changing the environment variable.
 
 ```text
-VITE_API_BASE_URL=https://basketball-hub-api.onrender.com/api
+VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api
 ```
 
 8. Click **Deploy**.

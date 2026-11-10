@@ -85,7 +85,7 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
 
   return (
     <LayoutContext.Provider value={{ collapsed }}>
-      <div className="min-h-screen relative flex flex-col md:flex-row bg-gray-950 text-white font-sans overflow-x-hidden">
+      <div className="min-h-screen relative flex flex-col bg-gray-950 text-white font-sans overflow-x-hidden">
         
         {/* Sticky Top Header Bar (48px tall) */}
         <header className="sticky top-0 left-0 right-0 z-40 flex h-12 items-center justify-between bg-gray-950 px-4 border-b border-gray-800 w-full shrink-0">
@@ -111,85 +111,86 @@ export default function Layout({ children, activePage, onNavigate }: Props) {
           </div>
         </header>
 
-        {/* Left Sidebar - Desktop Only */}
-        <aside className={`
-          hidden md:flex flex-col border-r border-gray-800 transition-all duration-300 shrink-0
-          bg-gray-900
-          ${collapsed ? 'w-16' : 'w-[240px]'}
-        `}>
-          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
-            {(['Live', 'Analysis', 'League'] as const).map(group => {
-              const groupItems = navItems.filter(item => item.group === group);
-              if (groupItems.length === 0) return null;
+        <div className="flex min-h-0 flex-1 md:flex-row">
+          {/* Left Sidebar - Desktop Only */}
+          <aside className={`
+            hidden md:flex flex-col border-r border-gray-800 transition-all duration-300 shrink-0
+            bg-gray-900
+            ${collapsed ? 'w-16' : 'w-[240px]'}
+          `}>
+            <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+              {(['Live', 'Analysis', 'League'] as const).map(group => {
+                const groupItems = navItems.filter(item => item.group === group);
+                if (groupItems.length === 0) return null;
 
-              return (
-                <div key={group} className="space-y-1">
-                  {!collapsed && (
-                    <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-[1px] text-gray-500">
-                      {group}
-                    </div>
-                  )}
-                  <div className="space-y-0.5">
-                    {groupItems.map((item) => {
-                      const isActive = activePage === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => handleNavigate(item.id)}
-                          className={`
+                return (
+                  <div key={group} className="space-y-1">
+                    {!collapsed && (
+                      <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-[1px] text-gray-500">
+                        {group}
+                      </div>
+                    )}
+                    <div className="space-y-0.5">
+                      {groupItems.map((item) => {
+                        const isActive = activePage === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => handleNavigate(item.id)}
+                            className={`
                             group/nav w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all cursor-pointer min-h-[40px]
                             ${collapsed ? 'justify-center' : ''}
                             ${isActive
                               ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
                               : 'text-gray-400 hover:text-white hover:bg-gray-800 border border-transparent'
                             }
-                          `}
-                          title={collapsed ? item.label : undefined}
-                        >
-                          <span className={`flex-shrink-0 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-400 group-hover/nav:text-orange-500'}`}>
-                            {item.icon}
-                          </span>
-                          {!collapsed && (
-                            <span className="min-w-0 flex-1 text-left font-medium truncate">
-                              {item.label}
+                            `}
+                            title={collapsed ? item.label : undefined}
+                          >
+                            <span className={`flex-shrink-0 transition-colors ${isActive ? 'text-orange-500' : 'text-gray-400 group-hover/nav:text-orange-500'}`}>
+                              {item.icon}
                             </span>
-                          )}
-                          {!collapsed && item.id === 'dashboard' && liveCount > 0 && (
-                            <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0">
-                              {liveCount}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                            {!collapsed && (
+                              <span className="min-w-0 flex-1 text-left font-medium truncate">
+                                {item.label}
+                              </span>
+                            )}
+                            {!collapsed && item.id === 'dashboard' && liveCount > 0 && (
+                              <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0">
+                                {liveCount}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </nav>
+                );
+              })}
+            </nav>
 
-          <div className="p-3 border-t border-gray-800">
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="w-full flex items-center justify-center gap-2 text-xs text-gray-400 hover:text-white transition-colors py-2 rounded-xl bg-gray-800 border border-gray-700 min-h-[36px]"
-            >
-              {collapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /><span>Collapse Navigation</span></>}
-            </button>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <div className="flex-1 min-w-0 flex flex-col bg-gray-950">
-          <main
-            ref={mainRef}
-            onScroll={(e) => setShowTop((e.target as HTMLElement).scrollTop > 300)}
-            className="flex-1 min-w-0 overflow-y-auto"
-          >
-            {/* Added bottom padding pb-24 to ensure no overlap by fixed mobile bottom tab bar */}
-            <div className="mx-auto w-full px-4 py-4 md:px-6 md:py-6 lg:px-8 pb-24 md:pb-6 max-w-7xl animate-fade-in">
-              {children}
+            <div className="p-3 border-t border-gray-800">
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                className="w-full flex items-center justify-center gap-2 text-xs text-gray-400 hover:text-white transition-colors py-2 rounded-xl bg-gray-800 border border-gray-700 min-h-[36px]"
+              >
+                {collapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /><span>Collapse Navigation</span></>}
+              </button>
             </div>
-          </main>
+          </aside>
+
+          {/* Main Content Area */}
+          <div className="flex min-w-0 flex-1 flex-col bg-gray-950">
+            <main
+              ref={mainRef}
+              onScroll={(e) => setShowTop((e.target as HTMLElement).scrollTop > 300)}
+              className="min-w-0 flex-1 overflow-y-auto"
+            >
+              <div className="mx-auto w-full px-4 py-4 md:px-6 md:py-6 lg:px-8 pb-24 md:pb-6 max-w-7xl animate-fade-in">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
 
         {/* Fixed Bottom Tab Bar - Mobile Only (64px tall, safe-area aware) */}

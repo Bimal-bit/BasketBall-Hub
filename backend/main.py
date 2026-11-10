@@ -1221,6 +1221,8 @@ async def get_awards():
 @cached(duration=3600, fallback=lambda *_, **kwargs: fallback_standings(kwargs.get("season"))) # Cache for 1 hour
 def get_standings(season: str = None, season_type: str = "Regular Season"):
     try:
+        from nba_api.stats.endpoints import leaguestandingsv3
+
         target_season = season or current_nba_season()
         # Sanitize season string
         clean_season = target_season.split(' (')[0]
