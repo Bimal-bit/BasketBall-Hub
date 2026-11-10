@@ -11,10 +11,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom'],
-          'ui-icons': ['lucide-react'],
-        },
+        manualChunks: undefined, // Disable manual chunking to fix 404 issues
       },
     },
     chunkSizeWarningLimit: 1000,
