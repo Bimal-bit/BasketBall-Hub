@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Deployment</title>
+</head>
+<body>
+    <h1>Testing Deployment</h1>
+    <div id="results"></div>
+    <script>
+        const results = document.getElementById('results');
+        
+        // Test 1: Check if we can reach the frontend
+        results.innerHTML += '<p>✅ Frontend HTML loaded</p>';
+        
+        // Test 2: Check API health through proxy
+        fetch('https://basketball-hub-frontend.vercel.app/api/health')
+            .then(r => r.json())
+            .then(data => {
+                results.innerHTML += `<p>✅ API Health: ${JSON.stringify(data)}</p>`;
+            })
+            .catch(err => {
+                results.innerHTML += `<p>❌ API Health Error: ${err.message}</p>`;
+            });
+            
+        // Test 3: Check scoreboard
+        fetch('https://basketball-hub-frontend.vercel.app/api/scoreboard')
+            .then(r => r.json())
+            .then(data => {
+                results.innerHTML += `<p>✅ Scoreboard: ${data.length} games</p>`;
+            })
+            .catch(err => {
+                results.innerHTML += `<p>❌ Scoreboard Error: ${err.message}</p>`;
+            });
+            
+        // Test 4: Check if main JS file loads
+        fetch('https://basketball-hub-frontend.vercel.app/assets/index-C4K22CoT.js', {method: 'HEAD'})
+            .then(r => {
+                results.innerHTML += `<p>✅ Main JS file exists (${r.status})</p>`;
+            })
+            .catch(err => {
+                results.innerHTML += `<p>❌ Main JS file error: ${err.message}</p>`;
+            });
+    </script>
+</body>
+</html>
