@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { Calendar, Trophy, X, Loader2 } from 'lucide-react';
 import {
   nbaApi,
+  getCurrentNbaSeason,
+  getNbaSeasons,
   getTeamLogoUrl,
   getPlayerHeadshotUrl,
   type Standing,
@@ -30,7 +32,7 @@ export default function Standings() {
   const [standings, setStandings] = useState<Standing[]>([]);
   const [playoffSeries, setPlayoffSeries] = useState<PlayoffSeries[]>([]);
   const [loading, setLoading] = useState(true);
-  const [season, setSeason] = useState('2025-26');
+  const [season, setSeason] = useState(getCurrentNbaSeason);
   const [seasonType, setSeasonType] = useState('Regular Season');
   
   const [selectedTeam, setSelectedTeam] = useState<Standing | null>(null);
@@ -41,10 +43,7 @@ export default function Standings() {
   const [loadingBox, setLoadingBox] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<BoxScorePlayer | null>(null);
 
-  const seasons = Array.from({ length: 2025 - 1985 + 1 }, (_, i) => {
-    const y = 2025 - i;
-    return `${y}-${String(y + 1).slice(-2)}`;
-  });
+  const seasons = getNbaSeasons();
 
   useEffect(() => {
     async function fetchData() {

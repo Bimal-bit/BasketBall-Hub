@@ -24,6 +24,7 @@ import {
   ListOrdered
 } from 'lucide-react';
 import {
+  getCurrentNbaSeason,
   nbaApi,
   getPlayerHeadshotUrl,
   getPlayerId,
@@ -586,7 +587,7 @@ export default function DreamTeam() {
     Promise.all([
       nbaApi.getAllPlayers().catch(() => []),
       nbaApi.getTopPlayers().catch(() => []),
-      nbaApi.getStandings('2025-26', 'Regular Season').catch(() => []),
+      nbaApi.getStandings(getCurrentNbaSeason(), 'Regular Season').catch(() => []),
     ])
       .then(([players, leaders, seasonStandings]) => {
         setAllPlayers(Array.isArray(players) ? players : []);

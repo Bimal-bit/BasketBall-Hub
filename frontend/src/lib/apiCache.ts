@@ -7,7 +7,7 @@ const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<unknown>>();
 
 const RETRY_DELAY_MS = 800;
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 1;
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 type CachedFetchOptions = RequestInit & {
@@ -31,7 +31,7 @@ async function fetchJson<T>(url: string, options?: CachedFetchOptions): Promise<
     try {
       const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
       if (!response.ok) {
-        retryableResponse = [429, 502, 503, 504].includes(response.status);
+        retryableResponse = [502, 503, 504].includes(response.status);
         const retryAfter = Number(response.headers.get('retry-after'));
         if (Number.isFinite(retryAfter) && retryAfter > 0) {
           retryDelay = Math.min(retryAfter * 1_000, 5_000);

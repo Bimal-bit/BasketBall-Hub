@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search, Sliders, Target } from 'lucide-react';
-import { nbaApi, type PlayerGameLog, type PlayerShot } from '../lib/api';
+import { getCurrentNbaSeason, nbaApi, type PlayerGameLog, type PlayerShot } from '../lib/api';
 import ShotChart from '../components/ShotChart';
 import BasketballLoader from '../components/BasketballLoader';
 import { SkeletonGrid } from '../components/SkeletonCard';
@@ -32,7 +32,7 @@ export default function ShotPredictor() {
   const [players, setPlayers] = useState<ApiPlayer[]>([]);
   const [search, setSearch] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState<ApiPlayer | null>(null);
-  const [season, setSeason] = useState('2025-26');
+  const [season, setSeason] = useState(getCurrentNbaSeason);
   const [games, setGames] = useState<PlayerGameLog[]>([]);
   const [selectedGameId, setSelectedGameId] = useState('');
   const [shots, setShots] = useState<PlayerShot[]>([]);
@@ -404,7 +404,7 @@ function getPressureLabel(clock: number, margin: number) {
 
 function buildRecentSeasons() {
   const seasons = [];
-  for (let year = 2025; year >= 2015; year -= 1) {
+  for (let year = Number(getCurrentNbaSeason().slice(0, 4)); year >= 2015; year -= 1) {
     seasons.push(`${year}-${String(year + 1).slice(-2)}`);
   }
   return seasons;

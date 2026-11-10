@@ -6,6 +6,20 @@ const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
 const REQUEST_TIMEOUT_MS = 30_000;
 
+export function getCurrentNbaSeason() {
+  const now = new Date();
+  const startYear = now.getFullYear() - (now.getMonth() < 9 ? 1 : 0);
+  return `${startYear}-${String(startYear + 1).slice(-2)}`;
+}
+
+export function getNbaSeasons() {
+  const startYear = Number(getCurrentNbaSeason().slice(0, 4));
+  return Array.from({ length: startYear - 1985 + 1 }, (_, index) => {
+    const year = startYear - index;
+    return `${year}-${String(year + 1).slice(-2)}`;
+  });
+}
+
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
   if (import.meta.env.DEV) {
@@ -372,8 +386,8 @@ export const nbaApi = {
     return apiGet<Standing[]>(`/standings${query}`, 300_000);
   },
 
-  getTopPlayers: (): Promise<Player[]> => {
-    return apiGet<Player[]>('/players/top', 600_000);
+  getTopPlayers: (season: string = getCurrentNbaSeason()): Promise<Player[]> => {
+    return apiGet<Player[]>(`/players/top?season=${encodeURIComponent(season)}`, 600_000);
   },
 
   searchPlayers: (query: string): Promise<Player[]> => {
@@ -386,11 +400,11 @@ export const nbaApi = {
   },
 
   getBoxScore: (gameId: string): Promise<BoxScorePlayer[]> => {
-    return apiGet<BoxScorePlayer[]>(`/game/${gameId}/boxscore`, 600_000, []);
+    return apiGet<BoxScorePlayer[]>(`/game/${gameId}/boxscore`, MINUTE, []);
   },
 
   getGameTeamStats: (gameId: string): Promise<BoxScoreTeam[]> => {
-    return apiGet<BoxScoreTeam[]>(`/game/${gameId}/team-stats`, 600_000, []);
+    return apiGet<BoxScoreTeam[]>(`/game/${gameId}/team-stats`, MINUTE, []);
   },
 
   getPlayerShots: (playerId: number, gameId: string): Promise<PlayerShot[]> => {

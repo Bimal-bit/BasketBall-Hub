@@ -9,14 +9,11 @@ import {
   MapPin, UserCheck, BarChart3, Plus, Minus, ArrowRight, X,
   Home, UserPlus, Info, TrendingDown
 } from 'lucide-react';
-import { nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
+import { getNbaSeasons, nbaApi, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 import { NBA_CHAMPIONS, ARENA_IMAGES, MASCOTS, getRingImageUrl, getTeamVaultInfo } from './SeasonVaultData';
 
-const SEASONS = Array.from({ length: 2026 - 1985 }, (_, i) => {
-  const year = 2025 - i;
-  return `${year}-${(year + 1).toString().slice(-2)}`;
-});
+const SEASONS = getNbaSeasons();
 
 const TEAMS = [
   { id: '1610612737', name: 'Atlanta Hawks', color: '#E03A3E', abbr: 'ATL' },
@@ -111,7 +108,7 @@ export default function SeasonVault() {
     let mounted = true;
     async function loadVault() {
       if (!mounted) return;
-      setHistory(buildFallbackVault(teamId, season));
+      setHistory(buildFallbackVault(teamId));
       setLoading(false);
       try {
         const [historyData, standingsData] = await Promise.all([
@@ -120,15 +117,15 @@ export default function SeasonVault() {
         ]);
         if (!mounted) return;
         const standing = standingsData.find((item: any) => Number(item.TeamID) === Number(teamId));
-        const fallback = buildFallbackVault(teamId, season);
+        const fallback = buildFallbackVault(teamId);
         setHistory({
-          ...(historyData?.roster?.length ? historyData : fallback),
+          ...(historyData || fallback),
           standing: { ...fallback.standing, ...(historyData?.standing ?? {}), ...(standing ?? {}) },
         });
       } catch (error) {
         console.error('Error loading vault:', error);
         if (mounted) {
-          setHistory(buildFallbackVault(teamId, season));
+          setHistory(buildFallbackVault(teamId));
         }
       } finally {
         if (mounted) setLoading(false);
@@ -152,11 +149,11 @@ export default function SeasonVault() {
   
   // Standing data — backend normalizes keys, but keep multiple fallbacks for safety
   const standing = history?.standing ?? {};
-  const recordW = standing.WINS ?? standing.Wins ?? standing.W ?? 0;
-  const recordL = standing.LOSSES ?? standing.Losses ?? standing.L ?? 0;
-  const w_pct   = standing.W_PCT ?? standing.WinPCT ?? standing.WIN_PCT ?? 0;
+  const recordW = standing.WINS ?? standing.Wins ?? standing.W ?? 'Unavailable';
+  const recordL = standing.LOSSES ?? standing.Losses ?? standing.L ?? 'Unavailable';
+  const w_pct   = standing.W_PCT ?? standing.WinPCT ?? standing.WIN_PCT ?? null;
   const rankNum  = standing.PlayoffRank ?? standing.PLAYOFF_RANK ?? standing.ConferenceRank ?? null;
-  const arenaName = vaultTeamInfo?.arena ?? standing.Arena ?? standing.ARENA ?? history?.stats?.ARENA ?? history?.stats?.ARENA_NAME ?? 'The Arena';
+  const arenaName = vaultTeamInfo?.arena ?? standing.Arena ?? standing.ARENA ?? history?.stats?.ARENA ?? history?.stats?.ARENA_NAME ?? 'Venue unavailable';
   const teamCity  = vaultTeamInfo?.city ?? standing.TeamCity ?? standing.TEAM_CITY ?? team?.name?.split(' ')[0] ?? 'NBA City';
 
   if (loading) {
@@ -402,8 +399,8 @@ export default function SeasonVault() {
               <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <OverviewCard label="Wins" value={recordW} icon={<Plus size={18} />} />
                 <OverviewCard label="Losses" value={recordL} icon={<Minus size={18} />} />
-                <OverviewCard label="Win Pct" value={`${(Number(w_pct || 0) * 100).toFixed(1)}%`} icon={<TrendingUp size={18} />} />
-                <OverviewCard label="Roster Size" value={history?.roster?.length || 0} icon={<Users size={18} />} />
+                <OverviewCard label="Win Pct" value={w_pct == null ? 'Unavailable' : `${(Number(w_pct) * 100).toFixed(1)}%`} icon={<TrendingUp size={18} />} />
+                <OverviewCard label="Roster Size" value={history?.roster?.length || 'Unavailable'} icon={<Users size={18} />} />
                 <OverviewCard label="Top Scorer" value={topRosterStat(history?.roster, 'PTS')} icon={<Target size={18} />} />
                 <OverviewCard label="Top Rebounder" value={topRosterStat(history?.roster, 'REB')} icon={<Shield size={18} />} />
                 <OverviewCard label="Top Passer" value={topRosterStat(history?.roster, 'AST')} icon={<UserPlus size={18} />} />
@@ -422,7 +419,9 @@ export default function SeasonVault() {
                      </div>
                      <div>
                         <h3 className="text-3xl font-medium text-white  uppercase tracking-tight">Full Squad Archive</h3>
-                        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-[0.3em] mt-1 ">Total Registry: {history.roster.length} Personnel</p>
+                        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-[0.3em] mt-1 ">
+                          {history.roster.length ? `Total Registry: ${history.roster.length} Personnel` : 'Roster data unavailable'}
+                        </p>
                      </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -443,7 +442,9 @@ export default function SeasonVault() {
                </div>
                
                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 relative z-10">
-                  {(showAll ? history.roster : [...history.roster].sort((a: any, b: any) => (b.MIN || 0) - (a.MIN || 0)).slice(0, 5)).map((player: any) => (
+                  {history.roster.length === 0 ? (
+                    <p className="col-span-full py-10 text-center text-sm text-gray-500">Roster statistics are unavailable for this season.</p>
+                  ) : (showAll ? history.roster : [...history.roster].sort((a: any, b: any) => (b.MIN || 0) - (a.MIN || 0)).slice(0, 5)).map((player: any) => (
                     <div 
                       key={player.PLAYER_ID}
                       onClick={() => setSelectedPlayer(player)}
@@ -471,7 +472,7 @@ export default function SeasonVault() {
                            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">{player.POSITION}</span>
                            <div className="flex items-center gap-1">
                               <Zap size={10} className="text-orange-500" />
-                              <span className="text-[10px] font-medium text-orange-500 ">{player.PTS || '0'} PPG</span>
+                              <span className="text-[10px] font-medium text-orange-500 ">{player.PTS == null ? 'Unavailable' : `${player.PTS} PPG`}</span>
                            </div>
                         </div>
                       </div>
@@ -540,13 +541,15 @@ function OverviewCard({ label, value, icon }: any) {
 }
 
 function topRosterStat(roster: any[] = [], key: 'PTS' | 'REB' | 'AST') {
-  const leader = [...roster].sort((a, b) => Number(b?.[key] || 0) - Number(a?.[key] || 0))[0];
-  if (!leader) return 'N/A';
+  const leader = roster
+    .filter(player => player?.[key] != null)
+    .sort((a, b) => Number(b[key]) - Number(a[key]))[0];
+  if (!leader) return 'Unavailable';
   const name = leader.PLAYER_NAME || leader.PLAYER || 'Player';
   return `${name.split(' ').pop()} ${Number(leader[key] || 0).toFixed(1)}`;
 }
 
-function buildFallbackVault(teamId: string, season: string) {
+function buildFallbackVault(teamId: string) {
   const vaultInfo = getTeamVaultInfo(teamId);
   const team = TEAMS.find(t => t.id === teamId);
   const abbr = vaultInfo?.abbr || team?.abbr || 'NBA';
@@ -558,23 +561,14 @@ function buildFallbackVault(teamId: string, season: string) {
       TeamName: name,
       TeamCity: city,
       TeamAbbr: abbr,
-      WINS: 0,
-      LOSSES: 0,
-      WinPCT: 0,
-      Arena: vaultInfo?.arena || 'Home Arena',
+      Arena: vaultInfo?.arena || 'Unavailable',
     },
     stats: {
-      ARENA: vaultInfo?.arena || 'Home Arena',
-      ARENA_NAME: vaultInfo?.arena || 'Home Arena',
+      ARENA: vaultInfo?.arena || 'Unavailable',
+      ARENA_NAME: vaultInfo?.arena || 'Unavailable',
     },
-    coaches: [{ COACH_NAME: season >= '2024-25' ? 'Current Staff' : 'Historical Staff' }],
-    roster: [
-      { PLAYER_ID: 2544, PLAYER: `${abbr} Franchise Star`, PLAYER_NAME: `${abbr} Franchise Star`, NUM: '23', MIN: 36, PTS: 24, REB: 7, AST: 6, TEAM_ABBREVIATION: abbr },
-      { PLAYER_ID: 201939, PLAYER: `${abbr} Lead Guard`, PLAYER_NAME: `${abbr} Lead Guard`, NUM: '30', MIN: 34, PTS: 21, REB: 4, AST: 7, TEAM_ABBREVIATION: abbr },
-      { PLAYER_ID: 203999, PLAYER: `${abbr} Frontcourt Anchor`, PLAYER_NAME: `${abbr} Frontcourt Anchor`, NUM: '15', MIN: 33, PTS: 19, REB: 10, AST: 4, TEAM_ABBREVIATION: abbr },
-      { PLAYER_ID: 1629029, PLAYER: `${abbr} Wing Scorer`, PLAYER_NAME: `${abbr} Wing Scorer`, NUM: '7', MIN: 31, PTS: 18, REB: 5, AST: 3, TEAM_ABBREVIATION: abbr },
-      { PLAYER_ID: 203076, PLAYER: `${abbr} Defensive Big`, PLAYER_NAME: `${abbr} Defensive Big`, NUM: '3', MIN: 30, PTS: 15, REB: 9, AST: 2, TEAM_ABBREVIATION: abbr },
-    ],
+    coaches: [],
+    roster: [],
     fallback: true,
   };
 }
@@ -590,7 +584,7 @@ function ArenaVisual({ image, teamId, teamColor, arenaName, subtle = false }: an
       <div className="absolute inset-0 flex items-center justify-center">
         <img src={getTeamLogoUrl(teamId)} className="h-1/2 w-1/2 object-contain opacity-30 drop-shadow-none" alt={arenaName} />
       </div>
-      <div className="absolute top-5 left-5 text-[9px] font-medium uppercase tracking-[0.35em] text-white/50">Verified Venue Data</div>
+      <div className="absolute top-5 left-5 text-[9px] font-medium uppercase tracking-[0.35em] text-white/50">Venue Image Unavailable</div>
     </div>
   );
 }

@@ -81,7 +81,9 @@ export default function App() {
       if (mounted) setBackendOk(ok);
     };
     checkBackend();
-    const interval = window.setInterval(checkBackend, 30_000);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') checkBackend();
+    }, 120_000);
     return () => {
       mounted = false;
       window.clearInterval(interval);

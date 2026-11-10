@@ -3,6 +3,7 @@ import json
 import os
 import re
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
@@ -35,6 +36,12 @@ ESPN_HEADERS = {
     "Referer": "https://www.espn.com/",
     "Connection": "keep-alive",
 }
+ESPN_CORE_HEADERS = {
+    **ESPN_HEADERS,
+    "Host": "sports.core.api.espn.com",
+    "Origin": "https://www.espn.com",
+    "Referer": "https://www.espn.com/",
+}
 # Create a custom requests Session with a default timeout to avoid infinite hangs
 class DefaultTimeoutSession(requests.Session):
     def __init__(self, *args, **kwargs):
@@ -47,7 +54,7 @@ class DefaultTimeoutSession(requests.Session):
             retry_strategy = Retry(
                 total=1,
                 backoff_factor=0.25,
-                status_forcelist=[429, 500, 502, 503, 504],
+                status_forcelist=[500, 502, 503, 504],
                 allowed_methods=["HEAD", "GET", "OPTIONS"]
             )
             adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -78,6 +85,8 @@ HTTP = DefaultTimeoutSession()
 HTTP.headers.update(NBA_HEADERS)
 ESPN_GAME_CACHE = {}
 NBA_PLAYER_ID_BY_NAME = None
+ESPN_TEAM_ID_MAP = None
+ESPN_PLAYER_STATS_CACHE = {}
 
 def normalize_person_name(name):
     normalized = unicodedata.normalize("NFKD", str(name or ""))
@@ -103,6 +112,237 @@ def get_nba_player_ids_by_name():
             for player in players.get_players()
         }
     return NBA_PLAYER_ID_BY_NAME
+
+def get_espn_team_id_map():
+    global ESPN_TEAM_ID_MAP
+    if ESPN_TEAM_ID_MAP is None:
+        response = HTTP.get(
+            "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams",
+            params={"limit": 100},
+            headers=ESPN_HEADERS,
+            timeout=NBA_API_TIMEOUT,
+        )
+        response.raise_for_status()
+        nba_teams = get_nba_teams_by_abbreviation()
+        teams = {}
+        for sport in response.json().get("sports") or []:
+            for league in sport.get("leagues") or []:
+                for entry in league.get("teams") or []:
+                    team = entry.get("team") or {}
+                    abbreviation = str(team.get("abbreviation") or "").upper()
+                    nba_team = nba_teams.get(abbreviation)
+                    if nba_team:
+                        teams[str(team.get("id"))] = {
+                            "TEAM_ID": nba_team["id"],
+                            "TEAM_ABBREVIATION": nba_team["abbreviation"],
+                            "TEAM_NAME": nba_team["full_name"],
+                        }
+        if not teams:
+            raise RuntimeError("ESPN returned no team ID mappings")
+        ESPN_TEAM_ID_MAP = teams
+    return ESPN_TEAM_ID_MAP
+
+def fetch_espn_player_leaders(season, category, season_type="Regular Season", per_mode="PerGame", limit=50):
+    category_names = {
+        "Points per game": ("pointsPerGame", "PTS"),
+        "PTS": ("pointsPerGame", "PTS"),
+        "Total points": ("points", "PTS"),
+        "Assists per game": ("assistsPerGame", "AST"),
+        "AST": ("assistsPerGame", "AST"),
+        "Rebounds per game": ("reboundsPerGame", "REB"),
+        "REB": ("reboundsPerGame", "REB"),
+        "Steals per game": ("stealsPerGame", "STL"),
+        "STL": ("stealsPerGame", "STL"),
+        "Blocks per game": ("blocksPerGame", "BLK"),
+        "BLK": ("blocksPerGame", "BLK"),
+        "Minutes per game": ("minutesPerGame", "MIN"),
+        "Field goal %": ("fieldGoalPercentage", "FG_PCT"),
+        "3-pointer %": ("3PointPct", "FG3_PCT"),
+        "3-pointers made": ("3PointsMadePerGame", "FG3M"),
+        "Free-throw %": ("FreeThrowPct", "FT_PCT"),
+        "Turnovers per game": ("avgTurnovers", "TOV"),
+        "Real performance rating per game": ("PER", "PER"),
+    }
+    requested = category_names.get(category)
+    if not requested:
+        raise RuntimeError(f"ESPN does not provide a matching season leaderboard for {category}")
+
+    season_type_id = 3 if season_type == "Playoffs" else 2
+    url = (
+        "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba/"
+        f"seasons/{espn_season_year(season)}/types/{season_type_id}/leaders"
+    )
+    response = HTTP.get(
+        url,
+        params={"limit": max(1, min(limit, 50))},
+        headers=ESPN_CORE_HEADERS,
+        timeout=NBA_API_TIMEOUT,
+    )
+    response.raise_for_status()
+    categories = response.json().get("categories") or []
+    selected_category = next((item for item in categories if item.get("name") == requested[0]), None)
+    if not selected_category or not selected_category.get("leaders"):
+        raise RuntimeError(f"ESPN has no {category} stats for {season}")
+
+    if per_mode == "Totals":
+        stat_fields = {
+            "points": "PTS", "assists": "AST", "rebounds": "REB",
+            "steals": "STL", "blocks": "BLK", "minutes": "MIN",
+            "fieldGoalPercentage": "FG_PCT", "3PointPct": "FG3_PCT",
+            "FreeThrowPct": "FT_PCT", "totalTurnovers": "TOV",
+            "PER": "PER",
+        }
+    else:
+        stat_fields = {
+            "pointsPerGame": "PTS", "assistsPerGame": "AST",
+            "reboundsPerGame": "REB", "stealsPerGame": "STL",
+            "blocksPerGame": "BLK", "minutesPerGame": "MIN",
+            "fieldGoalPercentage": "FG_PCT", "3PointPct": "FG3_PCT",
+            "3PointsMadePerGame": "FG3M", "FreeThrowPct": "FT_PCT",
+            "avgTurnovers": "TOV", "PER": "PER",
+        }
+    values_by_athlete = {}
+    for stats_category in categories:
+        field = stat_fields.get(stats_category.get("name"))
+        if not field:
+            continue
+        for leader in stats_category.get("leaders") or []:
+            athlete_ref = (leader.get("athlete") or {}).get("$ref") or ""
+            match = re.search(r"/athletes/(\d+)", athlete_ref)
+            if not match:
+                continue
+            value = leader.get("value")
+            if value is None:
+                continue
+            value = float(value)
+            if field in {"FG_PCT", "FG3_PCT", "FT_PCT"} and value > 1:
+                value /= 100
+            values_by_athlete.setdefault(match.group(1), {})[field] = value
+
+    selected_leaders = selected_category.get("leaders") or []
+    athlete_refs = {}
+    team_ids = {}
+    for leader in selected_leaders:
+        athlete_ref = (leader.get("athlete") or {}).get("$ref") or ""
+        athlete_match = re.search(r"/athletes/(\d+)", athlete_ref)
+        team_ref = (leader.get("team") or {}).get("$ref") or ""
+        team_match = re.search(r"/teams/(\d+)", team_ref)
+        if athlete_match and team_match:
+            athlete_refs[athlete_match.group(1)] = athlete_ref.replace("http://", "https://", 1)
+            team_ids[athlete_match.group(1)] = team_match.group(1)
+
+    def fetch_athlete(athlete_id, athlete_url):
+        cache_key = (athlete_id, espn_season_year(season), season_type_id)
+        cached = ESPN_PLAYER_STATS_CACHE.get(cache_key)
+        if cached and cached["expires"] > time.time():
+            return athlete_id, cached["athlete"], cached["stats"]
+
+        athlete_response = HTTP.get(athlete_url, headers=ESPN_CORE_HEADERS, timeout=NBA_API_TIMEOUT)
+        athlete_response.raise_for_status()
+        athlete = athlete_response.json()
+        stats = {}
+        stats_ref = (athlete.get("statistics") or {}).get("$ref")
+        if stats_ref:
+            stats_response = HTTP.get(
+                stats_ref.replace("http://", "https://", 1),
+                headers=ESPN_CORE_HEADERS,
+                timeout=NBA_API_TIMEOUT,
+            )
+            stats_response.raise_for_status()
+            payload = stats_response.json()
+            for stats_category in (payload.get("splits") or {}).get("categories") or []:
+                for stat in stats_category.get("stats") or []:
+                    if stat.get("name") and stat.get("value") is not None:
+                        stats[stat["name"]] = float(stat["value"])
+        ESPN_PLAYER_STATS_CACHE[cache_key] = {
+            "athlete": athlete,
+            "stats": stats,
+            "expires": time.time() + 1800,
+        }
+        return athlete_id, athlete, stats
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        athlete_results = list(executor.map(
+            lambda item: fetch_athlete(*item),
+            athlete_refs.items(),
+        ))
+
+    nba_ids_by_name = get_nba_player_ids_by_name()
+    team_map = get_espn_team_id_map()
+    rows_by_id = {}
+    average_keys = {
+        "PTS": ("avgPoints", "points"),
+        "REB": ("avgRebounds", "rebounds"),
+        "AST": ("avgAssists", "assists"),
+        "STL": ("avgSteals", "steals"),
+        "BLK": ("avgBlocks", "blocks"),
+        "MIN": ("avgMinutes", "minutes"),
+        "TOV": ("avgTurnovers", "totalTurnovers"),
+        "OREB": ("avgOffensiveRebounds", "offensiveRebounds"),
+        "DREB": ("avgDefensiveRebounds", "defensiveRebounds"),
+        "PF": ("avgFouls", "fouls"),
+        "PLUS_MINUS": ("avgPlusMinus", "plusMinus"),
+        "FGM": ("avgFieldGoalsMade", "fieldGoalsMade"),
+        "FGA": ("avgFieldGoalsAttempted", "fieldGoalsAttempted"),
+        "FG3M": ("avgThreePointFieldGoalsMade", "threePointFieldGoalsMade"),
+        "FG3A": ("avgThreePointFieldGoalsAttempted", "threePointFieldGoalsAttempted"),
+        "FTM": ("avgFreeThrowsMade", "freeThrowsMade"),
+        "FTA": ("avgFreeThrowsAttempted", "freeThrowsAttempted"),
+    }
+    for athlete_id, athlete, stats in athlete_results:
+        name = athlete.get("displayName") or athlete.get("fullName")
+        nba_player_id = nba_ids_by_name.get(normalize_person_name(name))
+        team = team_map.get(team_ids.get(athlete_id))
+        if not nba_player_id or not team:
+            continue
+        first_name = athlete.get("firstName") or ""
+        last_name = athlete.get("lastName") or ""
+        row = {
+            "PERSON_ID": nba_player_id,
+            "PLAYER_ID": nba_player_id,
+            "PLAYER_FIRST_NAME": first_name,
+            "PLAYER_LAST_NAME": last_name,
+            "PLAYER_NAME": name,
+            **team,
+        }
+        if "gamesPlayed" in stats:
+            row["GP"] = stats["gamesPlayed"]
+        if "gamesStarted" in stats:
+            row["GS"] = stats["gamesStarted"]
+        stat_index = 1 if per_mode == "Totals" else 0
+        for field, names in average_keys.items():
+            if names[stat_index] in stats:
+                row[field] = stats[names[stat_index]]
+        for field, stat_name in [
+            ("FG_PCT", "fieldGoalPct"),
+            ("FG3_PCT", "threePointFieldGoalPct"),
+            ("FT_PCT", "freeThrowPct"),
+            ("TS_PCT", "trueShootingPct"),
+            ("PER", "PER"),
+        ]:
+            if stat_name in stats:
+                value = stats[stat_name]
+                row[field] = value / 100 if field.endswith("_PCT") and value > 1 else value
+        for field, value in values_by_athlete.get(athlete_id, {}).items():
+            row[field] = value
+        rows_by_id[athlete_id] = row
+
+    rows = []
+    for leader in selected_leaders:
+        athlete_ref = (leader.get("athlete") or {}).get("$ref") or ""
+        match = re.search(r"/athletes/(\d+)", athlete_ref)
+        row = rows_by_id.get(match.group(1)) if match else None
+        if row:
+            leader_value = leader.get("value")
+            if leader_value is not None:
+                value = float(leader_value)
+                if requested[1].endswith("_PCT") and value > 1:
+                    value /= 100
+                row = {**row, requested[1]: value}
+            rows.append(row)
+    if not rows:
+        raise RuntimeError(f"ESPN returned no mappable player leaders for {season}")
+    return rows
 
 def fetch_espn_game_summary(game_id):
     now = time.time()
@@ -451,7 +691,7 @@ def to_number(value, default=0):
         return default
 
 def current_nba_season():
-    """Return season label used by stats.nba.com, e.g. 2025-26."""
+    """Return season label used by stats.nba.com, e.g. 2026-27."""
     now = pd.Timestamp.now()
     start_year = now.year if now.month >= 10 else now.year - 1
     return f"{start_year}-{str(start_year + 1)[-2:]}"
@@ -644,6 +884,8 @@ def cached(duration=60, ttl=None, fallback=None):
                 print(f"Error in {func.__name__}: {e}")
                 if key in cache:
                     return cache[key]["data"]
+                if isinstance(e, HTTPException):
+                    raise
                 if fallback is not None:
                     data = fallback(*args, **kwargs) if callable(fallback) else fallback
                     cache[key] = {
@@ -673,7 +915,9 @@ def get_cached_data(key, fetch_func, duration=60):
         print(f"Error fetching {key}: {e}")
         if key in cache:
             return cache[key]["data"]
-        raise HTTPException(status_code=500, detail=str(e))
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=503, detail="Requested NBA data is temporarily unavailable.")
 
 def get_cached_scoreboard(key, fetch_func):
     now = time.time()
@@ -1646,35 +1890,43 @@ def get_standings(season: str = None, season_type: str = "Regular Season"):
         raise
 
 @app.get("/api/players/top")
-@cached(duration=3600) # Cache for 1 hour
-def get_top_players():
+def get_top_players(season: str = None):
+    target_season = (season or current_nba_season()).split(" (")[0]
+
     def fetch():
         try:
             from nba_api.stats.endpoints import leaguedashplayerstats
             leaders = leaguedashplayerstats.LeagueDashPlayerStats(
-                season=current_nba_season(),
+                season=target_season,
                 per_mode_detailed="PerGame",
-                season_type_all_star="Regular Season"
+                season_type_all_star="Regular Season",
+                timeout=NBA_API_TIMEOUT,
             )
+            df = leaders.get_data_frames()[0]
+            if df.empty:
+                raise RuntimeError(f"NBA Stats returned no player stats for {target_season}")
+            df = df[df["GP"] > 0].sort_values("PTS", ascending=False).copy()
+
+            names = df["PLAYER_NAME"].str.split(" ", n=1, expand=True)
+            df["PERSON_ID"] = df["PLAYER_ID"]
+            df["PLAYER_FIRST_NAME"] = names[0]
+            df["PLAYER_LAST_NAME"] = names[1].fillna("")
+
+            columns = [
+                "PERSON_ID", "PLAYER_ID", "PLAYER_FIRST_NAME", "PLAYER_LAST_NAME",
+                "PLAYER_NAME", "TEAM_ID", "TEAM_ABBREVIATION", "GP", "MIN",
+                "PTS", "REB", "AST", "STL", "BLK", "FG_PCT", "FG3_PCT", "FT_PCT"
+            ]
+            return clean_df(df[columns])
         except Exception as e:
-            print(f"LeagueDashPlayerStats load error: {e}")
-            return []
-        df = leaders.get_data_frames()[0]
-        df = df[df["GP"] > 0].sort_values("PTS", ascending=False).copy()
+            print(f"NBA player leaders error for {target_season}: {e}")
+            try:
+                return fetch_espn_player_leaders(target_season, "Points per game")
+            except Exception as fallback_error:
+                print(f"ESPN player leaders error for {target_season}: {fallback_error}")
+                raise HTTPException(status_code=503, detail="Current-season player stats are temporarily unavailable.")
 
-        names = df["PLAYER_NAME"].str.split(" ", n=1, expand=True)
-        df["PERSON_ID"] = df["PLAYER_ID"]
-        df["PLAYER_FIRST_NAME"] = names[0]
-        df["PLAYER_LAST_NAME"] = names[1].fillna("")
-
-        columns = [
-            "PERSON_ID", "PLAYER_ID", "PLAYER_FIRST_NAME", "PLAYER_LAST_NAME",
-            "PLAYER_NAME", "TEAM_ID", "TEAM_ABBREVIATION", "GP", "MIN",
-            "PTS", "REB", "AST", "STL", "BLK", "FG_PCT", "FG3_PCT", "FT_PCT"
-        ]
-        return clean_df(df[columns])
-
-    return get_cached_data("players", fetch)
+    return get_cached_data(f"players:{target_season}", fetch, duration=3600)
 
 @app.get("/api/teams")
 @cached(duration=86400)
@@ -2463,7 +2715,7 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
         # All-Time / Lifetime Logic (Usually Regular Season only in NBA API All Time)
         if target_season == "Lifetime":
             # ... (Lifetime logic remains same)
-            from nba_api.stats.endpoints import leaguedashplayerstats, leagueleaders
+            from nba_api.stats.endpoints import leagueleaders
             
             category_map_alltime = {
                 "Games played": "GP",
@@ -2540,6 +2792,7 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
         print(f"Fetching leaders for {category} in {clean_season} ({per_mode}, {season_type})")
         
         # Use LeagueDashPlayerStats for specific seasons
+        from nba_api.stats.endpoints import leaguedashplayerstats
         leaders = leaguedashplayerstats.LeagueDashPlayerStats(
             season=clean_season,
             per_mode_detailed=per_mode,
@@ -2620,8 +2873,12 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
         return clean_df(df)
     except Exception as e:
         print(f"Leaders error: {e}")
-        # Try a very simple fallback for current season if needed
-        raise HTTPException(status_code=500, detail=str(e))
+        if target_season != "Lifetime" and target_season == current_nba_season():
+            try:
+                return fetch_espn_player_leaders(target_season, category, season_type, per_mode)
+            except Exception as fallback_error:
+                print(f"ESPN leaderboard error for {target_season}: {fallback_error}")
+        raise HTTPException(status_code=503, detail="Requested player stats are temporarily unavailable.")
 
 @app.get("/api/vault/team-history")
 async def get_team_history(team_id: int, season: str):

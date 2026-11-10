@@ -219,7 +219,7 @@ export default function Dashboard() {
     };
 
     pollDetails();
-    const interval = window.setInterval(pollDetails, 5000);
+    const interval = window.setInterval(pollDetails, 30_000);
     return () => window.clearInterval(interval);
   }, [selectedGame?.game_id, selectedGame?.status]);
 

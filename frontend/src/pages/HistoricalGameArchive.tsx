@@ -1,20 +1,17 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Award, Calendar, Clock, History, Search, Star, Trophy } from 'lucide-react';
-import { nbaApi, type ArchiveGame, type BoxScorePlayer, type NbaTeam } from '../lib/api';
+import { getCurrentNbaSeason, getNbaSeasons, nbaApi, type ArchiveGame, type BoxScorePlayer, type NbaTeam } from '../lib/api';
 
 type SortMode = 'date' | 'score' | 'margin' | 'team';
 
-const SEASONS = Array.from({ length: 30 }, (_, index) => {
-  const start = 2025 - index;
-  return `${start}-${String(start + 1).slice(-2)}`;
-});
+const SEASONS = getNbaSeasons();
 
 export default function HistoricalGameArchive() {
   const [teams, setTeams] = useState<NbaTeam[]>([]);
   const [games, setGames] = useState<ArchiveGame[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [boxscore, setBoxscore] = useState<BoxScorePlayer[]>([]);
-  const [season, setSeason] = useState('2025-26');
+  const [season, setSeason] = useState(getCurrentNbaSeason);
   const [seasonType, setSeasonType] = useState('Regular Season');
   const [teamId, setTeamId] = useState<number | 'all'>('all');
   const [query, setQuery] = useState('');

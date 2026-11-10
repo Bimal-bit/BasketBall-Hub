@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Trophy, ChevronDown, TrendingUp, User, Users, Calendar, Award, Zap, Target, Shield, Clock, Search, ChevronRight, X } from 'lucide-react';
-import { nbaApi, type Player, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
+import { getCurrentNbaSeason, getNbaSeasons, nbaApi, type Player, getPlayerHeadshotUrl, getTeamLogoUrl } from '../lib/api';
 import BasketballLoader from '../components/BasketballLoader';
 
 const CATEGORIES = [
@@ -35,10 +35,7 @@ const CATEGORIES = [
 
 const SEASONS = [
   "Lifetime",
-  ...Array.from({ length: 2026 - 1985 }, (_, i) => {
-    const year = 2025 - i;
-    return `${year}-${(year + 1).toString().slice(-2)}`;
-  })
+  ...getNbaSeasons()
 ];
 
 
@@ -53,7 +50,7 @@ export default function Leaderboard() {
   const [leaders, setLeaders] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("Points per game");
-  const [season, setSeason] = useState(SEASONS[0]);
+  const [season, setSeason] = useState(getCurrentNbaSeason);
   const [seasonType, setSeasonType] = useState<"Regular Season" | "Playoffs">("Regular Season");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -138,7 +135,7 @@ export default function Leaderboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-medium text-gray-500 text-white tracking-tighter uppercase">Stat Leaderboard</h1>
-          <p className="text-sm text-gray-500">Comprehensive historical performance tracking from 1985-2025.</p>
+          <p className="text-sm text-gray-500">Comprehensive performance tracking from 1985 through the current season.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
