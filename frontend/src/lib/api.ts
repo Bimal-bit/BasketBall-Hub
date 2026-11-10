@@ -76,7 +76,19 @@ async function apiGet<T>(path: string, ttlMs: number, fallback?: T): Promise<T> 
     const data = await cachedFetch<T>(getApiUrl(path), ttlMs, { timeoutMs: REQUEST_TIMEOUT_MS });
     return data;
   } catch (err) {
+    const error = err as any;
+    const status = error?.message?.match(/HTTP (\d+)/)?.[1];
+    
+    // Log the error
     console.error(`API request failed for ${path}:`, err);
+    
+    // If rate limited (429) or service unavailable (503), use fallback if available
+    if ((status === '429' || status === '503') && fallback !== undefined) {
+      console.warn(`Using fallback data for ${path} due to ${status} error`);
+      return fallback;
+    }
+    
+    // Otherwise, use fallback if available
     if (fallback !== undefined) return fallback;
     throw err;
   }
