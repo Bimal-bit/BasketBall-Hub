@@ -49,14 +49,10 @@ http://127.0.0.1:5173
 Frontend:
 
 ```text
-VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api
+VITE_API_BASE_URL=http://127.0.0.1:8000/api
 ```
 
-For production, keep it pointed at the deployed Render backend:
-
-```text
-VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api
-```
+In production, Vercel proxies `/api/*` to Render using the rewrite in `frontend/vercel.json`. Update that rewrite if you deploy a different Render service. See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
 
 ## Deployment
 

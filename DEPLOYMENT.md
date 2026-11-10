@@ -53,17 +53,15 @@ npm run build
 dist
 ```
 
-7. Add this environment variable in Vercel:
+7. The checked-in Vercel configuration proxies `/api/*` to this project's Render service, so production requests use the Vercel origin and avoid browser CORS failures. If you deploy your own Render service, update the API rewrite destination in `frontend/vercel.json` (or `vercel.json` when the repository root is the Vercel project root) to your service URL.
+
+You can optionally configure a custom API base URL:
 
 ```text
 VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api
 ```
 
-Use the URL of the Render service you deployed from this repository. The frontend expects the `/api/scoreboard` and other `/api/*` routes in this project's backend; a health endpoint alone is not sufficient. Redeploy the frontend after changing the environment variable.
-
-```text
-VITE_API_BASE_URL=https://<your-render-service>.onrender.com/api
-```
+The frontend expects the `/api/scoreboard` and other `/api/*` routes in this project's backend; a health endpoint alone is not sufficient. Redeploy the frontend after changing the rewrite or environment variable.
 
 8. Click **Deploy**.
 

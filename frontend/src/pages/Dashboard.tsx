@@ -1051,7 +1051,7 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
           MINUTES_REMAINING: Number(p.PCTIMESTRING?.split(':')[0] || 0),
           SECONDS_REMAINING: Number(p.PCTIMESTRING?.split(':')[1] || 0),
           ACTION_TYPE: desc,
-          SHOT_DISTANCE: shotType === '3PT' ? 24 : shotType === 'FT' ? 15 : 10,
+          SHOT_DISTANCE: Number(p.SHOT_DISTANCE || 0),
           SHOT_MADE_FLAG: made ? 1 : 0,
           IS_MISS: !made,
           GAME_EVENT_ID: p.EVENTNUM,
@@ -1267,7 +1267,7 @@ function PlayerDetail({ player, shots, logs, averages: _averages, playerImpact, 
                              <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-gray-555">Q{shot.PERIOD || 1} {shot.MINUTES_REMAINING}:{shot.SECONDS_REMAINING?.toString().padStart(2, '0')}</span>
                           </div>
                           <div className="text-lg font-bold text-white leading-tight">
-                             {shot.ACTION_TYPE || `${shot.SHOT_DISTANCE}' ${shot.TYPE === '3PT' ? 'three pointer' : shot.TYPE === 'FT' ? 'free throw' : 'shot'}`}
+                             {shot.ACTION_TYPE || `${shot.SHOT_DISTANCE ? `${shot.SHOT_DISTANCE}' ` : ''}${shot.TYPE === '3PT' ? 'three pointer' : shot.TYPE === 'FT' ? 'free throw' : 'shot'}`}
                              {shot.IS_MISS && <span className="ml-2 text-xs text-red-500 font-bold uppercase tracking-widest">(Miss)</span>}
                           </div>
                        </div>

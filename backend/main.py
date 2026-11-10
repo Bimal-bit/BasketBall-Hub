@@ -1,6 +1,8 @@
 import time
 import json
 import os
+import re
+import unicodedata
 from functools import wraps
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
@@ -43,8 +45,8 @@ class DefaultTimeoutSession(requests.Session):
             from requests.adapters import HTTPAdapter
 
             retry_strategy = Retry(
-                total=3,
-                backoff_factor=1,
+                total=1,
+                backoff_factor=0.25,
                 status_forcelist=[429, 500, 502, 503, 504],
                 allowed_methods=["HEAD", "GET", "OPTIONS"]
             )
@@ -74,6 +76,287 @@ NBAStatsHTTP.set_session(DefaultTimeoutSession())
 # A shared HTTP session for our direct requests (CDN, ESPN, etc.) with retries
 HTTP = DefaultTimeoutSession()
 HTTP.headers.update(NBA_HEADERS)
+ESPN_GAME_CACHE = {}
+NBA_PLAYER_ID_BY_NAME = None
+
+def normalize_person_name(name):
+    normalized = unicodedata.normalize("NFKD", str(name or ""))
+    return "".join(char for char in normalized if not unicodedata.combining(char)).casefold().strip()
+
+def get_nba_teams_by_abbreviation():
+    from nba_api.stats.static import teams as nba_teams
+    teams = {team["abbreviation"].upper(): team for team in nba_teams.get_teams()}
+    for alias, abbreviation in {
+        "GS": "GSW", "NY": "NYK", "SA": "SAS", "NO": "NOP",
+        "WSH": "WAS", "UTAH": "UTA",
+    }.items():
+        if abbreviation in teams:
+            teams[alias] = teams[abbreviation]
+    return teams
+
+def get_nba_player_ids_by_name():
+    global NBA_PLAYER_ID_BY_NAME
+    if NBA_PLAYER_ID_BY_NAME is None:
+        from nba_api.stats.static import players
+        NBA_PLAYER_ID_BY_NAME = {
+            normalize_person_name(player["full_name"]): player["id"]
+            for player in players.get_players()
+        }
+    return NBA_PLAYER_ID_BY_NAME
+
+def fetch_espn_game_summary(game_id):
+    now = time.time()
+    cached = ESPN_GAME_CACHE.get(str(game_id))
+    if cached and cached["expires"] > now:
+        return cached["data"]
+
+    response = HTTP.get(
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary",
+        params={"event": str(game_id)},
+        headers=ESPN_HEADERS,
+        timeout=12,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not payload.get("boxscore") and not payload.get("plays"):
+        raise RuntimeError(f"ESPN returned no game data for {game_id}")
+    ESPN_GAME_CACHE[str(game_id)] = {"data": payload, "expires": now + 30}
+    return payload
+
+def get_espn_identity_maps(summary):
+    teams_by_abbreviation = get_nba_teams_by_abbreviation()
+    team_ids = {}
+    player_ids = get_nba_player_ids_by_name()
+    espn_player_ids = {}
+
+    for team_data in (summary.get("boxscore") or {}).get("players") or []:
+        team = team_data.get("team") or {}
+        abbreviation = str(team.get("abbreviation") or "").upper()
+        nba_team = teams_by_abbreviation.get(abbreviation) or {}
+        espn_team_id = str(team.get("id") or "")
+        if espn_team_id and nba_team.get("id"):
+            team_ids[espn_team_id] = nba_team["id"]
+        for stats_group in team_data.get("statistics") or []:
+            for athlete in stats_group.get("athletes") or []:
+                details = athlete.get("athlete") or {}
+                nba_player_id = player_ids.get(normalize_person_name(details.get("displayName")))
+                if details.get("id") and nba_player_id:
+                    espn_player_ids[str(details["id"])] = nba_player_id
+    return team_ids, espn_player_ids
+
+def fetch_espn_boxscore(game_id):
+    summary = fetch_espn_game_summary(game_id)
+    team_ids, _ = get_espn_identity_maps(summary)
+    players = []
+    def made_attempted(value):
+        match = re.fullmatch(r"\s*(\d+)\s*-\s*(\d+)\s*", str(value or ""))
+        return (int(match.group(1)), int(match.group(2))) if match else (0, 0)
+
+    for team_data in (summary.get("boxscore") or {}).get("players") or []:
+        team = team_data.get("team") or {}
+        team_id = team_ids.get(str(team.get("id") or ""), 0)
+        abbreviation = str(team.get("abbreviation") or "")
+        for stats_group in team_data.get("statistics") or []:
+            labels = stats_group.get("labels") or []
+            index = {label: labels.index(label) for label in labels}
+            for athlete in stats_group.get("athletes") or []:
+                details = athlete.get("athlete") or {}
+                player_id = get_nba_player_ids_by_name().get(normalize_person_name(details.get("displayName")))
+                if not player_id:
+                    continue
+                values = athlete.get("stats") or []
+                def value(label, default=0):
+                    position = index.get(label)
+                    if position is None or position >= len(values):
+                        return default
+                    try:
+                        return float(values[position])
+                    except (TypeError, ValueError):
+                        return default
+
+                fgm, fga = made_attempted(values[index["FG"]]) if "FG" in index and index["FG"] < len(values) else (0, 0)
+                fg3m, fg3a = made_attempted(values[index["3PT"]]) if "3PT" in index and index["3PT"] < len(values) else (0, 0)
+                ftm, fta = made_attempted(values[index["FT"]]) if "FT" in index and index["FT"] < len(values) else (0, 0)
+                minutes = values[index["MIN"]] if "MIN" in index and index["MIN"] < len(values) else 0
+                players.append({
+                    "GAME_ID": str(game_id),
+                    "TEAM_ID": team_id,
+                    "TEAM_ABBREVIATION": abbreviation,
+                    "PLAYER_ID": player_id,
+                    "PLAYER_NAME": details.get("displayName"),
+                    "START_POSITION": athlete.get("starter", False),
+                    "MIN": minutes,
+                    "PTS": value("PTS"),
+                    "REB": value("REB"),
+                    "AST": value("AST"),
+                    "STL": value("STL"),
+                    "BLK": value("BLK"),
+                    "TOV": value("TO"),
+                    "TO": value("TO"),
+                    "OREB": value("OREB"),
+                    "DREB": value("DREB"),
+                    "PF": value("PF"),
+                    "PLUS_MINUS": value("+/-"),
+                    "FGM": fgm,
+                    "FGA": fga,
+                    "FG_PCT": fgm / fga if fga else 0,
+                    "FG3M": fg3m,
+                    "FG3A": fg3a,
+                    "FG3_PCT": fg3m / fg3a if fg3a else 0,
+                    "FTM": ftm,
+                    "FTA": fta,
+                    "FT_PCT": ftm / fta if fta else 0,
+                })
+    if not players:
+        raise RuntimeError(f"ESPN returned no player box score for {game_id}")
+    return players
+
+def fetch_espn_team_stats(game_id):
+    summary = fetch_espn_game_summary(game_id)
+    players = fetch_espn_boxscore(game_id)
+    teams_by_id = {}
+    for player in players:
+        row = teams_by_id.setdefault(player["TEAM_ID"], {
+            "GAME_ID": str(game_id),
+            "TEAM_ID": player["TEAM_ID"],
+            "TEAM_ABBREVIATION": player["TEAM_ABBREVIATION"],
+            "TEAM_NAME": player["TEAM_ABBREVIATION"],
+            "FGM": 0, "FGA": 0, "FG3M": 0, "FG3A": 0, "FTM": 0,
+            "FTA": 0, "OREB": 0, "DREB": 0, "REB": 0, "AST": 0,
+            "TOV": 0, "STL": 0, "BLK": 0, "PF": 0, "PTS": 0,
+        })
+        for key in ["FGM", "FGA", "FG3M", "FG3A", "FTM", "FTA", "OREB", "DREB", "REB", "AST", "TOV", "STL", "BLK", "PF", "PTS"]:
+            row[key] += player.get(key, 0) or 0
+
+    for team in (summary.get("boxscore") or {}).get("teams") or []:
+        abbreviation = str((team.get("team") or {}).get("abbreviation") or "")
+        for row in teams_by_id.values():
+            if row["TEAM_ABBREVIATION"] == abbreviation:
+                row["TEAM_NAME"] = (team.get("team") or {}).get("displayName") or abbreviation
+                break
+    for row in teams_by_id.values():
+        row["FG_PCT"] = row["FGM"] / row["FGA"] if row["FGA"] else 0
+        row["FG3_PCT"] = row["FG3M"] / row["FG3A"] if row["FG3A"] else 0
+        row["FT_PCT"] = row["FTM"] / row["FTA"] if row["FTA"] else 0
+    if len(teams_by_id) != 2:
+        raise RuntimeError(f"ESPN returned incomplete team stats for {game_id}")
+    return list(teams_by_id.values())
+
+def fetch_espn_playbyplay(game_id):
+    summary = fetch_espn_game_summary(game_id)
+    team_ids, player_ids = get_espn_identity_maps(summary)
+    player_names = {}
+    for team_data in (summary.get("boxscore") or {}).get("players") or []:
+        for stats_group in team_data.get("statistics") or []:
+            for athlete in stats_group.get("athletes") or []:
+                details = athlete.get("athlete") or {}
+                if details.get("id") and details.get("displayName"):
+                    player_names[str(details["id"])] = details["displayName"]
+    competition = ((summary.get("header") or {}).get("competitions") or [{}])[0]
+    competitors = competition.get("competitors") or []
+    home_espn_id = next((str(team.get("id")) for team in competitors if team.get("homeAway") == "home"), "")
+    away_espn_id = next((str(team.get("id")) for team in competitors if team.get("homeAway") == "away"), "")
+    result = []
+    for play in summary.get("plays") or []:
+        description = str(play.get("text") or "")
+        text = f"{(play.get('type') or {}).get('text', '')} {description}".lower()
+        is_shot = bool(play.get("shootingPlay"))
+        is_free_throw = "free throw" in text
+        if is_free_throw:
+            event_type = 3
+        elif is_shot:
+            event_type = 1 if play.get("scoringPlay") else 2
+        elif "rebound" in text:
+            event_type = 4
+        elif "turnover" in text:
+            event_type = 5
+        elif "foul" in text:
+            event_type = 6
+        elif "timeout" in text:
+            event_type = 9
+        elif "jump ball" in text:
+            event_type = 10
+        elif "substitut" in text:
+            event_type = 8
+        elif "period" in text and "start" in text:
+            event_type = 12
+        elif "period" in text:
+            event_type = 13
+        else:
+            event_type = 0
+
+        team_espn_id = str((play.get("team") or {}).get("id") or "")
+        participants = play.get("participants") or []
+        participant_espn_ids = [
+            str((participant.get("athlete") or {}).get("id") or "")
+            for participant in participants
+        ]
+        participant_ids = [
+            player_ids.get(espn_player_id, 0)
+            for espn_player_id in participant_espn_ids
+        ]
+        distance_match = re.search(r"(\d+)[- ]foot", description, re.IGNORECASE)
+        event = {
+            "EVENTNUM": int(play.get("sequenceNumber") or 0),
+            "EVENTMSGTYPE": event_type,
+            "PERIOD": (play.get("period") or {}).get("number"),
+            "PCTIMESTRING": (play.get("clock") or {}).get("displayValue", ""),
+            "HOMEDESCRIPTION": description if team_espn_id == home_espn_id else None,
+            "VISITORDESCRIPTION": description if team_espn_id == away_espn_id else None,
+            "NEUTRALDESCRIPTION": description if not team_espn_id else None,
+            "SCORE": f"{play.get('awayScore', 0)}-{play.get('homeScore', 0)}",
+            "SCOREMARGIN": None,
+            "SHOT_VALUE": int(play.get("scoreValue") or play.get("pointsAttempted") or 0),
+            "SHOT_DISTANCE": int(distance_match.group(1)) if distance_match else 0,
+            "PLAYER1_ID": participant_ids[0] if participant_ids else 0,
+            "PLAYER1_NAME": player_names.get(participant_espn_ids[0]) if participant_espn_ids else None,
+            "PLAYER2_ID": participant_ids[1] if len(participant_ids) > 1 else 0,
+            "PLAYER2_NAME": player_names.get(participant_espn_ids[1]) if len(participant_espn_ids) > 1 else None,
+            "PLAYER3_ID": participant_ids[2] if len(participant_ids) > 2 else 0,
+            "PLAYER3_NAME": player_names.get(participant_espn_ids[2]) if len(participant_espn_ids) > 2 else None,
+        }
+        result.append(event)
+    if not result:
+        raise RuntimeError(f"ESPN returned no play-by-play for {game_id}")
+    return result
+
+def fetch_espn_shots(game_id, player_id=None, team_id=None):
+    summary = fetch_espn_game_summary(game_id)
+    team_ids, player_ids = get_espn_identity_maps(summary)
+    shots = []
+    for play in summary.get("plays") or []:
+        coordinate = play.get("coordinate") or {}
+        if not play.get("shootingPlay") or coordinate.get("x") is None or coordinate.get("y") is None:
+            continue
+        participants = play.get("participants") or []
+        espn_player_id = str((participants[0].get("athlete") or {}).get("id") or "") if participants else ""
+        nba_player_id = player_ids.get(espn_player_id)
+        espn_team_id = str((play.get("team") or {}).get("id") or "")
+        nba_team_id = team_ids.get(espn_team_id)
+        if player_id is not None and nba_player_id != player_id:
+            continue
+        if team_id is not None and nba_team_id != team_id:
+            continue
+        x, y = float(coordinate["x"]), float(coordinate["y"])
+        if not (0 <= x <= 50 and 0 <= y <= 50):
+            continue
+        description = str(play.get("text") or "")
+        distance_match = re.search(r"(\d+)[- ]foot", description, re.IGNORECASE)
+        distance = int(distance_match.group(1)) if distance_match else 0
+        shots.append({
+            "GAME_ID": str(game_id),
+            "GAME_EVENT_ID": play.get("id"),
+            "PLAYER_ID": nba_player_id or 0,
+            "PLAYER_NAME": description.split(" misses ", 1)[0].split(" makes ", 1)[0],
+            "TEAM_ID": nba_team_id or 0,
+            "LOC_X": (x - 25) * 5,
+            "LOC_Y": y * 5,
+            "SHOT_DISTANCE": distance,
+            "SHOT_MADE_FLAG": 1 if play.get("scoringPlay") else 0,
+            "SHOT_TYPE": "3PT Field Goal" if play.get("pointsAttempted") == 3 else "2PT Field Goal",
+            "ACTION_TYPE": (play.get("type") or {}).get("text") or description,
+        })
+    return shots
 
 app = FastAPI(title="NBA Intelligence API")
 
@@ -659,6 +942,7 @@ def fetch_live_playbyplay(game_id):
             "SCORE": f"{action.get('scoreAway')}-{action.get('scoreHome')}",
             "SCOREMARGIN": action.get("scoreMargin"),
             "SHOT_VALUE": int(action.get("shotValue") or 0),
+            "SHOT_DISTANCE": int(action.get("shotDistance") or 0),
             "PLAYER1_ID": int(action.get("personId") or 0),
             "PLAYER1_NAME": action.get("playerName") or action.get("playerNameI"),
             "PLAYER2_ID": int(action.get("assistPersonId") or action.get("assistedBy") or 0),
@@ -823,6 +1107,11 @@ def get_scoreboard(date: str = None):
 
 @app.get("/api/game/{game_id}/playbyplay")
 def get_playbyplay(game_id: str):
+    try:
+        return fetch_espn_playbyplay(game_id)
+    except Exception as e:
+        print(f"ESPN play-by-play fallback error: {e}")
+
     try:
         # Try Live CDN first for speed and reliability
         return fetch_live_playbyplay(game_id)
@@ -1581,6 +1870,7 @@ async def get_fatigue_report(team_id: int = None, season: str = None):
 @app.get("/api/players/search")
 @cached(duration=86400) # Cache for 24 hours
 async def search_players(query: str):
+    from nba_api.stats.static import players as nba_players
     all_players = nba_players.get_active_players()
     results = [p for p in all_players if query.lower() in p['full_name'].lower()]
     return results[:10]
@@ -1589,6 +1879,7 @@ async def search_players(query: str):
 @cached(duration=86400)
 async def get_player_info(player_id: int):
     try:
+        from nba_api.stats.endpoints import commonplayerinfo
         info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, timeout=NBA_API_TIMEOUT)
         data = info.get_dict()['resultSets'][0]
         headers = data['headers']
@@ -1602,6 +1893,7 @@ async def get_player_info(player_id: int):
 @cached(duration=3600)
 async def get_team_roster(team_id: int):
     try:
+        from nba_api.stats.endpoints import commonteamroster, leaguedashplayerstats
         roster = commonteamroster.CommonTeamRoster(team_id=team_id)
         roster_df = roster.get_data_frames()[0]
         
@@ -1642,11 +1934,17 @@ async def get_team_roster(team_id: int):
 @cached(ttl=60)
 def get_boxscore(game_id: str):
     try:
+        return fetch_espn_boxscore(game_id)
+    except Exception as e:
+        print(f"ESPN boxscore fallback error: {e}")
+
+    try:
         return fetch_live_boxscore(game_id)
     except Exception as e:
         print(f"Live Boxscore CDN error: {e}")
 
     try:
+        from nba_api.stats.endpoints import boxscoretraditionalv2
         box = boxscoretraditionalv2.BoxScoreTraditionalV2(game_id=game_id)
         data = box.player_stats.get_dict()
         headers = data['headers']
@@ -1659,11 +1957,17 @@ def get_boxscore(game_id: str):
 @app.get("/api/game/{game_id}/team-stats")
 def get_game_team_stats(game_id: str):
     try:
+        return fetch_espn_team_stats(game_id)
+    except Exception as e:
+        print(f"ESPN team stats fallback error: {e}")
+
+    try:
         return fetch_live_team_stats(game_id)
     except Exception as e:
         print(f"Live TeamStats CDN error: {e}")
 
     try:
+        from nba_api.stats.endpoints import boxscoretraditionalv2
         box = boxscoretraditionalv2.BoxScoreTraditionalV2(game_id=game_id)
         data = box.team_stats.get_dict()
         headers = data['headers']
@@ -1677,6 +1981,13 @@ def get_game_team_stats(game_id: str):
 @cached(ttl=300)
 def get_player_shots(player_id: int, game_id: str):
     try:
+        shots = fetch_espn_shots(game_id, player_id=player_id)
+        if shots:
+            return shots
+    except Exception as e:
+        print(f"ESPN player shots fallback error: {e}")
+    try:
+        from nba_api.stats.endpoints import shotchartdetail
         # We need team_id for shotchartdetail, or use 0 for all
         shots = shotchartdetail.ShotChartDetail(player_id=player_id, game_id_nullable=game_id, team_id=0, context_measure_simple='FGA', timeout=NBA_API_TIMEOUT)
         data = shots.shot_chart_detail.get_dict()
@@ -1690,6 +2001,13 @@ def get_player_shots(player_id: int, game_id: str):
 @app.get("/api/team/{team_id}/shots/{game_id}")
 def get_team_shots(team_id: int, game_id: str):
     try:
+        shots = fetch_espn_shots(game_id, team_id=team_id)
+        if shots:
+            return shots
+    except Exception as e:
+        print(f"ESPN team shots fallback error: {e}")
+    try:
+        from nba_api.stats.endpoints import shotchartdetail
         shots = shotchartdetail.ShotChartDetail(player_id=0, game_id_nullable=game_id, team_id=team_id, context_measure_simple='FGA', timeout=NBA_API_TIMEOUT)
         data = shots.shot_chart_detail.get_dict()
         headers = data['headers']
@@ -1983,6 +2301,7 @@ async def get_team_gamelog(team_id: int, season: str = None, season_type: str = 
 @cached(duration=86400)
 async def get_historical_games(season: str = None, season_type: str = "Regular Season", team_id: int = None, limit: int = 100):
     try:
+        from nba_api.stats.endpoints import leaguegamelog
         clean_season = (season or current_nba_season()).split(' (')[0]
         max_rows = max(1, min(limit, 2000))
         log = leaguegamelog.LeagueGameLog(
@@ -2085,11 +2404,16 @@ async def get_playoffs(season: str = None):
 @cached(duration=3600)
 async def get_player_game_impact(game_id: str, player_id: int):
     try:
-        plays = fetch_live_playbyplay(game_id)
+        plays = fetch_espn_playbyplay(game_id)
         df = pd.DataFrame(plays)
     except Exception:
-        pbp = playbyplayv2.PlayByPlayV2(game_id=game_id)
-        df = pbp.get_data_frames()[0]
+        try:
+            plays = fetch_live_playbyplay(game_id)
+            df = pd.DataFrame(plays)
+        except Exception:
+            from nba_api.stats.endpoints import playbyplayv2
+            pbp = playbyplayv2.PlayByPlayV2(game_id=game_id)
+            df = pbp.get_data_frames()[0]
     if df.empty or 'PLAYER1_ID' not in df.columns:
         return {"scoring_breakdown": [], "assists_tracking": [], "total_generated_points": 0}
     
@@ -2139,7 +2463,7 @@ async def get_leaders(category: str = "PTS", season: str = None, per_mode: str =
         # All-Time / Lifetime Logic (Usually Regular Season only in NBA API All Time)
         if target_season == "Lifetime":
             # ... (Lifetime logic remains same)
-            from nba_api.stats.endpoints import leagueleaders
+            from nba_api.stats.endpoints import leaguedashplayerstats, leagueleaders
             
             category_map_alltime = {
                 "Games played": "GP",
@@ -2312,7 +2636,12 @@ async def get_team_history(team_id: int, season: str):
         return cache[key]["data"]
         
     try:
-        from nba_api.stats.endpoints import teamplayerdashboard, leaguestandingsv3
+        from nba_api.stats.endpoints import (
+            commonteamroster,
+            leaguedashteamstats,
+            leaguestandingsv3,
+            teamplayerdashboard,
+        )
         clean_season = season.split(' (')[0]
         
         # 1. Team Stats & Record

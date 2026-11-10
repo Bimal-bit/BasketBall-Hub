@@ -10,35 +10,13 @@ type Props = {
   compact?: boolean;
 };
 
-function generateCourtShots(playerShotPct: number, count = 60): Shot[] {
-  const shots: Shot[] = [];
-  const zones = [
-    { x: 50, y: 85, spread: 5, freq: 0.2, distBase: 3 },   // paint
-    { x: 30, y: 68, spread: 8, freq: 0.12, distBase: 12 },  // left mid
-    { x: 70, y: 68, spread: 8, freq: 0.12, distBase: 12 },  // right mid
-    { x: 50, y: 60, spread: 6, freq: 0.1, distBase: 15 },   // top of key
-    { x: 10, y: 80, spread: 4, freq: 0.08, distBase: 22 },  // left corner 3
-    { x: 90, y: 80, spread: 4, freq: 0.08, distBase: 22 },  // right corner 3
-    { x: 25, y: 45, spread: 8, freq: 0.12, distBase: 24 },  // left wing 3
-    { x: 75, y: 45, spread: 8, freq: 0.12, distBase: 24 },  // right wing 3
-    { x: 50, y: 38, spread: 6, freq: 0.08, distBase: 27 },  // top 3
-  ];
-
-  for (let i = 0; i < count; i++) {
-    const zone = zones[Math.floor(Math.random() * zones.length)];
-    const x = Math.max(2, Math.min(98, zone.x + (Math.random() - 0.5) * zone.spread * 2));
-    const y = Math.max(2, Math.min(98, zone.y + (Math.random() - 0.5) * zone.spread * 2));
-    const dist = zone.distBase + (Math.random() - 0.5) * 3;
-    const madeProb = dist > 22 ? playerShotPct * 0.85 : playerShotPct;
-    shots.push({ x, y, made: Math.random() < madeProb / 100, distance: Math.round(dist) });
-  }
-  return shots;
-}
-
 export default function ShotChart({ shots, compact = false }: Props) {
-  const displayShots = shots.length > 0 ? shots : generateCourtShots(46, compact ? 40 : 65);
-  const made = displayShots.filter(s => s.made).length;
-  const pct = Math.round((made / displayShots.length) * 100);
+  const made = shots.filter(s => s.made).length;
+  const pct = shots.length ? Math.round((made / shots.length) * 100) : 0;
+
+  if (!shots.length) {
+    return <p className="py-8 text-center text-sm text-gray-500">Shot chart data is unavailable for this game.</p>;
+  }
 
   return (
     <div className="w-full overflow-hidden">
@@ -67,7 +45,7 @@ export default function ShotChart({ shots, compact = false }: Props) {
         <ellipse cx="50" cy="72" rx="10" ry="8" fill="none" stroke="#374151" strokeWidth="0.4" />
 
         {/* Shot dots */}
-        {displayShots.map((shot, i) => (
+        {shots.map((shot, i) => (
           <circle
             key={i}
             cx={shot.x}
@@ -85,7 +63,7 @@ export default function ShotChart({ shots, compact = false }: Props) {
         <text x="13" y="9" fontSize="3.5" fill="#9ca3af">Made</text>
         <circle cx="30" cy="7" r="1.5" fill="#ef4444" />
         <text x="33" y="9" fontSize="3.5" fill="#9ca3af">Missed</text>
-        <text x="72" y="9" fontSize="3.5" fill="#9ca3af">{made}/{displayShots.length} ({pct}%)</text>
+        <text x="72" y="9" fontSize="3.5" fill="#9ca3af">{made}/{shots.length} ({pct}%)</text>
       </svg>
     </div>
   );

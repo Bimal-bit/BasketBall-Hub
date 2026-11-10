@@ -8,8 +8,17 @@ const REQUEST_TIMEOUT_MS = 30_000;
 
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
-  if (configured && configured !== LEGACY_TEMPLATE_API_BASE_URL) return configured;
-  return import.meta.env.DEV ? LOCAL_API_BASE_URL : '';
+  if (import.meta.env.DEV) {
+    return configured && configured !== LEGACY_TEMPLATE_API_BASE_URL ? configured : LOCAL_API_BASE_URL;
+  }
+
+  if (!configured || configured === LEGACY_TEMPLATE_API_BASE_URL) return '/api';
+  try {
+    if (new URL(configured).hostname === 'basketball-hub-api-pesl.onrender.com') return '/api';
+  } catch {
+    return configured;
+  }
+  return configured;
 }
 
 function getApiUrl(path: string) {
@@ -333,6 +342,7 @@ export interface PlayByPlay {
   SCORE: string | null;
   SCOREMARGIN: string | null;
   SHOT_VALUE?: number;
+  SHOT_DISTANCE?: number;
   PLAYER1_ID?: number;
   PLAYER1_NAME?: string;
   PLAYER1_TEAM_ID?: number;
