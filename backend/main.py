@@ -628,7 +628,14 @@ def get_rate_limit_key(request: Request):
         return forwarded_for.split(",", 1)[0].strip()
     return get_remote_address(request)
 
-limiter = Limiter(key_func=get_rate_limit_key)
+# The public app is served through Vercel, whose proxy bursts several initial
+# requests together. Keep this off by default so a normal page load cannot
+# lock itself out with 429 responses. Set RATE_LIMIT_ENABLED=true if a
+# separate edge/WAF rate limit is later added.
+limiter = Limiter(
+    key_func=get_rate_limit_key,
+    enabled=os.getenv("RATE_LIMIT_ENABLED", "false").lower() == "true",
+)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -974,8 +981,17 @@ def cached(duration=60, ttl=None, fallback=None):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Create a cache key from function name and arguments
-            key = f"{func.__name__}:{args}:{kwargs}"
+            # Request is a new object on every HTTP call. Excluding it makes
+            # cache keys stable across page loads.
+            import inspect
+            bound = inspect.signature(func).bind_partial(*args, **kwargs)
+            bound.apply_defaults()
+            cache_args = tuple(
+                (name, repr(value))
+                for name, value in bound.arguments.items()
+                if not isinstance(value, Request)
+            )
+            key = f"{func.__name__}:{cache_args}"
             now = time.time()
             
             if key in cache and now < cache[key]["expiry"]:
@@ -988,7 +1004,6 @@ def cached(duration=60, ttl=None, fallback=None):
             
             try:
                 # Handle both sync and async functions
-                import inspect
                 if inspect.iscoroutinefunction(func):
                     data = await func(*args, **kwargs)
                 else:
@@ -1660,6 +1675,7 @@ def get_scoreboard(request: Request, date: str = None):
 
 @app.get("/api/game/{game_id}/playbyplay")
 @limiter.limit("30/minute")
+@cached(ttl=60)
 def get_playbyplay(request: Request, game_id: str):
     try:
         return fetch_espn_playbyplay(game_id)
@@ -2508,6 +2524,7 @@ def get_boxscore(request: Request, game_id: str):
 
 @app.get("/api/game/{game_id}/team-stats")
 @limiter.limit("30/minute")
+@cached(ttl=60)
 def get_game_team_stats(request: Request, game_id: str):
     try:
         return fetch_espn_team_stats(game_id)
@@ -2549,6 +2566,7 @@ def get_player_shots(request: Request, player_id: int, game_id: str):
 
 @app.get("/api/team/{team_id}/shots/{game_id}")
 @limiter.limit("30/minute")
+@cached(ttl=300)
 def get_team_shots(request: Request, team_id: int, game_id: str):
     try:
         shots = fetch_espn_shots(game_id, team_id=team_id)
@@ -2795,7 +2813,7 @@ def get_player_detailed_stats(request: Request, player_id: int, season: str = No
              raise HTTPException(status_code=500, detail=str(e))
 @app.get("/api/players")
 @limiter.limit("40/minute")
-# @cached(ttl=86400)  # Temporarily disabled for testing
+@cached(ttl=86400)
 def get_all_players(request: Request):
     try:
         from nba_api.stats.static import players
