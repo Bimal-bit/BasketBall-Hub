@@ -4,6 +4,7 @@ import os
 import re
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from functools import wraps
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Request
@@ -696,6 +697,15 @@ def save_persistent_cache(data):
 
 # Simple cache to avoid hitting NBA API too frequently
 cache = load_persistent_cache()
+cache_locks = {}
+cache_locks_guard = Lock()
+
+def get_cache_lock(key):
+    """Return one lock per cache key to coalesce simultaneous browser calls."""
+    with cache_locks_guard:
+        if key not in cache_locks:
+            cache_locks[key] = Lock()
+        return cache_locks[key]
 
 def clean_data(data):
     """Recursively replace NaN values with None for JSON compliance"""
@@ -1015,41 +1025,53 @@ def get_cached_data(key, fetch_func, duration=60):
     now = time.time()
     if key in cache and now < cache[key]["expiry"]:
         return cache[key]["data"]
-    
-    try:
-        data = fetch_func()
-        cache[key] = {
-            "data": data,
-            "expiry": now + duration
-        }
-        return data
-    except Exception as e:
-        print(f"Error fetching {key}: {e}")
-        if key in cache:
+
+    # Multiple page components can request the same data during initial render.
+    # Let the first request populate the cache; all others reuse its result.
+    with get_cache_lock(key):
+        now = time.time()
+        if key in cache and now < cache[key]["expiry"]:
             return cache[key]["data"]
-        if isinstance(e, HTTPException):
-            raise
-        raise HTTPException(status_code=503, detail="Requested NBA data is temporarily unavailable.")
+        try:
+            data = fetch_func()
+            cache[key] = {
+                "data": data,
+                "expiry": now + duration
+            }
+            save_persistent_cache(cache)
+            return data
+        except Exception as e:
+            print(f"Error fetching {key}: {e}")
+            if key in cache:
+                return cache[key]["data"]
+            if isinstance(e, HTTPException):
+                raise
+            raise HTTPException(status_code=503, detail="Requested NBA data is temporarily unavailable.")
 
 def get_cached_scoreboard(key, fetch_func):
     now = time.time()
     if key in cache and cache[key]["data"] is not None and now < cache[key]["expiry"]:
         return cache[key]["data"]
 
-    try:
-        data = fetch_func()
-        has_live_or_scheduled = any(game.get("status") in ["live", "scheduled"] for game in data or [])
-        cache_seconds = 5 if has_live_or_scheduled else 300
-        cache[key] = {
-            "data": data,
-            "expiry": now + cache_seconds
-        }
-        return data
-    except Exception as e:
-        print(f"Error fetching {key}: {e}")
-        if key in cache and cache[key]["data"] is not None:
+    with get_cache_lock(key):
+        now = time.time()
+        if key in cache and cache[key]["data"] is not None and now < cache[key]["expiry"]:
             return cache[key]["data"]
-        raise HTTPException(status_code=500, detail=str(e))
+        try:
+            data = fetch_func()
+            has_live_game = any(game.get("status") == "live" for game in data or [])
+            # Scheduled/final scoreboards do not need a refresh every five seconds.
+            cache_seconds = 15 if has_live_game else 300
+            cache[key] = {
+                "data": data,
+                "expiry": now + cache_seconds
+            }
+            return data
+        except Exception as e:
+            print(f"Error fetching {key}: {e}")
+            if key in cache and cache[key]["data"] is not None:
+                return cache[key]["data"]
+            raise HTTPException(status_code=500, detail=str(e))
 
 def normalize_game_date(game_date):
     if not game_date:
@@ -2184,7 +2206,9 @@ def get_top_players(request: Request, season: str = None):
 
     def fetch():
         try:
-            return fetch_espn_player_leaders(target_season, "Points per game", limit=25)
+            # Enough players for dashboard selectors while keeping the cold-cache
+            # request small (each athlete needs a free ESPN detail lookup).
+            return fetch_espn_player_leaders(target_season, "Points per game", limit=15)
         except Exception as espn_error:
             print(f"ESPN player leaders error for {target_season}: {espn_error}")
 

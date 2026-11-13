@@ -7,7 +7,9 @@ const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<unknown>>();
 
 const RETRY_DELAY_MS = 1200;
-const MAX_RETRIES = 2;
+// Retrying an overloaded upstream repeatedly made initial page loads slower
+// and could trigger the backend rate limiter. Cached data covers normal reloads.
+const MAX_RETRIES = 1;
 const DEFAULT_TIMEOUT_MS = 45_000; // Increased for Render cold starts
 
 type CachedFetchOptions = RequestInit & {
