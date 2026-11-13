@@ -629,12 +629,12 @@ def get_rate_limit_key(request: Request):
     return get_remote_address(request)
 
 # The public app is served through Vercel, whose proxy bursts several initial
-# requests together. Keep this off by default so a normal page load cannot
-# lock itself out with 429 responses. Set RATE_LIMIT_ENABLED=true if a
-# separate edge/WAF rate limit is later added.
+# requests together. Disable SlowAPI here: its per-process/IP limits create
+# false 429s for normal page loads behind a proxy. Vercel caching and the
+# backend's request coalescing protect the free upstream feeds instead.
 limiter = Limiter(
     key_func=get_rate_limit_key,
-    enabled=os.getenv("RATE_LIMIT_ENABLED", "false").lower() == "true",
+    enabled=False,
 )
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
