@@ -889,6 +889,65 @@ def fetch_espn_standings(season=None):
         raise RuntimeError("ESPN standings returned no usable records")
     return rows
 
+def fetch_espn_team_roster(team_id):
+    """Return a roster from ESPN when stats.nba.com is unavailable.
+
+    Render IP ranges are periodically throttled by stats.nba.com. ESPN's roster
+    feed is sufficient for the simulator and keeps those pages useful while the
+    official stats feed recovers.
+    """
+    teams_by_espn_id = get_espn_team_id_map()
+    espn_team_id, team = next(
+        (
+            (espn_id, item)
+            for espn_id, item in teams_by_espn_id.items()
+            if item["TEAM_ID"] == team_id
+        ),
+        (None, None),
+    )
+    if not espn_team_id or not team:
+        raise RuntimeError(f"No ESPN team mapping for {team_id}")
+
+    response = HTTP.get(
+        f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/{espn_team_id}/roster",
+        headers=ESPN_HEADERS,
+        timeout=NBA_API_TIMEOUT,
+    )
+    response.raise_for_status()
+    athletes = response.json().get("athletes") or []
+    nba_player_ids = get_nba_player_ids_by_name()
+    roster = []
+    for athlete in athletes:
+        name = str(athlete.get("fullName") or athlete.get("displayName") or "").strip()
+        if not name:
+            continue
+        player_id = nba_player_ids.get(normalize_person_name(name), 0)
+        position = athlete.get("position") or {}
+        roster.append({
+            "PERSON_ID": player_id,
+            "PLAYER_ID": player_id,
+            "PLAYER_NAME": name,
+            "PLAYER": name,
+            "TEAM_ID": team["TEAM_ID"],
+            "TEAM_ABBREVIATION": team["TEAM_ABBREVIATION"],
+            "POSITION": position.get("abbreviation") or "",
+            "NUM": str(athlete.get("jersey") or ""),
+            "HEIGHT": athlete.get("displayHeight") or "",
+            "WEIGHT": athlete.get("displayWeight") or "",
+            "AGE": athlete.get("age"),
+            "PTS": 0,
+            "REB": 0,
+            "AST": 0,
+            "STL": 0,
+            "BLK": 0,
+            "FG_PCT": 0,
+            "FG3_PCT": 0,
+            "FT_PCT": 0,
+        })
+    if not roster:
+        raise RuntimeError("ESPN returned an empty roster")
+    return roster
+
 def fallback_standings(season=None):
     try:
         return fetch_espn_standings(season)
@@ -2101,33 +2160,8 @@ def get_standings(request: Request, season: str = None, season_type: str = "Regu
     else:
         # For standings, use current season to show live data
         target_season = get_default_season_for_live_data()
-    try:
-        from nba_api.stats.endpoints import leaguestandingsv3
-
-        # `leaguestandingsv3` does not reliably support a Playoffs season_type.
-        # Use regular-season standings data for bracket rendering in the frontend.
-        api_season_type = "Regular Season" if season_type == "Playoffs" else season_type
-        
-        s = leaguestandingsv3.LeagueStandingsV3(season=target_season, season_type=api_season_type, timeout=NBA_API_TIMEOUT)
-        data = s.get_dict()['resultSets'][0]['rowSet']
-        headers = s.get_dict()['resultSets'][0]['headers']
-        df = pd.DataFrame(data, columns=headers)
-        if df.empty:
-            raise RuntimeError(f"NBA Stats returned no standings for {target_season}")
-        
-        # Map headers to match frontend expectations
-        rename_map = {
-            'WINS': 'Wins',
-            'LOSSES': 'Losses',
-            'L10': 'L10Rec',
-            'strCurrentStreak': 'Strk'
-        }
-        df = df.rename(columns=rename_map)
-        
-        return clean_df(df)
-    except Exception as nba_error:
-        print(f"NBA Stats standings error for {target_season}: {nba_error}")
-
+    # ESPN is reliable from cloud hosts; nba_api's stats.nba.com requests are
+    # frequently blocked from Render and should not be the production default.
     try:
         standings = fetch_espn_standings(target_season)
         if standings:
@@ -2149,6 +2183,11 @@ def get_top_players(request: Request, season: str = None):
         target_season = get_default_season_for_live_data()
 
     def fetch():
+        try:
+            return fetch_espn_player_leaders(target_season, "Points per game", limit=25)
+        except Exception as espn_error:
+            print(f"ESPN player leaders error for {target_season}: {espn_error}")
+
         try:
             from nba_api.stats.endpoints import leaguedashplayerstats
             leaders = leaguedashplayerstats.LeagueDashPlayerStats(
@@ -2175,11 +2214,7 @@ def get_top_players(request: Request, season: str = None):
             return clean_df(df[columns])
         except Exception as e:
             print(f"NBA player leaders error for {target_season}: {e}")
-            try:
-                return fetch_espn_player_leaders(target_season, "Points per game")
-            except Exception as fallback_error:
-                print(f"ESPN player leaders error for {target_season}: {fallback_error}")
-                return []
+            return []
 
     return get_cached_data(f"players:{target_season}", fetch, duration=3600)
 
@@ -2406,6 +2441,11 @@ async def get_player_info(request: Request, player_id: int):
 @cached(duration=3600)
 async def get_team_roster(request: Request, team_id: int):
     try:
+        return fetch_espn_team_roster(team_id)
+    except Exception as espn_error:
+        print(f"ESPN roster error: {espn_error}")
+
+    try:
         from nba_api.stats.endpoints import commonteamroster
         roster = commonteamroster.CommonTeamRoster(team_id=team_id, timeout=NBA_API_TIMEOUT)
         roster_df = roster.get_data_frames()[0]
@@ -2418,8 +2458,8 @@ async def get_team_roster(request: Request, team_id: int):
         # per team made two simultaneous roster selections trigger costly,
         # duplicative NBA Stats requests and frequent 503s.
         return clean_df(roster_df)
-    except Exception as e:
-        print(f"Roster error: {e}")
+    except Exception as nba_error:
+        print(f"NBA roster fallback error: {nba_error}")
         return []
 
 @app.get("/api/game/{game_id}/boxscore")
