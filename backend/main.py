@@ -19,7 +19,9 @@ import numpy as np
 import requests
 from nba_api.stats.library.http import NBAStatsHTTP
 
-NBA_API_TIMEOUT = int(os.getenv("NBA_API_TIMEOUT", "20"))
+# NBA Stats is occasionally slow or unavailable from cloud hosting. Keep calls
+# bounded so one stalled upstream request cannot exhaust the Render worker.
+NBA_API_TIMEOUT = int(os.getenv("NBA_API_TIMEOUT", "12"))
 
 # NBA Stats Headers to avoid 403 Forbidden
 NBA_HEADERS = {
@@ -614,7 +616,18 @@ def fetch_espn_shots(game_id, player_id=None, team_id=None):
 app = FastAPI(title="NBA Intelligence API")
 
 # Rate limiting setup
-limiter = Limiter(key_func=get_remote_address)
+def get_rate_limit_key(request: Request):
+    """Use the original visitor IP when the app is behind Vercel/Render.
+
+    `request.client.host` is the proxy IP in production, which otherwise makes
+    all visitors share one small rate-limit bucket and triggers false 429s.
+    """
+    forwarded_for = request.headers.get("x-forwarded-for", "")
+    if forwarded_for:
+        return forwarded_for.split(",", 1)[0].strip()
+    return get_remote_address(request)
+
+limiter = Limiter(key_func=get_rate_limit_key)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -2122,7 +2135,9 @@ def get_standings(request: Request, season: str = None, season_type: str = "Regu
         raise RuntimeError(f"ESPN returned no standings for {target_season}")
     except Exception as espn_error:
         print(f"ESPN standings fallback error for {target_season}: {espn_error}")
-        raise HTTPException(status_code=503, detail="Season standings are temporarily unavailable.")
+        # Keep the application responsive if both upstream providers are down.
+        # The frontend can render an empty state and retry later.
+        return []
 
 @app.get("/api/players/top")
 @limiter.limit("40/minute")
@@ -2164,7 +2179,7 @@ def get_top_players(request: Request, season: str = None):
                 return fetch_espn_player_leaders(target_season, "Points per game")
             except Exception as fallback_error:
                 print(f"ESPN player leaders error for {target_season}: {fallback_error}")
-                raise HTTPException(status_code=503, detail="Current-season player stats are temporarily unavailable.")
+                return []
 
     return get_cached_data(f"players:{target_season}", fetch, duration=3600)
 
@@ -2391,39 +2406,18 @@ async def get_player_info(request: Request, player_id: int):
 @cached(duration=3600)
 async def get_team_roster(request: Request, team_id: int):
     try:
-        from nba_api.stats.endpoints import commonteamroster, leaguedashplayerstats
-        roster = commonteamroster.CommonTeamRoster(team_id=team_id)
+        from nba_api.stats.endpoints import commonteamroster
+        roster = commonteamroster.CommonTeamRoster(team_id=team_id, timeout=NBA_API_TIMEOUT)
         roster_df = roster.get_data_frames()[0]
-        
-        # Fetch league stats to merge with roster
-        stats = leaguedashplayerstats.LeagueDashPlayerStats(
-            season=get_available_season(),
-            per_mode_detailed="PerGame",
-            season_type_all_star="Regular Season"
-        )
-        stats_df = stats.get_data_frames()[0]
-        
-        # Deduplicate stats_df by prioritizing current team_id, then TOT, then any other team row
-        if not stats_df.empty:
-            stats_df['is_current_team'] = stats_df['TEAM_ID'] == team_id
-            stats_df['is_tot'] = stats_df['TEAM_ABBREVIATION'] == 'TOT'
-            stats_df = stats_df.sort_values(by=['PLAYER_ID', 'is_current_team', 'is_tot'], ascending=[True, False, False])
-            stats_subset = stats_df[['PLAYER_ID', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'FG_PCT', 'FG3_PCT', 'FT_PCT']].drop_duplicates(subset=['PLAYER_ID'], keep='first')
-        else:
-            stats_subset = pd.DataFrame(columns=['PLAYER_ID', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'FG_PCT', 'FG3_PCT', 'FT_PCT'])
-        
-        # Merge on PLAYER_ID
-        merged_df = roster_df.merge(
-            stats_subset, 
-            on='PLAYER_ID', 
-            how='left'
-        )
-        
+
         # Rename 'PLAYER' to 'PLAYER_NAME' for frontend consistency
-        if 'PLAYER' in merged_df.columns:
-            merged_df = merged_df.rename(columns={'PLAYER': 'PLAYER_NAME'})
-            
-        return clean_df(merged_df)
+        if 'PLAYER' in roster_df.columns:
+            roster_df = roster_df.rename(columns={'PLAYER': 'PLAYER_NAME'})
+
+        # A roster only needs one upstream request. Fetching all league stats
+        # per team made two simultaneous roster selections trigger costly,
+        # duplicative NBA Stats requests and frequent 503s.
+        return clean_df(roster_df)
     except Exception as e:
         print(f"Roster error: {e}")
         return []
