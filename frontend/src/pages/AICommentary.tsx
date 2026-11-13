@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MessageSquare, Sparkles, RefreshCw, Copy, Check } from 'lucide-react';
-import { supabase, type Game, type Team, type PlayerGameStat, type Player } from '../lib/supabase';
+import { getCompletedNbaSeason, nbaApi, type ArchiveGame, type BoxScorePlayer, type NbaTeam } from '../lib/api';
 import { generateCommentary } from '../lib/analytics';
 import BasketballLoader from '../components/BasketballLoader';
 import PageHero from '../components/PageHero';
@@ -15,10 +15,9 @@ type CommentaryEntry = {
 };
 
 export default function AICommentary() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [teams, setTeams] = useState<Map<string, Team>>(new Map());
-  const [stats, setStats] = useState<PlayerGameStat[]>([]);
-  const [players, setPlayers] = useState<Map<string, Player>>(new Map());
+  const [games, setGames] = useState<ArchiveGame[]>([]);
+  const [teams, setTeams] = useState<Map<string, NbaTeam>>(new Map());
+  const [statsByGame, setStatsByGame] = useState<Map<string, BoxScorePlayer[]>>(new Map());
   const [commentaries, setCommentaries] = useState<CommentaryEntry[]>([]);
   const [generating, setGenerating] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -29,62 +28,64 @@ export default function AICommentary() {
   }, []);
 
   async function loadData() {
-    const [{ data: gData }, { data: tData }, { data: sData }, { data: pData }] = await Promise.all([
-      supabase.from('nba_games').select('*').eq('status', 'final').order('game_date', { ascending: false }).limit(6),
-      supabase.from('nba_teams').select('*'),
-      supabase.from('nba_player_game_stats').select('*').order('points', { ascending: false }),
-      supabase.from('nba_players').select('*'),
-    ]);
-    if (gData) setGames(gData);
-    if (tData) {
-      const map = new Map<string, Team>();
-      tData.forEach((t: Team) => map.set(t.team_id, t));
-      setTeams(map);
+    try {
+      // Supabase is not populated by this application. Use the same NBA API
+      // backend as the other sections so this page cannot silently stay empty.
+      const [gameData, teamData] = await Promise.all([
+        nbaApi.getHistoricalGames(getCompletedNbaSeason(), 'Regular Season', undefined, 6),
+        nbaApi.getTeams(),
+      ]);
+      setGames(gameData);
+      setTeams(new Map(teamData.map(team => [String(team.id), team])));
+      const boxscores = await Promise.all(gameData.map(async game => [
+        game.GAME_ID,
+        await nbaApi.getBoxScore(game.GAME_ID),
+      ] as const));
+      setStatsByGame(new Map(boxscores));
+    } catch (error) {
+      console.error('Commentary data load error:', error);
+      setGames([]);
+      setTeams(new Map());
+      setStatsByGame(new Map());
+    } finally {
+      setLoading(false);
     }
-    if (sData) setStats(sData);
-    if (pData) {
-      const map = new Map<string, Player>();
-      pData.forEach((p: Player) => map.set(p.player_id, p));
-      setPlayers(map);
-    }
-    setLoading(false);
   }
 
-  function generateForGame(game: Game) {
-    setGenerating(game.game_id);
+  function generateForGame(game: ArchiveGame) {
+    setGenerating(game.GAME_ID);
 
-    const homeTeam = teams.get(game.home_team_id);
-    const awayTeam = teams.get(game.away_team_id);
+    const homeTeam = teams.get(String(game.HOME_TEAM_ID));
+    const awayTeam = teams.get(String(game.AWAY_TEAM_ID));
 
     // Find top performer
-    const gameStats = stats.filter(s => s.game_id === game.game_id).sort((a, b) => b.points - a.points);
+    const gameStats = (statsByGame.get(game.GAME_ID) ?? []).slice().sort((a, b) => Number(b.PTS ?? 0) - Number(a.PTS ?? 0));
     const top = gameStats[0];
-    const topPlayer = top ? players.get(top.player_id) : undefined;
 
-    const topPerformer = topPlayer
-      ? { name: topPlayer.name, points: top.points, assists: top.assists, rebounds: top.rebounds }
-      : { name: 'A key contributor', points: Math.round(game.home_score / 4 + Math.random() * 8), assists: Math.round(3 + Math.random() * 5), rebounds: Math.round(4 + Math.random() * 5) };
+    const topPerformer = top
+      ? { name: top.PLAYER_NAME, points: Number(top.PTS ?? 0), assists: Number(top.AST ?? 0), rebounds: Number(top.REB ?? 0) }
+      : { name: 'A key contributor', points: 0, assists: 0, rebounds: 0 };
 
     setTimeout(() => {
       const text = generateCommentary(
-        homeTeam?.name ?? game.home_team_id,
-        awayTeam?.name ?? game.away_team_id,
-        game.home_score,
-        game.away_score,
+        homeTeam?.full_name ?? game.HOME_TEAM_NAME ?? game.HOME_TEAM_ABBREVIATION ?? 'Home team',
+        awayTeam?.full_name ?? game.AWAY_TEAM_NAME ?? game.AWAY_TEAM_ABBREVIATION ?? 'Away team',
+        Number(game.HOME_PTS ?? 0),
+        Number(game.AWAY_PTS ?? 0),
         topPerformer,
       );
 
       const entry: CommentaryEntry = {
-        gameId: game.game_id,
+        gameId: game.GAME_ID,
         text,
-        homeTeam: homeTeam?.abbreviation ?? game.home_team_id,
-        awayTeam: awayTeam?.abbreviation ?? game.away_team_id,
-        score: `${game.away_score}-${game.home_score}`,
+        homeTeam: homeTeam?.abbreviation ?? game.HOME_TEAM_ABBREVIATION ?? 'HOME',
+        awayTeam: awayTeam?.abbreviation ?? game.AWAY_TEAM_ABBREVIATION ?? 'AWAY',
+        score: `${game.AWAY_PTS ?? 0}-${game.HOME_PTS ?? 0}`,
         generated: new Date(),
       };
 
       setCommentaries(prev => {
-        const filtered = prev.filter(c => c.gameId !== game.game_id);
+        const filtered = prev.filter(c => c.gameId !== game.GAME_ID);
         return [entry, ...filtered];
       });
       setGenerating(null);
@@ -92,7 +93,7 @@ export default function AICommentary() {
   }
 
   function regenerate(gameId: string) {
-    const game = games.find(g => g.game_id === gameId);
+    const game = games.find(g => g.GAME_ID === gameId);
     if (game) generateForGame(game);
   }
 
@@ -168,25 +169,25 @@ export default function AICommentary() {
         <h3 className="text-sm font-medium text-white mb-3">Recent Games</h3>
         <div className="space-y-2">
           {games.map(game => {
-            const home = teams.get(game.home_team_id);
-            const away = teams.get(game.away_team_id);
-            const hasCommentary = commentaries.some(c => c.gameId === game.game_id);
-            const isGenerating = generating === game.game_id;
-            const gameStats = stats.filter(s => s.game_id === game.game_id).sort((a,b)=>b.points-a.points);
+            const home = teams.get(String(game.HOME_TEAM_ID));
+            const away = teams.get(String(game.AWAY_TEAM_ID));
+            const hasCommentary = commentaries.some(c => c.gameId === game.GAME_ID);
+            const isGenerating = generating === game.GAME_ID;
+            const gameStats = (statsByGame.get(game.GAME_ID) ?? []).slice().sort((a, b) => Number(b.PTS ?? 0) - Number(a.PTS ?? 0));
             const topStat = gameStats[0];
-            const topName = topStat ? players.get(topStat.player_id)?.name : undefined;
+            const topName = topStat?.PLAYER_NAME;
 
             return (
-              <div key={game.game_id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
+              <div key={game.GAME_ID} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:scale-[1.01] transition-all duration-200 shadow-none hover:shadow-none">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <TeamBadge team={away} />
-                    <span className="text-sm font-medium text-white">{game.away_score} - {game.home_score}</span>
+                    <span className="text-sm font-medium text-white">{game.AWAY_PTS ?? 0} - {game.HOME_PTS ?? 0}</span>
                     <TeamBadge team={home} />
                   </div>
                   <div className="text-xs text-gray-400">
-                    {new Date(game.game_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {game.arena}
-                    {topName && <span className="ml-2 text-gray-500">Top: {topName} {topStat?.points}pts</span>}
+                    {new Date(game.GAME_DATE).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {topName && <span className="ml-2 text-gray-500">Top: {topName} {topStat?.PTS}pts</span>}
                   </div>
                 </div>
                 <button
@@ -231,11 +232,11 @@ export default function AICommentary() {
   );
 }
 
-function TeamBadge({ team }: { team?: Team }) {
+function TeamBadge({ team }: { team?: NbaTeam }) {
   return (
     <div className="flex items-center gap-1.5">
       <div className="w-5 h-5 rounded flex items-center justify-center text-xs font-medium text-white"
-        style={{ backgroundColor: team?.logo_color ?? '#374151', fontSize: '9px' }}>
+        style={{ backgroundColor: '#374151', fontSize: '9px' }}>
         {team?.abbreviation?.[0] ?? '?'}
       </div>
       <span className="text-xs text-gray-300 font-medium">{team?.abbreviation ?? '??'}</span>
