@@ -3,9 +3,6 @@ import { cachedFetch } from './apiCache';
 // Create a simple cache Map for health checks
 const cache = new Map<string, { data: unknown; expires: number }>();
 
-const LEGACY_TEMPLATE_API_BASE_URL = 'https://basketball-hub-api.onrender.com/api';
-const DEPLOYED_API_BASE_URL = 'https://basketball-hub-api-95yz.onrender.com/api';
-
 const API_BASE_URL = resolveApiBaseUrl();
 const MINUTE = 60_000;
 const REQUEST_TIMEOUT_MS = 45_000; // Increased for Render cold starts
@@ -33,28 +30,21 @@ export function getNbaSeasons() {
 
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
-  
-  // In development, use configured URL or fallback to deployed API
-  if (import.meta.env.DEV) {
-    return configured && configured !== LEGACY_TEMPLATE_API_BASE_URL ? configured : DEPLOYED_API_BASE_URL;
-  }
 
-  // In production (Vercel), ALWAYS use the proxy path '/api'
-  // This prevents CORS issues by routing through Vercel's rewrite rules
-  // The vercel.json config maps /api/* to the backend
-  console.log('[API] Production mode detected, using /api proxy');
+  // Vite embeds VITE_* values at build time.  Honour an explicitly configured
+  // backend in every environment so a deployment is not tied to the sample
+  // Render hostname in vercel.json.
+  if (configured) return configured;
+
+  // Local Vite development talks directly to the locally running FastAPI app.
+  if (import.meta.env.DEV) return 'http://127.0.0.1:8000/api';
+
+  // With no configured API, use the same-origin Vercel rewrite as a fallback.
   return '/api';
 }
 
 function getApiUrl(path: string) {
   if (!API_BASE_URL) return path;
-  
-  // Safety check: In production, API_BASE_URL should be '/api'
-  // If somehow it's a full URL, log a warning and use '/api' instead
-  if (!import.meta.env.DEV && API_BASE_URL.startsWith('http')) {
-    console.warn('[API] Production mode but API_BASE_URL is full URL, forcing /api proxy');
-    return `/api${path}`;
-  }
   
   return `${API_BASE_URL}${path}`;
 }

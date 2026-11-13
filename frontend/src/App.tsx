@@ -172,7 +172,7 @@ export default function App() {
       {backendOk === false && (
         <div role="alert" className="p-3 bg-red-700 text-white text-sm text-center">
           {import.meta.env.DEV
-            ? 'The NBA data service is not responding. Development mode uses the deployed API by default; set VITE_API_BASE_URL to use a local backend.'
+            ? 'The NBA data service is not responding. Start the local backend or set VITE_API_BASE_URL to a reachable API.'
             : 'The NBA data service is temporarily unavailable. Please try again shortly.'}
         </div>
       )}

@@ -46,14 +46,14 @@ http://127.0.0.1:5173
 
 ## Environment Variables
 
-The frontend development server uses the deployed backend by default. To use a local backend, set:
+The frontend uses the local backend by default during development. To override it, set:
 
 ```text
 VITE_API_BASE_URL=http://127.0.0.1:8000/api
 ```
 
 Start the backend and frontend in separate terminals when using this local URL.
-In production, Vercel proxies `/api/*` to Render using the rewrite in `frontend/vercel.json`. Update that rewrite if you deploy a different Render service. See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+For Vercel, add `VITE_API_BASE_URL` in Project Settings → Environment Variables for both Production and Preview. Its value must be the public `/api` URL of the deployed Render service, for example `https://your-render-service.onrender.com/api`. Redeploy after adding or changing it. The same-origin `/api` rewrite is retained only as a fallback.
 
 ## Deployment
 
