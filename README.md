@@ -53,7 +53,7 @@ VITE_API_BASE_URL=http://127.0.0.1:8000/api
 ```
 
 Start the backend and frontend in separate terminals when using this local URL.
-For Vercel, add `VITE_API_BASE_URL` in Project Settings → Environment Variables for both Production and Preview. Its value must be the public `/api` URL of the deployed Render service, for example `https://your-render-service.onrender.com/api`. Redeploy after adding or changing it. The same-origin `/api` rewrite is retained only as a fallback.
+For Vercel, do not set `VITE_API_BASE_URL`. Production requests use the same-origin `/api` rewrite in `frontend/vercel.json`, which forwards to Render without browser CORS restrictions. Update that rewrite if the Render service URL changes.
 
 ## Deployment
 

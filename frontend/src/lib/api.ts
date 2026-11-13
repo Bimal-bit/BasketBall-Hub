@@ -31,15 +31,16 @@ export function getNbaSeasons() {
 function resolveApiBaseUrl() {
   const configured = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
 
-  // Vite embeds VITE_* values at build time.  Honour an explicitly configured
-  // backend in every environment so a deployment is not tied to the sample
-  // Render hostname in vercel.json.
-  if (configured) return configured;
+  // A browser must not call Render directly in production: the Render service
+  // can omit CORS headers during upstream failures/cold starts. Route through
+  // Vercel's same-origin rewrite instead (configured in vercel.json).
+  if (!import.meta.env.DEV) return '/api';
 
-  // Local Vite development talks directly to the locally running FastAPI app.
+  // Local Vite development can use an explicitly configured API, otherwise
+  // it talks to a FastAPI server running on the developer's machine.
+  if (configured) return configured;
   if (import.meta.env.DEV) return 'http://127.0.0.1:8000/api';
 
-  // With no configured API, use the same-origin Vercel rewrite as a fallback.
   return '/api';
 }
 
